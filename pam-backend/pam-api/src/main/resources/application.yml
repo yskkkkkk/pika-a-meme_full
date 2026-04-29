@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+  data:
+    redis:
+      url: ${REDIS_URL}           # rediss://host:port
+      password: ${REDIS_PASSWORD}
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.pickameme: INFO
