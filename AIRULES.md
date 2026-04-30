@@ -30,3 +30,36 @@
   - 작업을 시작할 때 상태를 `[/]`(진행)로 변경하고, 완료 시 `[x]`(완료)로 업데이트한다.
   - 사용자의 추가 요청(Ad-hoc)은 `[!]` 표시와 함께 즉시 티켓을 생성하여 추적한다.
 - **동기화:** 매 작업 단계가 끝날 때마다 백로그를 최신 상태로 유지하여 진행 상황을 투명하게 공유한다.
+
+## 7. Git 브랜치 전략 (Branching Strategy)
+모든 작업은 **'Prefix/Domain/Task'** 구조의 네임스페이스 브랜치를 기반으로 격리되어 수행되어야 한다.
+
+- **`infra/`**: 인프라 및 기반 설정 (Flyway, R2, Redis, jOOQ, Logging, Build)
+  - 예: `infra/jooq-codegen-setup`, `infra/r2-connection-test`
+- **`feat/heart/`**: 하트 재화 시스템 도메인 (충전/소모 로직, 분산 락, 스케줄링)
+  - 예: `feat/heart/charging-logic`, `feat/heart/special-grant`
+- **`feat/meme/`**: 밈 생성 및 이미지 처리 도메인 (Canvas, JSONB, R2 업로드)
+  - 예: `feat/meme/canvas-editor`, `feat/meme/r2-upload-handler`
+- **`feat/auth/`**: 회원 가입 및 인증 도메인 (OAuth2, JWT, 세션)
+  - 예: `feat/auth/kakao-login-api`
+- **`feat/front/`**: 프론트엔드 UI/UX 및 상태 관리 (Components, Hooks, State)
+  - 예: `feat/front/stamina-bar`, `feat/front/guest-heart-hook`
+- **`fix/`**: 버그 수정 (Prefix/Domain/Bug-Description)
+  - 예: `fix/heart/concurrency-race`, `fix/meme/canvas-export-ratio`
+- **`docs/`**: 문서화 작업 및 가이드라인 업데이트
+  - 예: `docs/update-backlog-phase2`, `docs/api-specification`
+
+## 8. 에이전트 작업 프로토콜 (Agent Workflow Protocol)
+각 에이전트는 작업을 시작하기 전과 후에 다음 절차를 엄격히 수행해야 한다.
+
+1. **Isolation (격리):** 작업 시작 전 항상 `main` 브랜치에서 최신 상태를 유지하며, 작업 도메인에 맞는 Namespace 브랜치를 생성한다.
+2. **Context Preservation (맥락 보존):** 
+   - 작업 중 발생하는 중요한 설계 결정 사안, 대안 탐색, 변경점은 PR(Pull Request) 본문에 상세히 기록한다.
+   - 이는 브랜치 삭제 후에도 `BACKLOG.md`와 함께 히스토리를 추적하기 위한 핵심 기록이 된다.
+3. **Traceability (추적성):**
+   - 작업을 시작할 때 `BACKLOG.md`의 티켓 상태를 `[/]`로 변경한다.
+   - 모든 커밋과 PR에는 관련 티켓 ID(예: `TASK-260429-01`)를 반드시 명시한다.
+4. **Validation & Verification (검증):**
+   - 코드를 제출하기 전 관련 단위 테스트를 수행하고 통과 여부를 확인한다.
+   - 작업 완료 시 `BACKLOG.md` 상태를 `[x]`로 업데이트하고 완료일을 기록한다.
+
