@@ -9,6 +9,10 @@ dependencies {
     
     // Spring Web
     implementation("org.springframework.boot:spring-boot-starter-web")
+
+    // Spring Security + OAuth2 Client
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
