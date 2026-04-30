@@ -34,7 +34,9 @@ spring:
             client-secret: ${KAKAO_CLIENT_SECRET}
             redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
-            scope: profile_nickname, account_email
+            scope:
+              - profile_nickname
+              - account_email
             client-name: Kakao
             client-authentication-method: client_secret_post
           google:
@@ -52,6 +54,13 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration-ms: 86400000  # 24시간
+
+cloudflare:
+  r2:
+    endpoint: ${R2_ENDPOINT}
+    access-key-id: ${R2_ACCESS_KEY_ID}
+    secret-access-key: ${R2_SECRET_ACCESS_KEY}
+    bucket-name: ${R2_BUCKET_NAME}
 
 oauth2:
   redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:3000/oauth2/callback}
