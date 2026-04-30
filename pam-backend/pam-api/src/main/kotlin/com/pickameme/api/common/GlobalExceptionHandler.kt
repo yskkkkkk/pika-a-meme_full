@@ -1,0 +1,75 @@
+package com.pickameme.api.common
+
+import com.pickameme.domain.exception.DomainException
+import com.pickameme.domain.exception.DuplicateEmailException
+import com.pickameme.domain.exception.HeartNotFoundException
+import com.pickameme.domain.exception.InsufficientHeartException
+import com.pickameme.domain.exception.UserNotFoundException
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestControllerAdvice
+
+@RestControllerAdvice
+class GlobalExceptionHandler {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    // 422 — 하트 부족
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler(InsufficientHeartException::class)
+    fun handleInsufficientHeart(e: InsufficientHeartException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.INSUFFICIENT_HEART)
+
+    // 404 — 하트 없음
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(HeartNotFoundException::class)
+    fun handleHeartNotFound(e: HeartNotFoundException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.HEART_NOT_FOUND)
+
+    // 404 — 유저 없음
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(UserNotFoundException::class)
+    fun handleUserNotFound(e: UserNotFoundException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.USER_NOT_FOUND)
+
+    // 409 — 이메일 중복
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(DuplicateEmailException::class)
+    fun handleDuplicateEmail(e: DuplicateEmailException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.DUPLICATE_EMAIL)
+
+    // 400 — Bean Validation 실패
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidation(e: MethodArgumentNotValidException): ApiResponse<Nothing> {
+        val message = e.bindingResult.fieldErrors
+            .joinToString(", ") { "${it.field}: ${it.defaultMessage}" }
+        log.warn("Validation failed: {}", message)
+        return ApiResponse(
+            success = false,
+            error = ErrorDetail(ErrorCode.INVALID_REQUEST.name, message)
+        )
+    }
+
+    // 400 — 그 외 DomainException (명시적으로 매핑되지 않은 비즈니스 예외)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(DomainException::class)
+    fun handleDomain(e: DomainException): ApiResponse<Nothing> {
+        log.warn("Domain exception: {}", e.message)
+        return ApiResponse(
+            success = false,
+            error = ErrorDetail(ErrorCode.INVALID_REQUEST.name, e.message ?: ErrorCode.INVALID_REQUEST.message)
+        )
+    }
+
+    // 500 — 예상치 못한 예외
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception::class)
+    fun handleUnexpected(e: Exception): ApiResponse<Nothing> {
+        log.error("Unexpected error", e)
+        return ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR)
+    }
+}

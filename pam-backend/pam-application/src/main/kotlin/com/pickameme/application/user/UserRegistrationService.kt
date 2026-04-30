@@ -1,5 +1,6 @@
 package com.pickameme.application.user
 
+import com.pickameme.domain.exception.DuplicateEmailException
 import com.pickameme.domain.user.User
 import com.pickameme.domain.user.UserRegisteredEvent
 import com.pickameme.domain.user.UserRepository
@@ -15,7 +16,7 @@ class UserRegistrationService(
 
     @Transactional
     fun registerUser(username: String, email: String): User {
-        require(userRepository.findByEmail(email) == null) { "Email already registered" }
+        if (userRepository.findByEmail(email) != null) throw DuplicateEmailException(email)
         
         val user = User.create(username, email)
         val savedUser = userRepository.save(user)

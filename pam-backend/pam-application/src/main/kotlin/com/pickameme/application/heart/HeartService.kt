@@ -1,6 +1,7 @@
 package com.pickameme.application.heart
 
 import com.pickameme.domain.common.LockManager
+import com.pickameme.domain.exception.HeartNotFoundException
 import com.pickameme.domain.heart.Heart
 import com.pickameme.domain.heart.HeartHistory
 import com.pickameme.domain.heart.HeartHistoryRepository
@@ -71,5 +72,5 @@ class HeartService(
 
     private fun findHeartOrThrow(userId: UUID, type: HeartType): Heart =
         heartRepository.findByUserIdAndType(userId, type)
-            ?: throw IllegalStateException("하트를 찾을 수 없습니다. (userId=$userId, type=$type)")
+            ?: throw HeartNotFoundException(userId, type)
 }

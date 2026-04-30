@@ -1,5 +1,6 @@
 package com.pickameme.domain.heart
 
+import com.pickameme.domain.exception.InsufficientHeartException
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -33,7 +34,7 @@ class Heart(
     }
 
     fun consume() {
-        require(count > 0) { "하트가 부족합니다. (type=$type, userId=$userId)" }
+        if (count <= 0) throw InsufficientHeartException(userId, type)
         count--
     }
 
