@@ -21,8 +21,9 @@ subprojects {
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
 
-    java {
+    configure<JavaPluginExtension> {
         sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
@@ -37,10 +38,10 @@ subprojects {
     }
 
     dependencies {
-        implementation("org.jetbrains.kotlin:kotlin-reflect")
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-        
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+        "implementation"("org.jetbrains.kotlin:kotlin-reflect")
+        "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+        "testImplementation"("org.springframework.boot:spring-boot-starter-test")
+        "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5")
     }
 }

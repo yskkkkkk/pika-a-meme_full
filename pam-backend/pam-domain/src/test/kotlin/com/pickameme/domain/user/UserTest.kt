@@ -8,33 +8,47 @@ import org.junit.jupiter.api.Test
 class UserTest {
 
     @Test
-    @DisplayName("User creation should succeed with valid inputs")
-    fun testCreateUserSuccess() {
-        val username = "testuser"
-        val email = "test@example.com"
-
-        val user = User.create(username, email)
+    @DisplayName("유효한 입력으로 User 생성 성공")
+    fun `create user with valid inputs`() {
+        val user = User.createByOAuth2(
+            username = "testuser",
+            email = "test@example.com",
+            provider = OAuthProvider.GOOGLE,
+            providerId = "google-123"
+        )
 
         assertThat(user.id).isNotNull()
-        assertThat(user.username).isEqualTo(username)
-        assertThat(user.email).isEqualTo(email)
+        assertThat(user.username).isEqualTo("testuser")
+        assertThat(user.email).isEqualTo("test@example.com")
         assertThat(user.createdAt).isNotNull()
         assertThat(user.updatedAt).isNotNull()
     }
 
     @Test
-    @DisplayName("User creation should fail with blank username")
-    fun testCreateUserBlankUsername() {
-        assertThatThrownBy { User.create("", "test@example.com") }
-            .isInstanceOf(IllegalArgumentException::class.java)
+    @DisplayName("빈 username으로 User 생성 실패")
+    fun `create user with blank username fails`() {
+        assertThatThrownBy {
+            User.createByOAuth2(
+                username = "",
+                email = "test@example.com",
+                provider = OAuthProvider.GOOGLE,
+                providerId = "google-123"
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Username must not be blank")
     }
 
     @Test
-    @DisplayName("User creation should fail with invalid email")
-    fun testCreateUserInvalidEmail() {
-        assertThatThrownBy { User.create("testuser", "invalid-email") }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Email must be valid")
+    @DisplayName("빈 email로 User 생성 실패")
+    fun `create user with blank email fails`() {
+        assertThatThrownBy {
+            User.createByOAuth2(
+                username = "testuser",
+                email = "",
+                provider = OAuthProvider.GOOGLE,
+                providerId = "google-123"
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Email must not be blank")
     }
 }
