@@ -11,6 +11,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     // PostgreSQL Driver
     runtimeOnly("org.postgresql:postgresql")
+    // Flyway
+    implementation("org.flywaydb:flyway-core")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     
     // Redis + Redisson (분산 락, Spring Data Redis 대체)
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
