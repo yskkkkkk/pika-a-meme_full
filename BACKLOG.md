@@ -34,7 +34,7 @@
 | TASK-260429-18 | [밈/이미지] | [x] | MemeCreationService 구현 (HeartService + MemeFactory 오케스트레이션) | TASK-260429-17, TASK-260429-07 | 260429 / 260501 |
 | TASK-260429-19 | [밈/이미지] | [x] | Cloudflare R2 스토리지 어댑터 구현 (이미지 업로드, presigned URL 발급) | - | 260429 / 260430 |
 | TASK-260429-20 | [밈/이미지] | [x] | 밈 생성 및 조회 REST API 구현 (POST /api/memes, GET /api/memes) | TASK-260429-18, TASK-260429-09 | 260429 / 260501 |
-| TASK-260429-21 | [하트/스테미나] | [ ] | Heart REST API 구현 (GET /api/hearts — 현재 하트 현황 조회) | TASK-260429-07 | 260429 / - |
+| TASK-260429-21 | [하트/스테미나] | [x] | Heart REST API 구현 (GET /api/hearts — 현재 하트 현황 조회) | TASK-260429-07 | 260429 / 260501 |
 | TASK-260429-22 | [하트/스테미나] | [ ] | SPECIAL 하트 지급 트리거 정의 및 구현 (조건 달성 이벤트 → grantSpecialHeart) | TASK-260429-07 | 260429 / - |
 | TASK-260429-23 | [프론트엔드] | [x] | 프론트엔드 프로젝트 초기 설정 (Next.js 14 App Router, Tailwind, API 클라이언트) | - | 260429 / 260430 |
 | TASK-260429-24 | [프론트엔드] | [ ] | Canvas 에디터 컴포넌트 구현 (동물 사진 + 텍스트/스티커 합성, canvas_state 직렬화) | TASK-260429-23 | 260429 / - |
