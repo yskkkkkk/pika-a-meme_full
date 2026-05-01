@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    .blog-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .blog-post-card {
+      display: block;
+      background: var(--bg-primary);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+    }
+    .blog-post-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .blog-post-date {
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .blog-post-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 10px 0;
+    }
+    .blog-post-summary {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0 0 14px 0;
+    }
+    .back-btn-container {
+      max-width: 800px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+    }
+    .btn-back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+    .btn-back-home:hover {
+      background: var(--bg-secondary);
+      transform: translateY(-1px);
+    }
+  </style>
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <header class="blog-header glass">
+    <h1>🎰 pick-a-meme Dev Blog</h1>
+    <div class="theme-dots">
+      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
+      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
+      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
+    </div>
+  </header>
+
+  <div class="back-btn-container">
+    <a href="/" class="btn-back-home">← pick-a-meme 메인으로</a>
+  </div>
+
+  <main class="blog-container">
+
+    <!-- 이슈 #2 -->
+    <a href="/blog/post3.html" class="blog-post-card glass">
+      <div class="blog-post-date">픽-아-밈 개발기 · 이슈 #2</div>
+      <h2 class="blog-post-title">하트가 두 종류라 저장소도 두 개다</h2>
+      <p class="blog-post-summary">BASIC 하트는 Redis, SPECIAL 하트는 JPA. 같은 재화인데 저장소가 다른 이유가 있다. 분산 락이 없었으면 동시 요청에서 하트가 이상하게 차거나 빠졌을 것이다.</p>
+      <div class="post-tags">
+        <span class="tag-chip">#Redis</span>
+        <span class="tag-chip">#JPA</span>
+        <span class="tag-chip">#분산락</span>
+        <span class="tag-chip">#하트시스템</span>
+        <span class="tag-chip">#바이브코딩</span>
+      </div>
+    </a>
+
+    <!-- 이슈 #1 -->
+    <a href="/blog/post2.html" class="blog-post-card glass">
+      <div class="blog-post-date">픽-아-밈 개발기 · 이슈 #1</div>
+      <h2 class="blog-post-title">Pet-Pass는 그냥 쌓았다 — 이번엔 계층을 나눈다</h2>
+      <p class="blog-post-summary">Pet-Pass에서 코드가 뒤섞이는 게 어떤 느낌인지 배웠다. 이번엔 처음부터 Clean Architecture로 시작했다. AI에게 계층 규칙을 지키게 하는 게 코드 짜는 것보다 더 어려웠다.</p>
+      <div class="post-tags">
+        <span class="tag-chip">#CleanArchitecture</span>
+        <span class="tag-chip">#DDD</span>
+        <span class="tag-chip">#Kotlin</span>
+        <span class="tag-chip">#바이브코딩</span>
+      </div>
+    </a>
+
+    <!-- 시작하며 -->
+    <a href="/blog/post1.html" class="blog-post-card glass">
+      <div class="blog-post-date">픽-아-밈 개발기 · 시작하며</div>
+      <h2 class="blog-post-title">Pet-Pass를 마치고, 픽-아-밈을 시작한다</h2>
+      <p class="blog-post-summary">Pet-Pass는 아무도 안 쓴다는 걸 인정하고, 다음 프로젝트의 조건을 다시 정했다. 즉각성, 바이럴, 단순함. 그 조건에서 나온 게 B급 감성 가챠 밈 생성기다.</p>
+      <div class="post-tags">
+        <span class="tag-chip">#바이브코딩</span>
+        <span class="tag-chip">#가챠</span>
+        <span class="tag-chip">#AI협업</span>
+      </div>
+    </a>
+
+  </main>
+
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>
