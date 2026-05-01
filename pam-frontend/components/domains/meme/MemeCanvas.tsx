@@ -1,111 +1,310 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
-import { Download, Type, StickyNote, RefreshCcw, Camera } from "lucide-react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import { Download, Type, Smile, Trash2, Camera, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGuestHeart } from "@/hooks/useGuestHeart";
-
-interface MemeMetadata {
-  imageUrl: string;
-  text: {
-    content: string;
-    x: number;
-    y: number;
-    fontSize: number;
-  };
-  sticker: {
-    id: string;
-    x: number;
-    y: number;
-    scale: number;
-  };
-}
+import { STICKER_LIST, FONT_LIST, StickerDef, FontId } from "@/lib/stickers";
+import {
+  EditorTextItem,
+  EditorStickerItem,
+  EditorState,
+  serializeCanvasState,
+} from "@/lib/canvasState";
 
 interface MemeCanvasProps {
   backgroundImageUrl?: string;
+  templateId?: string;
 }
 
-export function MemeCanvas({ backgroundImageUrl }: MemeCanvasProps) {
-  const { hearts, consumeHeart } = useGuestHeart();
+// ------- 유틸 -------
+let _uid = 0;
+const uid = () => `item-${++_uid}-${Date.now()}`;
+
+const TEXT_COLORS = ["#ffffff", "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#ff00ff", "#000000"];
+
+// ------- 컴포넌트 -------
+export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [text, setText] = useState("킹받는 문구를 입력하세요");
-  const [textPos, setTextPos] = useState({ x: 250, y: 400 });
-  const [stickerPos, setStickerPos] = useState({ x: 250, y: 200 });
-  const [stickerScale, setStickerScale] = useState(1.0);
-  
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Editor items
+  const [textItems, setTextItems] = useState<EditorTextItem[]>([]);
+  const [stickerItems, setStickerItems] = useState<EditorStickerItem[]>([]);
+
+  // UI state
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedFont, setSelectedFont] = useState<FontId>("impact");
+  const [selectedColor, setSelectedColor] = useState("#ffffff");
+  const [newText, setNewText] = useState("");
+
+  // Drag state
+  const [dragTarget, setDragTarget] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
   const canvasSize = 500;
 
+  // ---- 이미지 캐시 ----
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
+
   useEffect(() => {
+    if (!backgroundImageUrl) {
+      bgImageRef.current = null;
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = backgroundImageUrl;
+    img.onload = () => {
+      bgImageRef.current = img;
+      drawCanvas();
+    };
+  }, [backgroundImageUrl]);
+
+  // ---- 캔버스 그리기 ----
+  const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const draw = async () => {
-      // Clear
-      ctx.fillStyle = "#f3f4f6";
-      ctx.fillRect(0, 0, canvasSize, canvasSize);
+    // Clear
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      if (backgroundImageUrl) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = backgroundImageUrl;
-        await new Promise((resolve) => (img.onload = resolve));
-        
-        // Draw image (cover style)
-        const scale = Math.max(canvasSize / img.width, canvasSize / img.height);
-        const x = (canvasSize / 2) - (img.width / 2) * scale;
-        const y = (canvasSize / 2) - (img.height / 2) * scale;
-        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-      } else {
-        // Placeholder state
-        ctx.fillStyle = "#9ca3af";
-        ctx.font = "bold 20px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("동물을 먼저 뽑아주세요!", canvasSize / 2, canvasSize / 2);
-      }
-
-      // Draw Text
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 6;
-      ctx.lineJoin = "round";
-      ctx.font = "900 40px Impact, sans-serif";
+    // Background image
+    if (bgImageRef.current) {
+      const img = bgImageRef.current;
+      const scale = Math.max(canvasSize / img.width, canvasSize / img.height);
+      const x = canvasSize / 2 - (img.width / 2) * scale;
+      const y = canvasSize / 2 - (img.height / 2) * scale;
+      ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    } else {
+      ctx.fillStyle = "#555";
+      ctx.font = "bold 22px sans-serif";
       ctx.textAlign = "center";
-      
-      ctx.strokeText(text, textPos.x, textPos.y);
-      ctx.fillText(text, textPos.x, textPos.y);
+      ctx.textBaseline = "middle";
+      ctx.fillText("동물을 먼저 뽑아주세요!", canvasSize / 2, canvasSize / 2);
+    }
 
-      // Draw Sticker Placeholder
-      ctx.beginPath();
-      ctx.arc(stickerPos.x, stickerPos.y, 30 * stickerScale, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 0, 0.8)";
-      ctx.fill();
-    };
+    // Draw stickers (emoji)
+    for (const s of stickerItems) {
+      const size = 48 * s.scale;
+      ctx.font = `${size}px serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(s.emoji, s.x, s.y);
 
-    draw();
-  }, [backgroundImageUrl, text, textPos, stickerPos, stickerScale]);
+      // Selection indicator
+      if (s.id === selectedId) {
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(s.x - size / 2 - 4, s.y - size / 2 - 4, size + 8, size + 8);
+        ctx.setLineDash([]);
+      }
+    }
 
-  const handleDownload = () => {
+    // Draw text items
+    for (const t of textItems) {
+      const fontDef = FONT_LIST.find((f) => f.id === t.fontId);
+      const fontCss = fontDef?.css || "'Impact', sans-serif";
+
+      ctx.font = `900 ${t.fontSize}px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Outline
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = Math.max(4, t.fontSize / 8);
+      ctx.lineJoin = "round";
+      ctx.strokeText(t.content, t.x, t.y);
+
+      // Fill
+      ctx.fillStyle = t.color;
+      ctx.fillText(t.content, t.x, t.y);
+
+      // Selection indicator
+      if (t.id === selectedId) {
+        const metrics = ctx.measureText(t.content);
+        const w = metrics.width + 12;
+        const h = t.fontSize + 12;
+        ctx.strokeStyle = "#ff00ff";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(t.x - w / 2, t.y - h / 2, w, h);
+        ctx.setLineDash([]);
+      }
+    }
+  }, [textItems, stickerItems, selectedId]);
+
+  useEffect(() => {
+    drawCanvas();
+  }, [drawCanvas]);
+
+  // ---- 좌표 변환 (반응형 대응) ----
+  const getCanvasCoords = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const link = document.createElement("a");
-    link.download = `pika-meme-${Date.now()}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvasSize / rect.width;
+    const scaleY = canvasSize / rect.height;
+
+    let clientX: number, clientY: number;
+    if ("touches" in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
   };
+
+  // ---- 히트 테스트 ----
+  const hitTest = (x: number, y: number): string | null => {
+    // Stickers (역순 = 위에 있는 것 먼저)
+    for (let i = stickerItems.length - 1; i >= 0; i--) {
+      const s = stickerItems[i];
+      const half = (48 * s.scale) / 2 + 8;
+      if (Math.abs(x - s.x) < half && Math.abs(y - s.y) < half) return s.id;
+    }
+    // Text items
+    for (let i = textItems.length - 1; i >= 0; i--) {
+      const t = textItems[i];
+      const halfH = t.fontSize / 2 + 8;
+      const halfW = (t.content.length * t.fontSize) / 3 + 16;
+      if (Math.abs(x - t.x) < halfW && Math.abs(y - t.y) < halfH) return t.id;
+    }
+    return null;
+  };
+
+  // ---- 드래그 이벤트 ----
+  const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!backgroundImageUrl) return;
+    const coords = getCanvasCoords(e);
+    const hit = hitTest(coords.x, coords.y);
+    setSelectedId(hit);
+    if (hit) {
+      setDragTarget(hit);
+      const item =
+        textItems.find((t) => t.id === hit) ||
+        stickerItems.find((s) => s.id === hit);
+      if (item) {
+        setDragOffset({ x: coords.x - item.x, y: coords.y - item.y });
+      }
+    }
+  };
+
+  const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!dragTarget) return;
+    const coords = getCanvasCoords(e);
+    const nx = coords.x - dragOffset.x;
+    const ny = coords.y - dragOffset.y;
+
+    setTextItems((prev) =>
+      prev.map((t) => (t.id === dragTarget ? { ...t, x: nx, y: ny } : t))
+    );
+    setStickerItems((prev) =>
+      prev.map((s) => (s.id === dragTarget ? { ...s, x: nx, y: ny } : s))
+    );
+  };
+
+  const handlePointerUp = () => {
+    setDragTarget(null);
+  };
+
+  // ---- 텍스트 추가 ----
+  const addText = () => {
+    if (!newText.trim()) return;
+    const item: EditorTextItem = {
+      id: uid(),
+      content: newText.trim(),
+      x: canvasSize / 2,
+      y: canvasSize / 2,
+      fontSize: 40,
+      fontId: selectedFont,
+      color: selectedColor,
+    };
+    setTextItems((prev) => [...prev, item]);
+    setNewText("");
+    setSelectedId(item.id);
+  };
+
+  // ---- 스티커 추가 ----
+  const addSticker = (def: StickerDef) => {
+    const item: EditorStickerItem = {
+      id: uid(),
+      stickerId: def.id,
+      emoji: def.emoji,
+      x: canvasSize / 2 + (Math.random() - 0.5) * 100,
+      y: canvasSize / 2 + (Math.random() - 0.5) * 100,
+      scale: 1.0,
+    };
+    setStickerItems((prev) => [...prev, item]);
+    setSelectedId(item.id);
+  };
+
+  // ---- 선택 아이템 삭제 ----
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    setTextItems((prev) => prev.filter((t) => t.id !== selectedId));
+    setStickerItems((prev) => prev.filter((s) => s.id !== selectedId));
+    setSelectedId(null);
+  };
+
+  // ---- 다운로드 ----
+  const handleDownload = () => {
+    // 선택 표시 없이 다시 그리기
+    const prevSelected = selectedId;
+    setSelectedId(null);
+
+    requestAnimationFrame(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const link = document.createElement("a");
+      link.download = `pika-meme-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      setSelectedId(prevSelected);
+    });
+  };
+
+  // ---- 직렬화 (디버그 / 추후 API 전송용) ----
+  const getCanvasState = (): EditorState => ({
+    templateId: templateId || "unknown",
+    imageUrl: backgroundImageUrl || "",
+    textItems,
+    stickerItems,
+  });
+
+  const isDisabled = !backgroundImageUrl;
 
   return (
     <div className="flex flex-col items-center gap-6 p-8 bg-white rounded-3xl shadow-xl border border-gray-100">
-      <div className="relative group overflow-hidden rounded-2xl shadow-inner bg-gray-50 border-4 border-black">
-        <canvas 
-          ref={canvasRef} 
-          width={canvasSize} 
+      {/* Canvas */}
+      <div
+        ref={containerRef}
+        className="relative group overflow-hidden rounded-2xl shadow-inner bg-gray-900 border-4 border-black"
+      >
+        <canvas
+          ref={canvasRef}
+          width={canvasSize}
           height={canvasSize}
-          className="max-w-full aspect-square cursor-crosshair bg-gray-200"
+          className="max-w-full aspect-square cursor-crosshair"
+          onMouseDown={handlePointerDown}
+          onMouseMove={handlePointerMove}
+          onMouseUp={handlePointerUp}
+          onMouseLeave={handlePointerUp}
+          onTouchStart={handlePointerDown}
+          onTouchMove={handlePointerMove}
+          onTouchEnd={handlePointerUp}
         />
-        {!backgroundImageUrl && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/5 backdrop-blur-[2px]">
+        {isDisabled && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
             <div className="p-4 bg-white/90 rounded-full shadow-lg">
               <Camera className="w-8 h-8 text-gray-400 animate-bounce" />
             </div>
@@ -113,47 +312,103 @@ export function MemeCanvas({ backgroundImageUrl }: MemeCanvasProps) {
         )}
       </div>
 
-      <div className="w-full max-w-[500px] space-y-6">
-        <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <Type className="w-3 h-3" /> Meme Text
+      {/* Toolbar */}
+      <div className="w-full max-w-[500px] space-y-5">
+        {/* 텍스트 추가 */}
+        <div className="space-y-3">
+          <label className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
+            <Type className="w-3.5 h-3.5" /> 텍스트 추가
           </label>
-          <input 
-            type="text" 
-            value={text} 
-            onChange={(e) => setText(e.target.value)}
-            disabled={!backgroundImageUrl}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all disabled:opacity-50"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newText}
+              onChange={(e) => setNewText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addText()}
+              placeholder="킹받는 문구를 입력하세요"
+              disabled={isDisabled}
+              className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all disabled:opacity-50 text-sm font-bold"
+            />
+            <button
+              onClick={addText}
+              disabled={isDisabled || !newText.trim()}
+              className="px-5 py-3 bg-pink-500 text-white font-black rounded-xl hover:bg-pink-600 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+            >
+              추가
+            </button>
+          </div>
+
+          {/* 폰트 & 색상 선택 */}
+          <div className="flex gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-gray-400" />
+              {TEXT_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setSelectedColor(c)}
+                  className={cn(
+                    "w-6 h-6 rounded-full border-2 transition-transform hover:scale-110",
+                    selectedColor === c ? "border-pink-500 scale-125" : "border-gray-300"
+                  )}
+                  style={{ backgroundColor: c }}
+                  title={c}
+                />
+              ))}
+            </div>
+            <select
+              value={selectedFont}
+              onChange={(e) => setSelectedFont(e.target.value as FontId)}
+              className="px-3 py-1.5 text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg outline-none"
+            >
+              {FONT_LIST.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Text Y-Pos</label>
-            <input 
-              type="range" min="0" max="500" 
-              value={textPos.y} 
-              disabled={!backgroundImageUrl}
-              onChange={(e) => setTextPos(prev => ({ ...prev, y: parseInt(e.target.value) }))}
-              className="w-full accent-primary disabled:opacity-50"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Sticker Scale</label>
-            <input 
-              type="range" min="0.5" max="3" step="0.1"
-              value={stickerScale} 
-              disabled={!backgroundImageUrl}
-              onChange={(e) => setStickerScale(parseFloat(e.target.value))}
-              className="w-full accent-primary disabled:opacity-50"
-            />
+        {/* 스티커 팔레트 */}
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
+            <Smile className="w-3.5 h-3.5" /> 스티커
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {STICKER_LIST.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => addSticker(s)}
+                disabled={isDisabled}
+                className="w-10 h-10 flex items-center justify-center text-xl bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 hover:scale-110 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title={s.label}
+              >
+                {s.emoji}
+              </button>
+            ))}
           </div>
         </div>
 
-        <button 
+        {/* 선택된 아이템 컨트롤 */}
+        {selectedId && (
+          <div className="flex items-center gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl animate-in fade-in">
+            <span className="text-xs font-black text-pink-600 uppercase flex-1">
+              선택됨 — 드래그하여 이동
+            </span>
+            <button
+              onClick={deleteSelected}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 active:scale-95 transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> 삭제
+            </button>
+          </div>
+        )}
+
+        {/* 다운로드 */}
+        <button
           onClick={handleDownload}
-          disabled={!backgroundImageUrl}
-          className="w-full py-4 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-30 disabled:cursor-not-allowed"
+          disabled={isDisabled}
+          className="w-full py-4 bg-black text-white font-black rounded-2xl hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <Download className="w-5 h-5" /> 밈 저장하기 (PNG)
         </button>

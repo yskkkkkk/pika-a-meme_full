@@ -40,7 +40,7 @@ export function MemeGeneratorContainer() {
             STEP 2. <span className="text-indigo-600">밈 꾸미기</span>
           </h2>
         </div>
-        <MemeCanvas backgroundImageUrl={selectedImage?.url} />
+        <MemeCanvas backgroundImageUrl={selectedImage?.url} templateId={selectedImage?.id} />
       </div>
     </div>
   );
