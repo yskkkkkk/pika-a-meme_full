@@ -27,6 +27,7 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/oauth2/**", "/login/**", "/actuator/health").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/memes").permitAll()
                     .anyRequest().authenticated()
             }
             .oauth2Login { oauth2 ->

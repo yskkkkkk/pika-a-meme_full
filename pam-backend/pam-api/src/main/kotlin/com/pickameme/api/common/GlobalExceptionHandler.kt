@@ -4,6 +4,7 @@ import com.pickameme.domain.exception.DomainException
 import com.pickameme.domain.exception.DuplicateEmailException
 import com.pickameme.domain.exception.HeartNotFoundException
 import com.pickameme.domain.exception.InsufficientHeartException
+import com.pickameme.domain.exception.MemeCreationPolicyViolationException
 import com.pickameme.domain.exception.UserNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -22,6 +23,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientHeartException::class)
     fun handleInsufficientHeart(e: InsufficientHeartException): ApiResponse<Nothing> =
         ApiResponse.fail(ErrorCode.INSUFFICIENT_HEART)
+
+    // 422 — 밈 생성 정책 위반
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler(MemeCreationPolicyViolationException::class)
+    fun handleMemePolicyViolation(e: MemeCreationPolicyViolationException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.MEME_POLICY_VIOLATION)
 
     // 404 — 하트 없음
     @ResponseStatus(HttpStatus.NOT_FOUND)
