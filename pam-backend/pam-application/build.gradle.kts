@@ -9,6 +9,9 @@ dependencies {
     // Spring context, tx, events
     implementation("org.springframework:spring-context")
     implementation("org.springframework:spring-tx")
+
+    // Logging (SLF4J API — runtime provided by Spring Boot in downstream modules)
+    implementation("org.slf4j:slf4j-api")
     
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
