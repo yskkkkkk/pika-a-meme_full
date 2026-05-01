@@ -4,8 +4,12 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":pam-domain"))
     implementation(project(":pam-application"))
     implementation(project(":pam-infrastructure"))
+
+    // JPA (PickAMemeApplication의 @EnableJpaRepositories 컴파일용)
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     
     // Spring Web
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -19,6 +23,8 @@ dependencies {
     
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 }
 
 // pam-api is the entry point, so we DO NOT disable bootJar

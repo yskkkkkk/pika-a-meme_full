@@ -5,6 +5,10 @@ enum class ErrorCode(val message: String) {
     INSUFFICIENT_HEART("하트가 부족합니다."),
     HEART_NOT_FOUND("하트 정보를 찾을 수 없습니다."),
 
+    // 밈
+    MEME_NOT_FOUND("밈을 찾을 수 없습니다."),
+    MEME_POLICY_VIOLATION("밈 생성 정책에 위반됩니다."),
+
     // 유저
     USER_NOT_FOUND("유저를 찾을 수 없습니다."),
     DUPLICATE_EMAIL("이미 사용 중인 이메일입니다."),
