@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pet-Pass를 마치고, 픽-아-밈을 시작한다 | pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ─── 이 포스트 고유: 조건 카드 ─── */
+    .condition-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 28px 0;
+    }
+    .condition-card {
+      background: var(--bg-secondary);
+      border-radius: 14px;
+      padding: 24px 16px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .condition-icon { font-size: 28px; margin-bottom: 10px; }
+    .condition-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .condition-desc {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      line-height: 1.6;
+    }
+    /* ─── 시리즈 예고 ─── */
+    .series-preview {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 40px;
+      border: 1px solid var(--border);
+    }
+    .series-preview h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 14px 0;
+    }
+    .series-preview ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 2.2;
+    }
+    @media (max-width: 600px) {
+      .condition-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <header class="blog-header glass">
+    <h1>🎰 pick-a-meme Dev Blog</h1>
+    <div class="theme-dots">
+      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
+      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
+      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
+    </div>
+  </header>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">픽-아-밈 개발기 · 시작하며</span>
+      <span class="read-time">📖 약 4분</span>
+    </div>
+
+    <h1 class="post-main-title">Pet-Pass를 마치고,<br>픽-아-밈을 시작한다</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#바이브코딩</span>
+      <span class="tag-chip">#가챠</span>
+      <span class="tag-chip">#AI협업</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#connect">연결 고리</a></li>
+        <li><a href="#condition">다음 프로젝트의 조건 세 가지</a></li>
+        <li><a href="#service">픽-아-밈이란</a></li>
+        <li><a href="#structure">이번엔 구조를 먼저 짓는다</a></li>
+        <li><a href="#series">이 블로그에서 다룰 것들</a></li>
+      </ol>
+    </div>
+
+    <h2 id="connect">연결 고리</h2>
+
+    <p>Pet-Pass 마지막 글에서 픽-아-밈을 언급했다. 거기서부터 이어진다.</p>
+
+    <p>Pet-Pass는 잘 돌아간다. 매일 두 번 sync가 돌고, 지도에 핀이 찍히고, 데이터가 쌓인다. 근데 아무도 안 쓴다. 기능이 부족해서가 아니라, 굳이 올 이유가 없어서다. 반려동물 관련 앱은 이미 여럿 있고, Pet-Pass가 그것들보다 뭔가 명확히 나은 게 없었다.</p>
+
+    <p>3주 동안 AI랑 협업하면서 <strong>어떻게 만드는지</strong>는 배웠다. 근데 <strong>무엇을 만들어야 하는지</strong>는 Pet-Pass가 실패하면서 역설적으로 가르쳐줬다.</p>
+
+    <h2 id="condition">다음 프로젝트의 조건 세 가지</h2>
+
+    <p>Pet-Pass를 마무리하면서 다음 프로젝트에 대한 조건을 적어봤다. 세 가지였다.</p>
+
+    <div class="condition-grid">
+      <div class="condition-card">
+        <div class="condition-icon">⚡</div>
+        <div class="condition-title">즉각성</div>
+        <div class="condition-desc">들어와서 5초 안에<br>결과가 나와야 한다</div>
+      </div>
+      <div class="condition-card">
+        <div class="condition-icon">📤</div>
+        <div class="condition-title">바이럴</div>
+        <div class="condition-desc">결과를 자랑하고<br>싶게 만들어야 한다</div>
+      </div>
+      <div class="condition-card">
+        <div class="condition-icon">🧩</div>
+        <div class="condition-title">단순함</div>
+        <div class="condition-desc">처음 온 사람도<br>바로 쓸 수 있어야 한다</div>
+      </div>
+    </div>
+
+    <p>Pet-Pass는 세 가지 다 충족하지 못했다. 지도 앱이라 진입에 맥락이 필요하고, 결과를 저장하거나 공유할 구조가 없었으며, 검색 방법을 배워야 했다.</p>
+
+    <p>조건을 명확히 쓰고 나니까 아이디어가 빠르게 좁혀졌다.</p>
+
+    <h2 id="service">픽-아-밈이란</h2>
+
+    <p>B급 감성의 동물 사진과 '킹받는' 문구를 조합해서 밈을 생성하는 가챠형 서비스다. 피카-밈으로 읽을지 픽-어-밈으로 읽을지는 아직 정하지 않았다.</p>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">30+</div>
+        <div class="stat-label">동물 이미지</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">100+</div>
+        <div class="stat-label">밈 문구</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3,000+</div>
+        <div class="stat-label">가능한 조합</div>
+      </div>
+    </div>
+
+    <p>버튼 하나 누르면 이미지, 문구, 스티커가 무작위로 조합된다. 결과가 마음에 안 들면 하트를 써서 다시 뽑는다. 하트는 시간이 지나면 차오른다 — 마치 모바일 게임의 스테미나처럼.</p>
+
+    <p>좋은 결과가 나오면 저장하거나 공유하고 싶어진다. 특히 로그인 사용자에게는 깔끔한 결과물을, 비로그인 사용자에게는 워터마크가 있는 결과물을 준다. 이 차이가 자연스러운 로그인 유도 수단이 된다.</p>
+
+    <div class="highlight-box">
+      <p>가챠에서 중요한 건 기능이 아니라 기대감이다. 버튼을 누르는 그 순간이 재밌어야 한다.</p>
+    </div>
+
+    <h2 id="structure">이번엔 구조를 먼저 짓는다</h2>
+
+    <p>Pet-Pass 코드를 돌아보면, 기능이 생길 때마다 파일을 하나씩 추가했다. 나쁜 방법은 아니었지만, 수정할 때마다 예상치 못한 곳이 터졌다.</p>
+
+    <p>픽-아-밈은 처음부터 <strong>Clean Architecture + DDD</strong>로 설계했다. 백엔드는 Kotlin + Spring Boot, 4개의 Gradle 모듈로 쪼개진 멀티 모듈 구조다. 프론트엔드는 Next.js 14 App Router. 데이터베이스는 NEON (PostgreSQL), 하트 시스템은 Upstash Redis, 이미지 저장은 Cloudflare R2다.</p>
+
+    <p>구조를 먼저 잡는다는 건 초반에 시간이 더 든다는 뜻이기도 하다. 근데 Pet-Pass에서 나중에 구조를 바꾸는 게 얼마나 힘든지 배웠기 때문에, 이번엔 처음부터 하기로 했다.</p>
+
+    <hr class="divider">
+
+    <h2 id="series">이 블로그에서 다룰 것들</h2>
+
+    <p>앞으로 각 글은 개발 과정의 이슈 하나를 중심으로 쓴다. 어떤 판단을 했고, 왜 그렇게 했으며, 어떻게 됐는지.</p>
+
+    <div class="series-preview">
+      <h3>다음에 다룰 이야기들</h3>
+      <ul>
+        <li>Pet-Pass는 그냥 쌓았다 — Clean Architecture 도입기</li>
+        <li>하트가 두 종류라 저장소도 두 개 — Redis와 JPA를 나란히 쓰는 이유</li>
+        <li>비로그인인데 하트가 있다 — localStorage SSOT 설계</li>
+        <li>가챠 UX를 어떻게 설계했나 — 기대감을 만드는 방법</li>
+      </ul>
+    </div>
+
+    <div class="post-footer">
+      <a href="/blog/post2.html" class="btn-post-nav btn-next">다음 글: Clean Architecture 도입기 →</a>
+    </div>
+  </main>
+
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>

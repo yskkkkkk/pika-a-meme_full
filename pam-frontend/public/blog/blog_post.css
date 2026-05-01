@@ -1,0 +1,395 @@
+/* ═══════════════════════════════════════════════════
+   pick-a-meme Dev Blog — 공통 스타일
+   모든 포스트(post1~)가 공유하는 레이아웃 및 컴포넌트.
+   포스트 고유 스타일은 각 파일의 <style> 블록에 선언한다.
+═══════════════════════════════════════════════════ */
+
+/* ─── 테마 변수 (다크 기본) ─── */
+:root {
+  --bg-primary:    #0f0f17;
+  --bg-secondary:  #1a1a2e;
+  --surface:       #1e1e30;
+  --primary:       #a855f7;
+  --text-primary:  #e2e8f0;
+  --text-secondary:#94a3b8;
+  --text-tertiary: #64748b;
+  --border:        #2d2d44;
+  --shadow-sm:     0 1px 4px rgba(0,0,0,0.4);
+  --shadow-md:     0 4px 20px rgba(0,0,0,0.5);
+}
+
+[data-theme="light"] {
+  --bg-primary:    #ffffff;
+  --bg-secondary:  #f5f3ff;
+  --surface:       #ede9fe;
+  --primary:       #9333ea;
+  --text-primary:  #1e1b4b;
+  --text-secondary:#374151;
+  --text-tertiary: #6b7280;
+  --border:        #ddd6fe;
+  --shadow-sm:     0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md:     0 4px 20px rgba(0,0,0,0.1);
+}
+
+[data-theme="neon"] {
+  --bg-primary:    #0a0a0a;
+  --bg-secondary:  #111111;
+  --surface:       #141414;
+  --primary:       #00ff88;
+  --text-primary:  #f0f0f0;
+  --text-secondary:#b0b0b0;
+  --text-tertiary: #707070;
+  --border:        #252525;
+  --shadow-sm:     0 0 6px rgba(0,255,136,0.08);
+  --shadow-md:     0 0 20px rgba(0,255,136,0.15);
+}
+
+/* ─── 기본 레이아웃 ─── */
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--bg-secondary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+  overflow-y: auto !important;
+  min-height: 100vh;
+}
+
+.glass {
+  background: var(--surface) !important;
+  border: 1px solid var(--border);
+}
+
+/* ─── 블로그 헤더 ─── */
+.blog-header {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.blog-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.blog-header .theme-dots {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.theme-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.15s;
+  outline: none;
+  padding: 0;
+}
+
+.theme-dot:hover { transform: scale(1.2); }
+
+/* ─── 상단 네비게이션 버튼 ─── */
+.nav-buttons {
+  max-width: 800px;
+  margin: 20px auto 0;
+  padding: 0 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.btn-nav:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+/* ─── 본문 컨테이너 ─── */
+.blog-content {
+  max-width: 800px;
+  margin: 20px auto 60px;
+  padding: 40px;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  line-height: 1.9;
+}
+
+/* ─── 포스트 메타 ─── */
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.post-series-tag {
+  display: inline-block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.read-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.post-main-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+/* ─── 태그 ─── */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 36px;
+}
+
+.tag-chip {
+  display: inline-block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* ─── 목차 ─── */
+.toc {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 40px;
+  border: 1px solid var(--border);
+}
+
+.toc-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.toc ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 2.2;
+}
+
+.toc a { color: var(--text-secondary); text-decoration: none; }
+.toc a:hover { color: var(--primary); }
+
+/* ─── 본문 텍스트 ─── */
+.blog-content h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 52px;
+  margin-bottom: 16px;
+  border-left: 4px solid var(--primary);
+  padding-left: 14px;
+}
+
+.blog-content p { font-size: 16px; color: var(--text-secondary); margin-bottom: 20px; }
+.blog-content strong { color: var(--text-primary); font-weight: 700; }
+.blog-content code {
+  background: var(--bg-secondary);
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--primary);
+  border: 1px solid var(--border);
+}
+
+/* ─── 하이라이트 박스 ─── */
+.highlight-box {
+  background: var(--bg-secondary);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 20px;
+  margin: 28px 0;
+}
+
+.highlight-box p { margin: 0; font-size: 15px; font-style: italic; color: var(--text-secondary); }
+
+/* ─── 레슨 박스 ─── */
+.lesson-box {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin: 40px 0;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+}
+
+.lesson-box h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 14px 0;
+}
+
+.lesson-box p { margin: 0 0 10px 0; font-size: 15px; color: var(--text-secondary); }
+.lesson-box p:last-child { margin-bottom: 0; }
+
+/* ─── 구분선 ─── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+/* ─── 타임라인 ─── */
+.timeline {
+  border-left: 2px solid var(--border);
+  padding-left: 24px;
+  margin: 32px 0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -31px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--bg-primary);
+}
+
+.timeline-item.fail::before { background: #ef4444; }
+
+.timeline-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.timeline-item.fail .timeline-label { color: #ef4444; }
+.timeline-item p { margin: 0; font-size: 15px; color: var(--text-secondary); }
+
+/* ─── 통계 카드 ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 28px 0;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.stat-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+/* ─── 포스트 푸터 / 이전·다음 글 ─── */
+.post-footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-post-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-prev { background: var(--surface); border: 1px solid var(--border); color: var(--text-primary); }
+.btn-next { background: var(--primary); color: white; border: none; }
+.btn-prev:hover { background: var(--bg-secondary); }
+.btn-next:hover { opacity: 0.9; transform: translateX(2px); }
+
+/* ─── 반응형 ─── */
+@media (max-width: 600px) {
+  .blog-content { padding: 24px 20px; }
+  .post-main-title { font-size: 22px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-number { font-size: 24px; }
+  .post-footer { flex-direction: column; align-items: stretch; }
+  .btn-post-nav { justify-content: center; }
+}
