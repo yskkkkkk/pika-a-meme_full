@@ -20,7 +20,7 @@ function msUntilNextFromIso(nextChargeAt: string | null): number | null {
 
 export function HeartDisplay() {
   const { isLoggedIn } = useAuth();
-  const { data: serverHearts } = useHeart();
+  const { data: serverHearts } = useHeart(isLoggedIn);
   const guest = useGuestHeart();
 
   const basicCount = isLoggedIn ? (serverHearts?.basic.count ?? 0) : guest.hearts;
