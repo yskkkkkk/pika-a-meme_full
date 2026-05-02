@@ -5,6 +5,7 @@ import { Sparkles, RefreshCcw, Heart, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GachaItem, getRandomAnimal, GACHA_ANIMALS } from "@/lib/gacha";
 import { useGuestHeart } from "@/hooks/useGuestHeart";
+import { useAuth } from "@/hooks/useAuth";
 import "./GachaMachine.css";
 
 interface GachaMachineProps {
@@ -13,10 +14,14 @@ interface GachaMachineProps {
 
 export function GachaMachine({ onSelect }: GachaMachineProps) {
   const { hearts, consumeHeart } = useGuestHeart();
+  const { isLoggedIn } = useAuth();
+  
   const [isSpinning, setIsSpinning] = useState(false);
   const [flickerIndex, setFlickerIndex] = useState(0);
   const [lastResult, setLastResult] = useState<GachaItem | null>(null);
   const [statusText, setStatusText] = useState("Ready to Gacha");
+  
+  const [heartType, setHeartType] = useState<"BASIC" | "SPECIAL">("BASIC");
 
   // Flicker effect during spinning
   useEffect(() => {
@@ -32,8 +37,13 @@ export function GachaMachine({ onSelect }: GachaMachineProps) {
   const handleSpin = async () => {
     if (isSpinning) return;
     
-    if (hearts <= 0) {
+    if (heartType === "BASIC" && hearts <= 0) {
       alert("하트가 부족합니다! 5분 뒤에 다시 시도하거나 로그인하여 충전하세요.");
+      return;
+    }
+
+    if (heartType === "SPECIAL" && !isLoggedIn) {
+      alert("SPECIAL 하트는 로그인 후 사용할 수 있습니다. (창고 탭에서 확인)");
       return;
     }
 
@@ -60,8 +70,20 @@ export function GachaMachine({ onSelect }: GachaMachineProps) {
     await new Promise((resolve) => setTimeout(resolve, 2200));
     clearInterval(seqInterval);
 
-    if (consumeHeart()) {
-      const result = getRandomAnimal(Math.random() > 0.8 ? "SPECIAL" : "BASIC");
+    let success = false;
+    let rarity: "BASIC" | "SPECIAL" = "BASIC";
+
+    if (heartType === "BASIC") {
+      success = consumeHeart();
+      rarity = Math.random() > 0.8 ? "SPECIAL" : "BASIC";
+    } else {
+      // TODO: 서버 연동 시 실제 SPECIAL 하트 차감 API 호출
+      success = true; 
+      rarity = "SPECIAL";
+    }
+
+    if (success) {
+      const result = getRandomAnimal(rarity);
       setLastResult(result);
       setIsSpinning(false);
       onSelect(result);
@@ -74,6 +96,34 @@ export function GachaMachine({ onSelect }: GachaMachineProps) {
 
   return (
     <div className="gacha-container w-full max-w-md mx-auto">
+      {/* 하트 타입 선택기 */}
+      <div className="flex bg-gray-900 rounded-2xl p-1 mb-6 border border-gray-800 shadow-xl">
+        <button
+          onClick={() => setHeartType("BASIC")}
+          className={cn(
+            "flex-1 py-3 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2",
+            heartType === "BASIC" 
+              ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg" 
+              : "text-gray-500 hover:text-gray-300"
+          )}
+        >
+          <Heart className={cn("w-4 h-4", heartType === "BASIC" && "fill-current text-pink-200")} />
+          BASIC 하트
+        </button>
+        <button
+          onClick={() => setHeartType("SPECIAL")}
+          className={cn(
+            "flex-1 py-3 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2",
+            heartType === "SPECIAL" 
+              ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-purple-500/30" 
+              : "text-gray-500 hover:text-gray-300"
+          )}
+        >
+          <Zap className={cn("w-4 h-4", heartType === "SPECIAL" && "fill-current text-yellow-300")} />
+          SPECIAL 하트
+        </button>
+      </div>
+
       <div className={cn("gacha-machine", isSpinning && "spinning")}>
         <div className="gacha-display mb-8">
           {isSpinning ? (
@@ -136,16 +186,24 @@ export function GachaMachine({ onSelect }: GachaMachineProps) {
             </div>
             {!isSpinning && (
               <span className="text-[10px] font-bold opacity-70 uppercase tracking-widest">
-                Consume 1 Heart
+                Consume 1 {heartType} Heart
               </span>
             )}
           </button>
           
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center gap-1.5">
-              <div className={cn("w-2 h-2 rounded-full", hearts > 0 ? "bg-green-500 animate-pulse" : "bg-red-500")} />
+              <div className={cn("w-2 h-2 rounded-full", 
+                heartType === "SPECIAL" 
+                  ? (isLoggedIn ? "bg-purple-500" : "bg-gray-500")
+                  : (hearts > 0 ? "bg-green-500 animate-pulse" : "bg-red-500")
+              )} />
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                Status: {hearts > 0 ? "Online" : "Empty"}
+                Status: {
+                  heartType === "SPECIAL" 
+                    ? (isLoggedIn ? "Online" : "Login Req")
+                    : (hearts > 0 ? "Online" : "Empty")
+                }
               </span>
             </div>
             <span className="text-[10px] font-black text-primary uppercase tracking-widest">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { Download, Type, Smile, Trash2, Camera, Palette, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Download, Type, Smile, Trash2, Camera, Palette, Share2, CloudUpload, Save, CheckCircle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STICKER_LIST, FONT_LIST, StickerDef, FontId } from "@/lib/stickers";
 import {
@@ -277,6 +277,52 @@ export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) 
     });
   };
 
+  // ---- 공유 (Web Share API / 클립보드) ----
+  const handleShare = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const prevSelected = selectedId;
+    setSelectedId(null);
+
+    setTimeout(async () => {
+      try {
+        const dataUrl = canvas.toDataURL("image/png");
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], `pika-meme-${Date.now()}.png`, { type: "image/png" });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: "PICK-A-MEME",
+            text: "내가 만든 B급 감성 밈을 확인해보세요!",
+            files: [file],
+          });
+        } else if (navigator.clipboard) {
+          // Fallback: 클립보드 복사
+          await navigator.clipboard.write([
+            new ClipboardItem({ "image/png": blob })
+          ]);
+          alert("이미지가 클립보드에 복사되었습니다! 원하는 곳에 붙여넣기 해보세요.");
+        } else {
+          alert("이 브라우저에서는 공유 기능을 지원하지 않습니다. 기기에 저장을 이용해주세요.");
+        }
+      } catch (e) {
+        console.error("공유 실패:", e);
+        // AbortError(사용자 취소)는 무시해도 되지만 다른 오류는 안내
+        if (e instanceof Error && e.name !== 'AbortError') {
+           alert("공유 중 오류가 발생했습니다. 기기에 저장을 이용해주세요.");
+        }
+      } finally {
+        setSelectedId(prevSelected);
+      }
+    }, 50);
+  };
+
+  // ---- 클라우드 저장 Placeholder ----
+  const handleCloudSave = () => {
+    alert("서버 연동 작업(TASK-260501-02) 진행 중입니다. 곧 내 창고 저장 기능이 오픈됩니다!");
+  };
+
   // ---- 직렬화 ----
   const getCanvasState = (): EditorState => ({
     templateId: templateId || "unknown",
@@ -457,17 +503,37 @@ export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) 
           </div>
         )}
 
-        {/* 액션 버튼 */}
-        <div className="flex gap-3">
+        {/* 저장 / 공유 영역 */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
           <button
             onClick={handleDownload}
             disabled={isDisabled}
-            className="flex-1 py-4 bg-black text-white font-black rounded-2xl hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-full py-4 bg-black text-white font-black rounded-2xl hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <Download className="w-5 h-5" /> 다운로드
+            <Download className="w-5 h-5" /> 로컬 저장
           </button>
+          <button
+            onClick={handleShare}
+            disabled={isDisabled}
+            className="w-full py-4 bg-pink-500 text-white font-black rounded-2xl hover:bg-pink-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-pink-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Share2 className="w-5 h-5" /> 자랑하기
+          </button>
+        </div>
 
-          {isLoggedIn && (
+        {/* 클라우드 저장 Placeholder (비로그인 시) */}
+        {!isLoggedIn && (
+          <button
+            onClick={handleCloudSave}
+            disabled={isDisabled}
+            className="w-full py-3 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-indigo-200 disabled:opacity-30 disabled:cursor-not-allowed mt-2"
+          >
+            <CloudUpload className="w-4 h-4" /> 내 창고에 영구 저장 (로그인 필요)
+          </button>
+        )}
+
+        {isLoggedIn && (
+          <div className="pt-4 border-t border-gray-100">
             <button
               onClick={handleSave}
               disabled={isDisabled || saveState === "saving"}
@@ -488,8 +554,8 @@ export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) 
               {saveState === "idle" && <Save className="w-5 h-5" />}
               {saveState === "saving" ? "저장 중..." : saveState === "done" ? "저장 완료!" : saveState === "error" ? "저장 실패" : "저장하기"}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
