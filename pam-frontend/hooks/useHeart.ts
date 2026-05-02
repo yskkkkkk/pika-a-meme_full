@@ -20,11 +20,12 @@ async function fetchHearts(): Promise<ServerHeartState> {
   return res.data;
 }
 
-export function useHeart() {
+export function useHeart(enabled: boolean = true) {
   return useQuery({
     queryKey: ["hearts"],
     queryFn: fetchHearts,
     refetchInterval: 60_000,
     retry: false,
+    enabled: enabled,
   });
 }

@@ -10,23 +10,24 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "@tanstack/react-query": "^5.28.14",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.363.0",
     "next": "14",
     "react": "^18",
     "react-dom": "^18",
-    "@tanstack/react-query": "^5.28.14",
-    "lucide-react": "^0.363.0",
-    "clsx": "^2.1.0",
     "tailwind-merge": "^2.2.2"
   },
   "devDependencies": {
-    "typescript": "^5.3",
-    "@types/react": "^18",
     "@types/node": "^20",
-    "tailwindcss": "latest",
-    "postcss": "latest",
+    "@types/react": "^18",
     "autoprefixer": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
-    "prettier": "latest"
+    "postcss": "latest",
+    "prettier": "latest",
+    "tailwindcss": "latest",
+    "typescript": "^5.3"
   }
 }
