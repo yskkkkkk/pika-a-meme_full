@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { HeartDisplay } from "@/components/domains/heart/HeartDisplay";
+import { LoginButton } from "@/components/auth/LoginButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,7 +28,10 @@ export default function RootLayout({
               </div>
               <span className="font-black text-xl tracking-tight">PICK-A-MEME</span>
             </div>
-            <HeartDisplay />
+            <div className="flex items-center gap-3">
+              <HeartDisplay />
+              <LoginButton />
+            </div>
           </nav>
           <main className="pt-24 pb-12 min-h-screen">
             {children}
