@@ -1,5 +1,6 @@
 package com.pickameme.api.heart
 
+import com.pickameme.api.config.JpaConfig
 import com.pickameme.application.heart.HeartService
 import com.pickameme.domain.heart.Heart
 import com.pickameme.domain.heart.HeartType
@@ -11,6 +12,8 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
@@ -21,7 +24,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.util.UUID
 
-@WebMvcTest(HeartController::class)
+@WebMvcTest(
+    controllers = [HeartController::class],
+    excludeFilters = [ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [JpaConfig::class])]
+)
 class HeartControllerTest {
 
     @Autowired lateinit var mockMvc: MockMvc
