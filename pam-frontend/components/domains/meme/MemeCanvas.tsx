@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { Download, Type, Smile, Trash2, Camera, Palette } from "lucide-react";
+import { Download, Type, Smile, Trash2, Camera, Palette, Save, CheckCircle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STICKER_LIST, FONT_LIST, StickerDef, FontId } from "@/lib/stickers";
 import {
@@ -10,6 +10,8 @@ import {
   EditorState,
   serializeCanvasState,
 } from "@/lib/canvasState";
+import { useAuth } from "@/hooks/useAuth";
+import { getToken } from "@/lib/auth";
 
 interface MemeCanvasProps {
   backgroundImageUrl?: string;
@@ -26,6 +28,7 @@ const TEXT_COLORS = ["#ffffff", "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#ff
 export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isLoggedIn } = useAuth();
 
   // Editor items
   const [textItems, setTextItems] = useState<EditorTextItem[]>([]);
@@ -36,6 +39,7 @@ export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) 
   const [selectedFont, setSelectedFont] = useState<FontId>("impact");
   const [selectedColor, setSelectedColor] = useState("#ffffff");
   const [newText, setNewText] = useState("");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "done" | "error">("idle");
 
   // Drag state
   const [dragTarget, setDragTarget] = useState<string | null>(null);
@@ -273,13 +277,62 @@ export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) 
     });
   };
 
-  // ---- 직렬화 (디버그 / 추후 API 전송용) ----
+  // ---- 직렬화 ----
   const getCanvasState = (): EditorState => ({
     templateId: templateId || "unknown",
     imageUrl: backgroundImageUrl || "",
     textItems,
     stickerItems,
   });
+
+  // ---- 서버 저장 ----
+  const handleSave = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const prevSelected = selectedId;
+    setSelectedId(null);
+    setSaveState("saving");
+
+    requestAnimationFrame(() => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          setSaveState("error");
+          setSelectedId(prevSelected);
+          return;
+        }
+        try {
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+          const canvasStateDto = serializeCanvasState(getCanvasState());
+          const form = new FormData();
+          form.append("image", blob, "meme.png");
+          form.append("canvasState", JSON.stringify(canvasStateDto));
+
+          const token = getToken();
+          const res = await fetch(
+            `${API_BASE}/api/memes?creationOption=BASIC&heartType=BASIC`,
+            {
+              method: "POST",
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+              body: form,
+            }
+          );
+          if (res.ok) {
+            setSaveState("done");
+            setTimeout(() => setSaveState("idle"), 3000);
+          } else {
+            setSaveState("error");
+            setTimeout(() => setSaveState("idle"), 3000);
+          }
+        } catch {
+          setSaveState("error");
+          setTimeout(() => setSaveState("idle"), 3000);
+        } finally {
+          setSelectedId(prevSelected);
+        }
+      }, "image/png");
+    });
+  };
 
   const isDisabled = !backgroundImageUrl;
 
@@ -404,14 +457,39 @@ export function MemeCanvas({ backgroundImageUrl, templateId }: MemeCanvasProps) 
           </div>
         )}
 
-        {/* 다운로드 */}
-        <button
-          onClick={handleDownload}
-          disabled={isDisabled}
-          className="w-full py-4 bg-black text-white font-black rounded-2xl hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Download className="w-5 h-5" /> 밈 저장하기 (PNG)
-        </button>
+        {/* 액션 버튼 */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleDownload}
+            disabled={isDisabled}
+            className="flex-1 py-4 bg-black text-white font-black rounded-2xl hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Download className="w-5 h-5" /> 다운로드
+          </button>
+
+          {isLoggedIn && (
+            <button
+              onClick={handleSave}
+              disabled={isDisabled || saveState === "saving"}
+              className={cn(
+                "flex-1 py-4 font-black rounded-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-30 disabled:cursor-not-allowed",
+                saveState === "done"
+                  ? "bg-green-500 text-white shadow-green-500/20"
+                  : saveState === "error"
+                  ? "bg-red-500 text-white shadow-red-500/20"
+                  : "bg-pink-500 text-white hover:bg-pink-600 shadow-pink-500/20"
+              )}
+            >
+              {saveState === "saving" && (
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              {saveState === "done" && <CheckCircle className="w-5 h-5" />}
+              {saveState === "error" && <AlertCircle className="w-5 h-5" />}
+              {saveState === "idle" && <Save className="w-5 h-5" />}
+              {saveState === "saving" ? "저장 중..." : saveState === "done" ? "저장 완료!" : saveState === "error" ? "저장 실패" : "저장하기"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
