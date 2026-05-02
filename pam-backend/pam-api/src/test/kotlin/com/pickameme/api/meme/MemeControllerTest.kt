@@ -1,6 +1,7 @@
 package com.pickameme.api.meme
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.pickameme.api.config.JpaConfig
 import com.pickameme.application.meme.MemeCreationService
 import com.pickameme.application.meme.MemeQueryService
 import com.pickameme.application.meme.MemeResult
@@ -19,6 +20,8 @@ import com.pickameme.infrastructure.auth.JwtProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.mock.web.MockPart
@@ -35,7 +38,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.util.UUID
 
-@WebMvcTest(MemeController::class)
+@WebMvcTest(
+    controllers = [MemeController::class],
+    excludeFilters = [ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [JpaConfig::class])]
+)
 class MemeControllerTest {
 
     @Autowired lateinit var mockMvc: MockMvc
