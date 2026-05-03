@@ -70,3 +70,7 @@ server:
 logging:
   level:
     com.pickameme: INFO
+    org.hibernate.SQL: WARN
+    org.flywaydb: INFO
+    org.redisson: WARN
+    software.amazon.awssdk: WARN

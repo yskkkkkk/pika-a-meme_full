@@ -5,6 +5,7 @@ import com.pickameme.domain.meme.Meme
 import com.pickameme.domain.meme.MemeCreationPolicy
 import com.pickameme.domain.meme.MemeImageStorage
 import com.pickameme.domain.meme.MemeRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -16,23 +17,23 @@ class MemeCreationService(
     private val memeImageStorage: MemeImageStorage,
     private val memeRepository: MemeRepository
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
     fun create(command: CreateMemeCommand): Meme {
-        // 1. 정책 검증 — 외부 리소스 건드리기 전 빠른 실패
+        log.info("밈 생성 시작: userId={}, option={}, heartType={}",
+            command.userId, command.creationOption, command.heartType)
+
         MemeCreationPolicy.validate(command.canvasState, command.creationOption)
 
-        // 2. memeId 선발급 — 하트 이력과 R2 키에 동일 ID 사용
         val memeId = UUID.randomUUID()
         val imageKey = "memes/${command.userId}/$memeId.webp"
 
-        // 3. 하트 차감 (Redisson 분산 락, lazy 충전 선수행)
         heartService.consumeHeart(command.userId, command.heartType, memeId)
 
-        // 4. R2 이미지 업로드 — 트랜잭션 외부 작업, 실패 시 예외 전파
         memeImageStorage.upload(imageKey, command.imageData, command.contentType)
+        log.debug("R2 업로드 완료: key={}", imageKey)
 
-        // 5. Meme 엔티티 저장
         val meme = Meme(
             id = memeId,
             userId = command.userId,
@@ -42,6 +43,8 @@ class MemeCreationService(
             heartType = command.heartType,
             createdAt = LocalDateTime.now()
         )
-        return memeRepository.save(meme)
+        val saved = memeRepository.save(meme)
+        log.info("밈 생성 완료: memeId={}, userId={}", memeId, command.userId)
+        return saved
     }
 }

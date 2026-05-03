@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ── 공통 프로퍼티 ───────────────────────────────────────── -->
+    <property name="LOG_PATH" value="logs"/>
+    <property name="CONSOLE_PATTERN"
+              value="%d{HH:mm:ss.SSS} %highlight(%-5level) [%cyan(%X{requestId:--})] %yellow(%logger{36}) - %msg%n"/>
+    <property name="FILE_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId:--}] %logger{36} - %msg%n"/>
+
+    <!-- ── 콘솔 Appender (개발) ──────────────────────────────── -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ── 파일 Appender (운영) ──────────────────────────────── -->
+    <springProfile name="prod">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/app.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <timeBasedFileNamingAndTriggeringPolicy
+                        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>3GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${FILE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- ── 로거 설정 ────────────────────────────────────────── -->
+    <!-- 비즈니스 레이어: INFO -->
+    <logger name="com.pickameme" level="INFO"/>
+
+    <!-- SQL 노이즈 억제 -->
+    <logger name="org.hibernate.SQL"                          level="WARN"/>
+    <logger name="org.hibernate.orm.jdbc.bind"                level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql"          level="WARN"/>
+
+    <!-- Spring Security OAuth2 흐름 (필요 시 DEBUG로 전환) -->
+    <logger name="org.springframework.security"               level="WARN"/>
+    <logger name="org.springframework.web.servlet.mvc.method" level="WARN"/>
+
+    <!-- Flyway, Redisson, HikariCP -->
+    <logger name="org.flywaydb"                               level="INFO"/>
+    <logger name="org.redisson"                               level="WARN"/>
+    <logger name="com.zaxxer.hikari"                          level="WARN"/>
+
+    <!-- AWS SDK (R2 업로드 로그 억제) -->
+    <logger name="software.amazon.awssdk"                     level="WARN"/>
+
+    <!-- ── Root ─────────────────────────────────────────────── -->
+    <springProfile name="!prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+</configuration>
