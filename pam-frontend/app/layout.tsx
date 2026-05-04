@@ -20,7 +20,7 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
       </head>
-      <body className="font-sans bg-slate-100 antialiased">
+      <body className="font-sans font-medium bg-slate-100 antialiased">
         <Providers>
           <div className="flex justify-center min-h-[100dvh]">
             <div className="w-full max-w-[500px] bg-white shadow-2xl relative flex flex-col overflow-hidden">

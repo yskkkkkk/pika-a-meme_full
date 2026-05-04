@@ -198,7 +198,7 @@ export default function Home() {
             className="absolute bottom-8 font-black text-white/30"
             style={{ fontSize: 11, letterSpacing: "0.2em" }}
           >
-            PICK-A-MEME
+            PICK-A-<span className="text-primary italic">MEME</span>
           </div>
         </div>
       )}
@@ -436,7 +436,7 @@ export default function Home() {
               }}
             >
               <div className="font-black text-white" style={{ fontSize: 12, letterSpacing: "0.04em" }}>
-                PICK-A-<em style={{ fontStyle: "italic", opacity: 0.85 }}>MEME</em>
+                PICK-A-<em style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</em>
               </div>
               <div className="flex flex-col items-end" style={{ gap: 2 }}>
                 <div className="font-bold text-white/70" style={{ fontSize: 9 }}>나도 뽑으러 가기</div>
