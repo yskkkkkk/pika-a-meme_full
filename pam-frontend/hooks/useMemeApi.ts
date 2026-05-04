@@ -15,8 +15,8 @@ export async function composeMeme(
 
   // Try real API first
   const apiResult = await apiFetch<MemeResult>(`/api/memes/compose?${query}`);
-  if (apiResult) {
-    return apiResult;
+  if (apiResult?.success && apiResult.data) {
+    return apiResult.data;
   }
 
   // Fallback to mock data for development / when backend unavailable
