@@ -5,6 +5,9 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "pick-a-meme | 픽-아-밈",
   description: "B급 감성 동물 사진과 킹받는 문구의 조화",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
