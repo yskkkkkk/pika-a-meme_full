@@ -1,65 +1,184 @@
-# pick-a-meme (픽-아-밈) 프로젝트 설계 원칙
+# AIRULES.md — pick-a-meme 설계 원칙
 
-## 1. 아키텍처 (Architecture)
-- **Clean Architecture & DDD:** 모든 비즈니스 로직은 프레임워크로부터 독립된 `Domain` 계층에 존재해야 한다.
-- **Strict Layering:** 의존성 방향은 반드시 아래 규칙을 준수한다.
-  - `pam-api` (Delivery) -> `pam-application` (Use Case) -> `pam-domain` (Core)
-  - `pam-infrastructure` (Implementation) -> `pam-domain` (Interfaces)
-- **Monorepo & Multi-Module:** 기능적/계층적 분리를 위해 Gradle 멀티 모듈 구조를 유지한다.
+> POC 완료 후 v2 전면 개편 기준 문서 (2025-05-04 갱신)  
+> 모든 AI 세션은 이 문서를 최우선 컨텍스트로 참조한다.
 
-## 2. 도메인 우선순위 (Domain First)
-- **Pure Domain Entities:** `pam-domain` 모듈의 엔티티는 JPA 어노테이션 등 외부 프레임워크 의존성이 전혀 없는 순수 Kotlin 객체여야 한다.
-- **Invariant Enforcement:** 비즈니스 규칙과 불변식은 도메인 엔티티 내부에서 검증한다.
+---
 
-## 3. 영속성 전략 (Persistence Strategy) - CQRS 기조
-- **Command (C):** JPA (Spring Data JPA)를 사용하여 데이터 정합성과 객체 지향적 엔티티 상태 변경을 보장한다.
-- **Query (Q):** jOOQ를 사용하여 복잡한 검색, 통계 및 대량 조회의 성능을 최적화한다.
-- **Isolation:** Infrastructure 계층에서 Domain Repository 인터페이스를 구현하여 영속성 세부 사항을 감춘다.
+## 0. 행동 지침 (CLAUDE.md 핵심 요약)
 
-## 4. 인프라스트럭처 (Infrastructure)
-- **Object Storage:** AWS S3 SDK를 사용하되, 비용 최적화를 위해 Cloudflare R2 엔드포인트를 사용한다.
-- **Database:** PostgreSQL (NEON Serverless)을 사용하며, 가변 메타데이터는 JSONB 타입을 적극 활용한다.
+- 코딩 전 가정을 명시하고, 불명확하면 멈추고 질문한다.
+- 요청 범위 밖의 기능·추상화·에러 핸들링을 추가하지 않는다.
+- 수정은 요청한 라인에만 한정한다. 인접 코드를 "개선"하지 않는다.
+- 작업 전 검증 기준을 먼저 정의하고, 기준 충족 여부로 완료를 판단한다.
 
-## 5. 동시성 제어 (Concurrency)
-- **Redisson Distributed Lock:** 하트(스테미나) 차감 및 충전 시 발생할 수 있는 Race Condition을 방지하기 위해 Redis 기반의 분산 락을 반드시 적용한다.
-- **Redis as SSOT:** 하트 시스템은 Redis를 Single Source of Truth로 활용하며, 영속성을 위해 DB와 비동기 동기화한다.
+---
 
-## 6. AI 태스크 관리 (BACKLOG.md)
-- **운영 원칙:** 모든 작업은 `BACKLOG.md`에 기록된 티켓 단위를 기반으로 수행한다.
-- **티켓 상태 관리:**
-  - 작업을 시작할 때 상태를 `[/]`(진행)로 변경하고, 완료 시 `[x]`(완료)로 업데이트한다.
-  - 사용자의 추가 요청(Ad-hoc)은 `[!]` 표시와 함께 즉시 티켓을 생성하여 추적한다.
-- **동기화:** 매 작업 단계가 끝날 때마다 백로그를 최신 상태로 유지하여 진행 상황을 투명하게 공유한다.
+## 1. 백엔드 아키텍처 원칙
 
-## 7. Git 브랜치 전략 (Branching Strategy)
-모든 작업은 **'Prefix/Domain/Task'** 구조의 네임스페이스 브랜치를 기반으로 격리되어 수행되어야 한다.
+### 계층 구조
+```
+pam-api (Delivery) → pam-application (UseCase) → pam-domain (Core)
+                                                 ↑
+                              pam-infrastructure (Adapters)
+```
+- `pam-domain` 엔티티는 JPA 어노테이션 없는 순수 Kotlin 객체를 유지한다.
+- 비즈니스 불변식은 도메인 엔티티 내부에서 검증한다.
 
-- **`infra/`**: 인프라 및 기반 설정 (Flyway, R2, Redis, jOOQ, Logging, Build)
-  - 예: `infra/jooq-codegen-setup`, `infra/r2-connection-test`
-- **`feat/heart/`**: 하트 재화 시스템 도메인 (충전/소모 로직, 분산 락, 스케줄링)
-  - 예: `feat/heart/charging-logic`, `feat/heart/special-grant`
-- **`feat/meme/`**: 밈 생성 및 이미지 처리 도메인 (Canvas, JSONB, R2 업로드)
-  - 예: `feat/meme/canvas-editor`, `feat/meme/r2-upload-handler`
-- **`feat/auth/`**: 회원 가입 및 인증 도메인 (OAuth2, JWT, 세션)
-  - 예: `feat/auth/kakao-login-api`
-- **`feat/front/`**: 프론트엔드 UI/UX 및 상태 관리 (Components, Hooks, State)
-  - 예: `feat/front/stamina-bar`, `feat/front/guest-heart-hook`
-- **`fix/`**: 버그 수정 (Prefix/Domain/Bug-Description)
-  - 예: `fix/heart/concurrency-race`, `fix/meme/canvas-export-ratio`
-- **`docs/`**: 문서화 작업 및 가이드라인 업데이트
-  - 예: `docs/update-backlog-phase2`, `docs/api-specification`
+### 영속성 전략 (CQRS 기조)
+- **Command:** Spring Data JPA (데이터 정합성, 상태 변경)
+- **Query:** jOOQ (복잡한 조회, 통계, 성능 최적화)
+- Infrastructure 계층에서 Domain Repository 인터페이스를 구현하여 영속성 세부 사항을 숨긴다.
 
-## 8. 에이전트 작업 프로토콜 (Agent Workflow Protocol)
-각 에이전트는 작업을 시작하기 전과 후에 다음 절차를 엄격히 수행해야 한다.
+### 동시성 제어
+- **Redisson Distributed Lock:** 하트 차감/충전 Race Condition 방지 필수 적용
+- **Redis as SSOT:** BASIC 하트는 Redis 단일 진실 공급원
 
-1. **Isolation (격리):** 작업 시작 전 항상 `main` 브랜치에서 최신 상태를 유지하며, 작업 도메인에 맞는 Namespace 브랜치를 생성한다.
-2. **Context Preservation (맥락 보존):** 
-   - 작업 중 발생하는 중요한 설계 결정 사안, 대안 탐색, 변경점은 PR(Pull Request) 본문에 상세히 기록한다.
-   - 이는 브랜치 삭제 후에도 `BACKLOG.md`와 함께 히스토리를 추적하기 위한 핵심 기록이 된다.
-3. **Traceability (추적성):**
-   - 작업을 시작할 때 `BACKLOG.md`의 티켓 상태를 `[/]`로 변경한다.
-   - 모든 커밋과 PR에는 관련 티켓 ID(예: `TASK-260429-01`)를 반드시 명시한다.
-4. **Validation & Verification (검증):**
-   - 코드를 제출하기 전 관련 단위 테스트를 수행하고 통과 여부를 확인한다.
-   - 작업 완료 시 `BACKLOG.md` 상태를 `[x]`로 업데이트하고 완료일을 기록한다.
+---
 
+## 2. 밈 소스 구조 (v2 핵심 변경)
+
+이미지와 문구를 분리 보관하고 런타임에 조합한다.
+
+| 테이블 | 내용 | 저장 위치 |
+|---|---|---|
+| `meme_images` | 말풍선 없는 순수 동물 표정 이미지 | R2 (URL만 DB 저장) |
+| `meme_phrases` | 말풍선 안에 들어갈 문구 텍스트 | DB 텍스트 컬럼 |
+
+> 문구를 텍스트로 DB에 저장하는 이유: 디자인 작업 없이 DB 입력만으로 문구 추가/수정 가능.
+
+### DB 스키마
+
+#### meme_images
+```sql
+id                UUID        PK
+image_url         TEXT        -- R2 저장 경로
+subject_position  VARCHAR(20) -- 아래 12가지 값 중 하나
+tags              JSONB       -- ["피곤", "직장인", "배고픔"]
+created_at        TIMESTAMP
+```
+
+#### meme_phrases
+```sql
+id          UUID   PK
+text        TEXT   -- 말풍선 안 문구
+tags        JSONB  -- ["피곤", "직장인", "배고픔"]
+created_at  TIMESTAMP
+```
+
+> 두 테이블 모두 `tags` 컬럼에 GIN 인덱스 필수.
+
+### subject_position → 말풍선 위치 매핑
+
+| 값 | 피사체 위치 | 말풍선 배치 |
+|---|---|---|
+| `top` | 상단 | 하단 |
+| `bottom` | 하단 | 상단 |
+| `left` | 좌측 | 우측 |
+| `right` | 우측 | 좌측 |
+| `center` | 중앙 | 상단 or 하단 랜덤 |
+| `top_left` | 좌상단 | 우하단 |
+| `top_right` | 우상단 | 좌하단 |
+| `bottom_left` | 좌하단 | 우상단 |
+| `bottom_right` | 우하단 | 좌상단 |
+| `full_horizontal` | 좌우 꽉 참 | 상단 or 하단 랜덤 |
+| `full_vertical` | 상하 꽉 참 | 좌측 or 우측 랜덤 |
+| `full` | 완전히 꽉 참 | 4개 모서리 중 랜덤 |
+
+---
+
+## 3. 하트 타입별 밈 조합 전략
+
+### BASIC 하트 — Random Mix
+- 태그 무시
+- `meme_images`와 `meme_phrases`에서 각각 독립 랜덤 추출 후 조합
+- 맥락 불일치 '병맛' 결과 허용 (무료 서비스의 재미 요소)
+
+### SPECIAL 하트 — Contextual Matching
+- 사용자가 태그를 선택하면 파라미터로 전달
+- 태그로 이미지군 + 문구군 1차 필터링
+- 필터링된 집합 내에서 조합 → 맥락에 맞는 완성도 높은 밈
+
+### API 설계 방향
+```
+GET /api/memes/compose?heartType=BASIC
+GET /api/memes/compose?heartType=SPECIAL&tags=피곤,직장인
+```
+응답: `{ imageUrl, imagePresignedUrl, subjectPosition, phrase, tags }`
+
+---
+
+## 4. 프론트엔드 원칙
+
+### 모바일 퍼스트 (절대 원칙)
+- 가로 최대 `500px` 중앙 컨테이너. PC에서도 모바일 화면을 노출한다.
+- 핵심 기능은 스크롤 없이 한 화면에 들어와야 한다.
+
+### 메인 화면 — 극도의 단순함
+비로그인 유저가 마주하는 첫 화면:
+1. 로고
+2. BASIC 하트 버튼 → 탭 즉시 랜덤 밈 생성
+3. SPECIAL 하트 버튼 → 태그 선택 UI → 뽑기 → 결과
+
+### 로그인/서비스 소개 — 별도 화면
+- 상단 구석 로그인 버튼 → 모바일 슬라이드 애니메이션으로 전환
+- 해당 화면 내용: 서비스 소개, 저장 안내, 소셜 로그인 버튼, 기존 기능 설명 카드들
+- 메인 화면에는 설명 없음. 그냥 뽑게 한다.
+
+### 말풍선 렌더링
+- 기존 Canvas 합성 방식 → **CSS 절대 포지셔닝** 방식으로 전환
+- `subject_position` 값을 백엔드에서 받아 말풍선 위치 자동 결정
+
+---
+
+## 5. 인프라 배포 아키텍처
+
+| 레이어 | 플랫폼 |
+|---|---|
+| Frontend | Cloudflare Pages |
+| Backend | Railway (Docker 컨테이너) |
+| Database | Neon (PostgreSQL) |
+| 이미지 스토리지 | Cloudflare R2 |
+| 캐시/하트 | Upstash Redis |
+| 스키마 관리 | Flyway |
+
+환경 변수(R2 Key, DB, Redis)는 소스 코드에 절대 노출하지 않는다. 배포 플랫폼 환경 변수로 주입한다.
+
+---
+
+## 6. Git 브랜치 전략
+
+모든 작업은 **'Prefix/Domain/Task'** 구조의 브랜치를 기반으로 격리 수행한다.
+
+| 도메인 | 브랜치 예시 |
+|---|---|
+| `infra/` | `infra/db-v2-schema`, `infra/r2-connection-test` |
+| `feat/heart/` | `feat/heart/tag-matching`, `feat/heart/special-grant` |
+| `feat/meme/` | `feat/meme/compose-api`, `feat/meme/r2-upload` |
+| `feat/front/` | `feat/front/mobile-ui-rebuild`, `feat/front/speech-bubble` |
+| `feat/auth/` | `feat/auth/kakao-login` |
+| `fix/` | `fix/heart/concurrency-race` |
+| `docs/` | `docs/v2-redesign-spec` |
+
+---
+
+## 7. 에이전트 작업 프로토콜
+
+1. `main` 최신화 → 도메인 브랜치 생성
+2. 작업 시작 시 `BACKLOG.md` 티켓 상태 `[/]`로 변경
+3. 모든 커밋/PR에 티켓 ID 명시
+4. 관련 테스트 통과 확인 후 PR 생성
+5. 완료 시 `BACKLOG.md` 상태 `[x]` + 완료일 기록
+
+---
+
+## 8. v2 구현 Step 순서
+
+각 Step은 독립 PR로 관리한다.
+
+| Step | 내용 | 브랜치 |
+|---|---|---|
+| 1 | AIRULES v2 최신화 + BACKLOG/README 재정비 | `docs/v2-redesign-spec` |
+| 2 | Flyway V4 — meme_images/meme_phrases 스키마 + GIN 인덱스 | `infra/db-v2-schema` |
+| 3 | 하트 타입별 조합 전략 서비스 레이어 (Random Mix / Contextual Matching) | `feat/heart/tag-matching` |
+| 4 | 프론트엔드 전면 재구축 (모바일 퍼스트, 말풍선 CSS) | `feat/front/mobile-ui-rebuild` |
