@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "pick-a-meme | 픽-아-밈",
@@ -17,7 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${inter.className} bg-slate-100 antialiased`}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
+      </head>
+      <body className="font-sans font-medium bg-slate-100 antialiased">
         <Providers>
           <div className="flex justify-center min-h-[100dvh]">
             <div className="w-full max-w-[500px] bg-white shadow-2xl relative flex flex-col overflow-hidden">
