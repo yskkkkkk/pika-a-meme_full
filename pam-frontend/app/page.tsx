@@ -3,24 +3,23 @@
 import React, { useState } from "react";
 import { useGuestHeart } from "@/hooks/useGuestHeart";
 import { useAuth } from "@/hooks/useAuth";
-import { useMockMemeApi, MockMemeResponse } from "@/hooks/useMockMemeApi";
+import { composeMeme, MemeResult } from "@/hooks/useMemeApi";
 import { LoginSlideMenu } from "@/components/auth/LoginSlideMenu";
 import { Heart, Zap, Menu, RefreshCcw, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
 
-const AVAILABLE_TAGS = ["피곤", "직장인", "월요일", "분노", "슬픔", "기쁨", "퇴근", "야근"];
+const AVAILABLE_TAGS = ["피곤", "직장인", "기쁨", "주말", "귀여움", "분노", "놀람", "눈치", "광기", "질문", "의지"];
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("HOME");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [memeResult, setMemeResult] = useState<MockMemeResponse | null>(null);
+  const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
 
   const { hearts, consumeHeart } = useGuestHeart();
   const { isLoggedIn } = useAuth();
-  const { composeMeme } = useMockMemeApi();
 
   const handleBasicDraw = async () => {
     if (hearts <= 0) {
@@ -68,7 +67,7 @@ export default function Home() {
   };
 
   const getPositionClasses = (pos: string) => {
-    switch (pos) {
+    switch (pos.toLowerCase()) {
       case "top": return "top-4 left-1/2 -translate-x-1/2";
       case "bottom": return "bottom-4 left-1/2 -translate-x-1/2";
       case "left": return "top-1/2 left-4 -translate-y-1/2";
@@ -79,7 +78,7 @@ export default function Home() {
       case "bottom_left": return "bottom-4 left-4";
       case "bottom_right": return "bottom-4 right-4";
       case "full_horizontal": return "bottom-4 left-0 w-full flex justify-center";
-      case "full_vertical": return "top-1/2 left-4 -translate-y-1/2 flex flex-col";
+      case "full_vertical": return "top-1/2 left-4 -translate-y-1/2";
       case "full": return "top-4 left-4";
       default: return "bottom-4 right-4";
     }
