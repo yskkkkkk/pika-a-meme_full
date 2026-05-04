@@ -49,6 +49,7 @@ class MemeControllerTest {
 
     @MockBean lateinit var memeCreationService: MemeCreationService
     @MockBean lateinit var memeQueryService: MemeQueryService
+    @MockBean lateinit var memeComposeService: com.pickameme.application.meme.MemeComposeService
     @MockBean lateinit var jwtProvider: JwtProvider
 
     private val userId = UUID.randomUUID()
