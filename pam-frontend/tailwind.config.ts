@@ -13,10 +13,12 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
+        primary: "#FF6B9D",
+        "primary-deep": "#C44DFF",
+        "brand-surface": "#FFF0F5",
+      },
+      fontFamily: {
+        sans: ["Pretendard", "-apple-system", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
