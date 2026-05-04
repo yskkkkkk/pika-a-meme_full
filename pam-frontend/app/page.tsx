@@ -211,29 +211,29 @@ export default function Home() {
       {/* ── HOME ── */}
       {appState === "HOME" && (
         <div
-          className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in duration-300"
-          style={{ padding: "0 24px 32px", gap: 24 }}
+          className="flex-1 flex flex-col items-center w-full animate-in fade-in zoom-in duration-300"
+          style={{ padding: "20px 20px 28px", gap: 14 }}
         >
-          {/* 로고 — MEME: 핑크 + 이탤릭 (italic 명시) */}
+          {/* 로고 — MEME: 인라인 style로 색상 강제 적용 */}
           <h1
-            className="font-black text-center text-[#111] leading-none"
-            style={{ fontSize: 48, letterSpacing: "-0.03em" }}
+            className="font-black text-center leading-none"
+            style={{ fontSize: 40, letterSpacing: "-0.03em", color: "#111" }}
           >
-            PICK-A-<em className="text-primary italic">MEME</em>
+            PICK-A-<em style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</em>
           </h1>
 
           {/* 밈 프리뷰 스트립 */}
-          <div className="flex w-full" style={{ gap: 10 }}>
+          <div className="flex w-full" style={{ gap: 8 }}>
             {PREVIEW_MEMES.map((meme) => (
               <div
                 key={meme.id}
                 className="flex-1 overflow-hidden relative"
-                style={{ aspectRatio: "1", borderRadius: 20 }}
+                style={{ aspectRatio: "1", borderRadius: 16 }}
               >
                 <div className="absolute inset-0" style={{ background: meme.bg }} />
                 <div
                   className="absolute inset-0 flex items-center justify-center"
-                  style={{ fontSize: 40, opacity: 0.85 }}
+                  style={{ fontSize: 34, opacity: 0.85 }}
                 >
                   {meme.animal}
                 </div>
@@ -241,16 +241,13 @@ export default function Home() {
                   className="absolute inset-0 flex items-end"
                   style={{
                     background:
-                      "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)",
-                    padding: 8,
+                      "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)",
+                    padding: 7,
                   }}
                 >
                   <p
                     className="text-white font-black leading-tight"
-                    style={{
-                      fontSize: 11,
-                      textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-                    }}
+                    style={{ fontSize: 10, textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
                   >
                     {meme.phrase}
                   </p>
@@ -260,28 +257,28 @@ export default function Home() {
           </div>
 
           {/* 가챠 버튼 */}
-          <div className="flex flex-col w-full" style={{ gap: 12 }}>
+          <div className="flex flex-col w-full" style={{ gap: 10 }}>
             <button
               onClick={handleBasicDraw}
               className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
               style={{
                 background: "#111",
-                borderRadius: 24,
-                padding: "20px 24px",
+                borderRadius: 20,
+                padding: "16px 20px",
                 border: "none",
               }}
             >
               <div className="text-left">
-                <div className="font-black" style={{ fontSize: 20 }}>BASIC 가챠</div>
-                <div style={{ fontSize: 13, opacity: 0.6, marginTop: 3 }}>일반 하트 1개 소모</div>
+                <div className="font-black" style={{ fontSize: 18 }}>BASIC 가챠</div>
+                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>일반 하트 1개 소모</div>
               </div>
               <div
                 className="flex items-center justify-center flex-shrink-0"
                 style={{
-                  width: 44, height: 44,
+                  width: 40, height: 40,
                   background: "rgba(255,255,255,0.15)",
                   borderRadius: "50%",
-                  fontSize: 20,
+                  fontSize: 18,
                 }}
               >
                 ❤️
@@ -293,23 +290,23 @@ export default function Home() {
               className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
               style={{
                 background: "linear-gradient(135deg, #C44DFF, #FF6B9D)",
-                borderRadius: 24,
-                padding: "20px 24px",
+                borderRadius: 20,
+                padding: "16px 20px",
                 border: "none",
-                boxShadow: "0 8px 24px rgba(196,77,255,0.3)",
+                boxShadow: "0 6px 20px rgba(196,77,255,0.3)",
               }}
             >
               <div className="text-left">
-                <div className="font-black" style={{ fontSize: 20 }}>SPECIAL 가챠</div>
-                <div style={{ fontSize: 13, opacity: 0.6, marginTop: 3 }}>스페셜 하트 1개 소모</div>
+                <div className="font-black" style={{ fontSize: 18 }}>SPECIAL 가챠</div>
+                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>스페셜 하트 1개 소모</div>
               </div>
               <div
                 className="flex items-center justify-center flex-shrink-0"
                 style={{
-                  width: 44, height: 44,
+                  width: 40, height: 40,
                   background: "rgba(255,255,255,0.15)",
                   borderRadius: "50%",
-                  fontSize: 20,
+                  fontSize: 18,
                 }}
               >
                 ⚡
