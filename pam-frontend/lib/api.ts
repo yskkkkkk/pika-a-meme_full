@@ -11,13 +11,18 @@ export interface ApiResponse<T> {
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit
-): Promise<ApiResponse<T>> {
+): Promise<ApiResponse<T> | undefined> {
   const token = getToken();
   const headers: Record<string, string> = {
     ...(init?.headers as Record<string, string>),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
-  return res.json() as Promise<ApiResponse<T>>;
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+    return (await res.json()) as ApiResponse<T>;
+  } catch (e) {
+    console.error('apiFetch error:', e);
+    return undefined;
+  }
 }
