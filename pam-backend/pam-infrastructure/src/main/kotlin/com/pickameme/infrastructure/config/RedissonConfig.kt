@@ -16,15 +16,23 @@ class RedissonConfig(
     private val redisUrl: String,
 
     @Value("\${spring.data.redis.password}")
-    private val redisPassword: String
+    private val redisPassword: String,
+
+    @Value("\${spring.profiles.active:local}")
+    private val activeProfile: String
 ) {
 
     @Bean(destroyMethod = "shutdown")
     fun redissonClient(): RedissonClient {
         val config = Config()
         config.useSingleServer()
-            .setAddress(redisUrl)          // rediss://host:port
+            .setAddress(redisUrl)
             .setPassword(redisPassword)
+            .also {
+                if (activeProfile == "local") {
+                    it.setSslEnableEndpointIdentification(false)
+                }
+            }
         return Redisson.create(config)
     }
 
