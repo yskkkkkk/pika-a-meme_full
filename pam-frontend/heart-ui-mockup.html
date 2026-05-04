@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pick-a-meme — 하트 UI 목업</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f5f0f7;
+      font-family: 'Pretendard', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 48px;
+      flex-wrap: wrap;
+      padding: 40px 24px;
+    }
+
+    /* Phone shell */
+    .phone {
+      width: 320px;
+      height: 640px;
+      background: #ffffff;
+      border-radius: 44px;
+      box-shadow:
+        0 0 0 2px #e0d8e8,
+        0 32px 80px rgba(196,77,255,0.12),
+        0 8px 32px rgba(0,0,0,0.08);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .phone-notch {
+      width: 100%;
+      height: 36px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+    .phone-notch::after {
+      content: '';
+      width: 80px; height: 20px;
+      background: #111;
+      border-radius: 0 0 14px 14px;
+    }
+    .phone-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px 10px;
+      position: relative;
+      z-index: 20;
+    }
+
+    /* Basic heart — energy bar */
+    .heart-basic {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1.5px solid #f0e8f5;
+      border-radius: 16px;
+      padding: 8px 12px;
+      box-shadow: 0 2px 12px rgba(255,107,157,0.1);
+    }
+    .heart-basic-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #FF6B9D, #ff3b6b);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 3px 10px rgba(255,59,107,0.35);
+      flex-shrink: 0;
+    }
+    .heart-basic-info { display: flex; flex-direction: column; gap: 3px; }
+    .heart-basic-label {
+      font-size: 9px; font-weight: 700; color: #bbb;
+      letter-spacing: 0.1em;
+    }
+    .heart-bar-track {
+      width: 72px; height: 6px;
+      background: #f0e8f5;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .heart-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #FF6B9D, #ff8fb3);
+      border-radius: 100px;
+      position: relative;
+      transition: width 0.5s ease;
+    }
+    .heart-basic-count {
+      font-size: 18px; font-weight: 900; color: #111;
+      line-height: 1;
+    }
+    .heart-basic-count span { font-size: 11px; color: #ccc; font-weight: 500; }
+
+    /* Special heart button */
+    .heart-special-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, #f5eeff, #ede0ff);
+      border: 1.5px solid #dbc8ff;
+      border-radius: 14px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 12px rgba(196,77,255,0.1);
+      position: relative;
+    }
+    .heart-special-btn:active { transform: scale(0.95); }
+    .heart-special-icon {
+      font-size: 18px;
+      filter: drop-shadow(0 2px 4px rgba(196,77,255,0.4));
+    }
+    .heart-special-count {
+      font-size: 18px; font-weight: 900; color: #7c3aed;
+    }
+    .heart-special-badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      width: 14px; height: 14px;
+      background: #FF6B9D;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .heart-special-badge span {
+      font-size: 8px; font-weight: 900; color: #fff;
+    }
+
+    /* Menu button */
+    .menu-btn {
+      width: 36px; height: 36px;
+      background: #fff;
+      border: 1.5px solid #f0e8f5;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* ── Home content ── */
+    .home-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px 24px;
+      gap: 20px;
+    }
+    .home-logo {
+      font-size: 36px; font-weight: 900;
+      letter-spacing: -0.03em; color: #111;
+      text-align: center;
+    }
+    .home-logo em { color: #FF6B9D; font-style: italic; }
+
+    .preview-strip {
+      display: flex; gap: 8px; width: 100%;
+    }
+    .preview-card {
+      flex: 1; aspect-ratio: 1;
+      border-radius: 16px; overflow: hidden;
+      position: relative;
+    }
+    .preview-card-bg {
+      position: absolute; inset: 0;
+    }
+    .preview-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%);
+      display: flex; align-items: flex-end; padding: 6px;
+    }
+    .preview-card-text {
+      font-size: 9px; font-weight: 900; color: #fff;
+      line-height: 1.3; text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .preview-animal {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; opacity: 0.85;
+    }
+
+    .btn-basic {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      border-radius: 20px;
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-basic:active { transform: scale(0.98); }
+    .btn-special {
+      width: 100%;
+      background: linear-gradient(135deg, #C44DFF, #FF6B9D);
+      color: #fff;
+      border-radius: 20px;
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 8px 24px rgba(196,77,255,0.3);
+      transition: all 0.15s;
+    }
+    .btn-special:active { transform: scale(0.98); }
+    .btn-title { font-size: 17px; font-weight: 900; text-align: left; }
+    .btn-sub { font-size: 11px; opacity: 0.6; margin-top: 2px; text-align: left; }
+    .btn-icon {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+
+    /* ── Mission Slide Up ── */
+    .overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 30;
+      backdrop-filter: blur(2px);
+      transition: opacity 0.25s ease;
+    }
+    .overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .mission-sheet {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-radius: 28px 28px 0 0;
+      z-index: 40;
+      padding: 0 0 32px;
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -8px 40px rgba(196,77,255,0.15);
+    }
+    .mission-sheet.hidden { transform: translateY(100%); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: #e8e0f0;
+      border-radius: 100px;
+      margin: 12px auto 0;
+    }
+    .sheet-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #f5f0fa;
+    }
+    .sheet-header-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #ede0ff, #dbc8ff);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .sheet-header-title { font-size: 15px; font-weight: 900; color: #111; }
+    .sheet-header-sub { font-size: 11px; color: #aaa; margin-top: 1px; }
+    .sheet-close {
+      margin-left: auto;
+      width: 28px; height: 28px;
+      background: #f5f0fa;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px; color: #999;
+    }
+
+    .mission-list { padding: 8px 16px; display: flex; flex-direction: column; gap: 4px; }
+
+    .mission-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      transition: background 0.15s;
+    }
+    .mission-item.done { background: #fdf8ff; }
+    .mission-item.active { background: #fff; }
+    .mission-item.locked { background: #fafafa; opacity: 0.6; }
+
+    .mission-icon {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .mission-icon.done { background: linear-gradient(135deg, #e8f8f0, #c8f0dc); }
+    .mission-icon.active { background: linear-gradient(135deg, #fff0f8, #ffd6eb); }
+    .mission-icon.progress { background: linear-gradient(135deg, #f0f0ff, #e0dcff); }
+    .mission-icon.locked { background: #f0f0f0; }
+
+    .mission-info { flex: 1; }
+    .mission-name { font-size: 13px; font-weight: 700; color: #111; }
+    .mission-desc { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .mission-progress-bar {
+      height: 4px; background: #f0e8ff; border-radius: 100px;
+      overflow: hidden; margin-top: 6px; width: 100%;
+    }
+    .mission-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #C44DFF, #FF6B9D);
+      border-radius: 100px;
+    }
+
+    .mission-reward {
+      display: flex; align-items: center; gap: 3px;
+      background: #f5eeff;
+      border-radius: 100px;
+      padding: 4px 10px;
+      flex-shrink: 0;
+    }
+    .mission-reward span { font-size: 12px; }
+    .mission-reward strong { font-size: 12px; font-weight: 900; color: #7c3aed; }
+
+    .mission-check {
+      width: 22px; height: 22px;
+      background: linear-gradient(135deg, #34d399, #10b981);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; flex-shrink: 0;
+    }
+
+    /* Label */
+    .phone-label {
+      text-align: center;
+      font-size: 12px; font-weight: 700;
+      color: #999; margin-top: 16px;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+<script type="text/babel">
+const { useState } = React;
+
+const MISSIONS = [
+  {
+    id: 'first-login',
+    status: 'done',
+    icon: '👋',
+    name: '첫 로그인',
+    desc: '서비스에 처음 로그인했어요',
+    reward: 1,
+    progress: null,
+  },
+  {
+    id: 'story-share',
+    status: 'active',
+    icon: '📸',
+    name: '스토리 공유하기',
+    desc: '밈을 인스타 스토리에 공유해보세요',
+    reward: 1,
+    progress: null,
+  },
+  {
+    id: 'invite',
+    status: 'active',
+    icon: '🔗',
+    name: '친구 초대하기',
+    desc: '초대 링크로 친구를 데려오세요',
+    reward: 1,
+    progress: null,
+  },
+  {
+    id: 'streak',
+    status: 'progress',
+    icon: '🗓️',
+    name: '7일 연속 방문',
+    desc: '매일 접속하면 보상이 두 배!',
+    reward: 2,
+    progress: { current: 3, total: 7 },
+  },
+  {
+    id: 'gallery',
+    status: 'locked',
+    icon: '🔒',
+    name: '갤러리 10개 채우기',
+    desc: '밈을 10개 생성하면 해금돼요',
+    reward: 2,
+    progress: null,
+  },
+];
+
+const PREVIEW_CARDS = [
+  { bg: 'linear-gradient(135deg,#667eea,#764ba2)', animal: '🐱', text: '야근 5일차' },
+  { bg: 'linear-gradient(135deg,#FF6B9D,#C44DFF)', animal: '🐶', text: '퇴근 5분 전' },
+  { bg: 'linear-gradient(135deg,#f093fb,#f5576c)', animal: '🐻', text: '월요일 아침' },
+];
+
+function PhoneMain({ label, basicHearts, specialHearts, showBadge }) {
+  const [missionOpen, setMissionOpen] = useState(false);
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="phone">
+        <div className="phone-notch"/>
+        <div className="phone-body">
+          {/* Top bar */}
+          <div className="top-bar">
+            {/* Basic heart energy bar */}
+            <div className="heart-basic">
+              <div className="heart-basic-icon">❤️</div>
+              <div className="heart-basic-info">
+                <div className="heart-basic-label">BASIC</div>
+                <div className="heart-bar-track">
+                  <div className="heart-bar-fill" style={{width:`${(basicHearts/5)*100}%`}}/>
+                </div>
+              </div>
+              <div className="heart-basic-count">
+                {basicHearts}<span>/{5}</span>
+              </div>
+            </div>
+
+            {/* Special heart tap button */}
+            <button className="heart-special-btn" onClick={() => setMissionOpen(true)}>
+              {showBadge && (
+                <div className="heart-special-badge">
+                  <span>!</span>
+                </div>
+              )}
+              <span className="heart-special-icon">⚡</span>
+              <span className="heart-special-count">{specialHearts}</span>
+            </button>
+
+            <div className="menu-btn">
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+                <rect width="16" height="2" rx="1" fill="#555"/>
+                <rect y="5" width="16" height="2" rx="1" fill="#555"/>
+                <rect y="10" width="16" height="2" rx="1" fill="#555"/>
+              </svg>
+            </div>
+          </div>
+
+          {/* Home content */}
+          <div className="home-content">
+            <div className="home-logo">
+              PICK-A-<em>MEME</em>
+            </div>
+
+            {/* Preview strip */}
+            <div className="preview-strip">
+              {PREVIEW_CARDS.map((c, i) => (
+                <div key={i} className="preview-card">
+                  <div className="preview-card-bg" style={{background:c.bg}}/>
+                  <div className="preview-animal">{c.animal}</div>
+                  <div className="preview-card-overlay">
+                    <div className="preview-card-text">{c.text}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{display:'flex',flexDirection:'column',gap:'10px',width:'100%'}}>
+              <button className="btn-basic">
+                <div>
+                  <div className="btn-title">BASIC 가챠</div>
+                  <div className="btn-sub">일반 하트 1개 소모</div>
+                </div>
+                <div className="btn-icon">❤️</div>
+              </button>
+              <button className="btn-special">
+                <div>
+                  <div className="btn-title">SPECIAL 가챠</div>
+                  <div className="btn-sub">스페셜 하트 1개 소모</div>
+                </div>
+                <div className="btn-icon">⚡</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Overlay */}
+          <div
+            className={`overlay ${missionOpen ? '' : 'hidden'}`}
+            onClick={() => setMissionOpen(false)}
+          />
+
+          {/* Mission sheet */}
+          <div className={`mission-sheet ${missionOpen ? '' : 'hidden'}`}>
+            <div className="sheet-handle"/>
+            <div className="sheet-header">
+              <div className="sheet-header-icon">⚡</div>
+              <div>
+                <div className="sheet-header-title">스페셜 하트 획득</div>
+                <div className="sheet-header-sub">미션 완료 시 지급돼요</div>
+              </div>
+              <div className="sheet-close" onClick={() => setMissionOpen(false)}>✕</div>
+            </div>
+
+            <div className="mission-list">
+              {MISSIONS.map((m) => (
+                <div key={m.id} className={`mission-item ${m.status === 'progress' ? 'active' : m.status}`}>
+                  <div className={`mission-icon ${m.status === 'progress' ? 'progress' : m.status}`}>
+                    {m.icon}
+                  </div>
+                  <div className="mission-info">
+                    <div className="mission-name">{m.name}</div>
+                    <div className="mission-desc">{m.desc}</div>
+                    {m.progress && (
+                      <div className="mission-progress-bar">
+                        <div
+                          className="mission-progress-fill"
+                          style={{width:`${(m.progress.current/m.progress.total)*100}%`}}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {m.status === 'done' ? (
+                    <div className="mission-check">✓</div>
+                  ) : (
+                    <div className="mission-reward">
+                      <span>⚡</span>
+                      <strong>+{m.reward}</strong>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="phone-label">{label}</div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <>
+      {/* State 1: 스페셜 하트 있음, 미션 알림 있음 */}
+      <PhoneMain
+        label="⚡ 탭 전 — 뱃지 알림 있음"
+        basicHearts={3}
+        specialHearts={1}
+        showBadge={true}
+      />
+      {/* State 2: 스페셜 하트 없음 */}
+      <PhoneMain
+        label="⚡ 탭 전 — 스페셜 0개"
+        basicHearts={5}
+        specialHearts={0}
+        showBadge={false}
+      />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<div id="root" style="display:contents"></div>
+</body>
+</html>
