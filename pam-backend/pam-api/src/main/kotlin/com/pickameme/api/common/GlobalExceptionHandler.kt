@@ -5,6 +5,7 @@ import com.pickameme.domain.exception.DuplicateEmailException
 import com.pickameme.domain.exception.HeartNotFoundException
 import com.pickameme.domain.exception.InsufficientHeartException
 import com.pickameme.domain.exception.MemeCreationPolicyViolationException
+import com.pickameme.domain.exception.MemeSourceNotFoundException
 import com.pickameme.domain.exception.UserNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -35,6 +36,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(HeartNotFoundException::class)
     fun handleHeartNotFound(e: HeartNotFoundException): ApiResponse<Nothing> =
         ApiResponse.fail(ErrorCode.HEART_NOT_FOUND)
+
+    // 404 — 밈 소스 없음 (meme_images/meme_phrases 데이터 공백)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(MemeSourceNotFoundException::class)
+    fun handleMemeSourceNotFound(e: MemeSourceNotFoundException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.MEME_SOURCE_NOT_FOUND)
 
     // 404 — 유저 없음
     @ResponseStatus(HttpStatus.NOT_FOUND)

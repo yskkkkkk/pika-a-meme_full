@@ -72,9 +72,9 @@
 | ID | 분류 | 상태 | 내용 | 연관 | 일자 |
 | :--- | :--- | :---: | :--- | :--- | :--- |
 | TASK-260504-01 | [문서/기타] | [x] | AIRULES v2 전면 개편 및 BACKLOG/README 재정비 | [!] 외부 요청 | 260504 / 260504 |
-| TASK-260504-02 | [인프라/공통] | [ ] | Flyway V4 — meme_images/meme_phrases 테이블 생성 + GIN 인덱스 | - | 260504 / - |
-| TASK-260504-03 | [밈/이미지] | [ ] | MemeImage/MemePhrase 도메인 엔티티, 레포지터리 인터페이스 구현 | TASK-260504-02 | 260504 / - |
-| TASK-260504-04 | [밈/이미지] | [ ] | MemeImage/MemePhrase JPA 어댑터 및 R2 이미지 등록 인프라 구현 | TASK-260504-03 | 260504 / - |
+| TASK-260504-02 | [인프라/공통] | [x] | Flyway V4 — meme_images/meme_phrases 테이블 생성 + GIN 인덱스 | - | 260504 / 260504 |
+| TASK-260504-03 | [밈/이미지] | [x] | MemeImage/MemePhrase 도메인 엔티티, 레포지터리 인터페이스 구현 | TASK-260504-02 | 260504 / 260504 |
+| TASK-260504-04 | [밈/이미지] | [x] | MemeImage/MemePhrase JPA 어댑터 및 인프라 구현 | TASK-260504-03 | 260504 / 260504 |
 | TASK-260504-05 | [하트/스테미나] | [ ] | 하트 타입별 밈 조합 전략 서비스 (RandomMix / ContextualMatching) 구현 | TASK-260504-03 | 260504 / - |
 | TASK-260504-06 | [밈/이미지] | [ ] | 밈 조합 API 엔드포인트 구현 (GET /api/memes/compose) | TASK-260504-05 | 260504 / - |
 | TASK-260504-07 | [프론트엔드] | [ ] | 모바일 퍼스트 메인 화면 재구축 (500px 컨테이너, BASIC/SPECIAL 하트 버튼) | TASK-260504-06 | 260504 / - |

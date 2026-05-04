@@ -8,6 +8,7 @@ enum class ErrorCode(val message: String) {
     // 밈
     MEME_NOT_FOUND("밈을 찾을 수 없습니다."),
     MEME_POLICY_VIOLATION("밈 생성 정책에 위반됩니다."),
+    MEME_SOURCE_NOT_FOUND("밈 소스 데이터가 없습니다. 관리자에게 문의하세요."),
 
     // 유저
     USER_NOT_FOUND("유저를 찾을 수 없습니다."),
