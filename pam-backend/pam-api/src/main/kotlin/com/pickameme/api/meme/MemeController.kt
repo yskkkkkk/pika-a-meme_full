@@ -5,6 +5,8 @@ import com.pickameme.api.common.ApiResponse
 import com.pickameme.application.meme.CreateMemeCommand
 import com.pickameme.application.meme.MemeCreationService
 import com.pickameme.application.meme.MemeQueryService
+import com.pickameme.application.meme.MemeComposeService
+import com.pickameme.application.meme.MemeComposeResult
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.CanvasState
 import com.pickameme.domain.meme.MemeCreationOption
@@ -26,6 +28,7 @@ import java.util.UUID
 class MemeController(
     private val memeCreationService: MemeCreationService,
     private val memeQueryService: MemeQueryService,
+    private val memeComposeService: MemeComposeService,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -82,4 +85,17 @@ class MemeController(
         @RequestParam(defaultValue = "20") size: Int
     ): ApiResponse<List<MemeResponse>> =
         ApiResponse.ok(memeQueryService.findAllByUser(userId, page, size).map { MemeResponse.from(it) })
+
+    /**
+     * GET /api/memes/compose
+     * 밈 조합 생성 (뽑기용)
+     */
+    @GetMapping("/compose")
+    fun compose(
+        @RequestParam("heartType") heartType: HeartType,
+        @RequestParam(value = "tags", required = false) tags: List<String>?
+    ): ApiResponse<MemeComposeResult> {
+        val result = memeComposeService.compose(heartType, tags ?: emptyList())
+        return ApiResponse.ok(result)
+    }
 }
