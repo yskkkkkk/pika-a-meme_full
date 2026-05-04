@@ -73,25 +73,36 @@ export function HeartDisplay({ onMenuOpen }: Props) {
 
   return (
     <>
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-[18px] py-[10px] z-10 relative">
+      {/* Top bar — padding: 14px 20px 10px (heart-ui-mockup 기준) */}
+      <div
+        className="flex items-center justify-between z-10 relative"
+        style={{ padding: "14px 20px 10px" }}
+      >
         {/* BASIC energy bar */}
         <div
-          className="flex items-center gap-[8px] bg-white border border-[#f0e8f5] rounded-[14px] px-[10px] py-[6px]"
-          style={{ boxShadow: "0 2px 10px rgba(255,107,157,0.08)" }}
+          className="flex items-center gap-[10px] bg-white border border-[#f0e8f5] rounded-[16px]"
+          style={{
+            padding: "8px 12px",
+            boxShadow: "0 2px 12px rgba(255,107,157,0.1)",
+          }}
         >
           <div
-            className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center text-[14px] flex-shrink-0"
+            className="flex items-center justify-center flex-shrink-0 text-[16px]"
             style={{
+              width: 32, height: 32,
               background: "linear-gradient(135deg, #FF6B9D, #ff3b6b)",
-              boxShadow: "0 2px 8px rgba(255,59,107,0.3)",
+              borderRadius: 10,
+              boxShadow: "0 3px 10px rgba(255,59,107,0.35)",
             }}
           >
             ❤️
           </div>
-          <div className="flex flex-col gap-[2px]">
-            <div className="text-[8px] font-bold text-[#ccc] tracking-[0.1em]">BASIC</div>
-            <div className="w-[56px] h-[5px] bg-[#f0e8f5] rounded-full overflow-hidden">
+          <div className="flex flex-col gap-[3px]">
+            <div className="text-[9px] font-bold text-[#bbb] tracking-[0.1em]">BASIC</div>
+            <div
+              className="overflow-hidden rounded-full"
+              style={{ width: 72, height: 6, background: "#f0e8f5" }}
+            >
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -101,44 +112,55 @@ export function HeartDisplay({ onMenuOpen }: Props) {
               />
             </div>
           </div>
-          <div className="text-[15px] font-black text-[#111] leading-none">
+          <div className="font-black text-[#111] leading-none" style={{ fontSize: 18 }}>
             {basicCount}
-            <span className="text-[10px] font-medium text-[#ccc]">/{basicMax}</span>
+            <span className="font-medium text-[#ccc]" style={{ fontSize: 11 }}>/{basicMax}</span>
           </div>
         </div>
 
         {/* SPECIAL heart tap button */}
         <button
           onClick={() => setMissionOpen(true)}
-          className="flex items-center gap-[5px] border border-[#dbc8ff] rounded-[12px] px-[10px] py-[6px] relative active:scale-95 transition-transform"
+          className="flex items-center relative border border-[#dbc8ff] rounded-[14px] active:scale-95 transition-transform"
           style={{
+            gap: 6,
+            padding: "8px 12px",
             background: "linear-gradient(135deg, #f5eeff, #ede0ff)",
-            boxShadow: "0 2px 10px rgba(196,77,255,0.1)",
+            boxShadow: "0 2px 12px rgba(196,77,255,0.1)",
           }}
         >
           {hasUnfinishedMissions && (
-            <div className="absolute -top-1 -right-1 w-[14px] h-[14px] bg-[#FF6B9D] rounded-full border-2 border-white flex items-center justify-center">
+            <div
+              className="absolute flex items-center justify-center bg-[#FF6B9D] rounded-full border-2 border-white"
+              style={{ top: -4, right: -4, width: 14, height: 14 }}
+            >
               <span className="text-[8px] font-black text-white">!</span>
             </div>
           )}
           <span
-            className="text-[15px]"
-            style={{ filter: "drop-shadow(0 2px 4px rgba(196,77,255,0.4))" }}
+            style={{ fontSize: 18, filter: "drop-shadow(0 2px 4px rgba(196,77,255,0.4))" }}
           >
             ⚡
           </span>
-          <span className="text-[15px] font-black text-[#7c3aed]">{specialCount}</span>
+          <span className="font-black text-[#7c3aed]" style={{ fontSize: 18 }}>
+            {specialCount}
+          </span>
         </button>
 
         {/* Menu button */}
         <button
           onClick={onMenuOpen}
-          className="w-[32px] h-[32px] bg-white border border-[#f0e8f5] rounded-[10px] flex items-center justify-center"
+          className="flex items-center justify-center bg-white border border-[#f0e8f5]"
+          style={{
+            width: 36, height: 36,
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
         >
-          <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-            <rect width="14" height="2" rx="1" fill="#555" />
-            <rect y="4" width="14" height="2" rx="1" fill="#555" />
-            <rect y="8" width="14" height="2" rx="1" fill="#555" />
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <rect width="16" height="2" rx="1" fill="#555" />
+            <rect y="5" width="16" height="2" rx="1" fill="#555" />
+            <rect y="10" width="16" height="2" rx="1" fill="#555" />
           </svg>
         </button>
       </div>
@@ -162,8 +184,11 @@ export function HeartDisplay({ onMenuOpen }: Props) {
         <div className="w-[36px] h-[4px] bg-[#e8e0f0] rounded-full mx-auto mt-3" />
         <div className="flex items-center gap-[10px] px-5 py-4 border-b border-[#f5f0fa]">
           <div
-            className="w-[36px] h-[36px] rounded-[12px] flex items-center justify-center text-[18px]"
-            style={{ background: "linear-gradient(135deg, #ede0ff, #dbc8ff)" }}
+            className="flex items-center justify-center text-[18px]"
+            style={{
+              width: 36, height: 36, borderRadius: 12,
+              background: "linear-gradient(135deg, #ede0ff, #dbc8ff)",
+            }}
           >
             ⚡
           </div>
@@ -173,7 +198,8 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           </div>
           <button
             onClick={() => setMissionOpen(false)}
-            className="ml-auto w-[28px] h-[28px] bg-[#f5f0fa] rounded-full flex items-center justify-center text-[14px] text-[#999]"
+            className="ml-auto flex items-center justify-center bg-[#f5f0fa] text-[#999]"
+            style={{ width: 28, height: 28, borderRadius: "50%", fontSize: 14 }}
           >
             ✕
           </button>
@@ -183,16 +209,17 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           {MISSIONS.map((m) => (
             <div
               key={m.id}
-              className={`flex items-center gap-3 px-[14px] py-3 rounded-[16px] ${
+              className={`flex items-center gap-3 rounded-[16px] ${
                 m.status === "done"
                   ? "bg-[#fdf8ff]"
                   : m.status === "locked"
                   ? "bg-[#fafafa] opacity-60"
                   : "bg-white"
               }`}
+              style={{ padding: "12px 14px" }}
             >
               <div
-                className={`w-[38px] h-[38px] rounded-[12px] flex items-center justify-center text-[18px] flex-shrink-0 ${
+                className={`flex items-center justify-center text-[18px] flex-shrink-0 ${
                   m.status === "done"
                     ? "bg-gradient-to-br from-[#e8f8f0] to-[#c8f0dc]"
                     : m.status === "progress"
@@ -201,6 +228,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
                     ? "bg-gradient-to-br from-[#fff0f8] to-[#ffd6eb]"
                     : "bg-[#f0f0f0]"
                 }`}
+                style={{ width: 38, height: 38, borderRadius: 12 }}
               >
                 {m.icon}
               </div>
@@ -208,7 +236,10 @@ export function HeartDisplay({ onMenuOpen }: Props) {
                 <div className="text-[13px] font-bold text-[#111]">{m.name}</div>
                 <div className="text-[11px] text-[#aaa] mt-[2px]">{m.desc}</div>
                 {m.progress && (
-                  <div className="h-[4px] bg-[#f0e8ff] rounded-full overflow-hidden mt-[6px]">
+                  <div
+                    className="overflow-hidden rounded-full mt-[6px]"
+                    style={{ height: 4, background: "#f0e8ff" }}
+                  >
                     <div
                       className="h-full rounded-full"
                       style={{
@@ -221,13 +252,19 @@ export function HeartDisplay({ onMenuOpen }: Props) {
               </div>
               {m.status === "done" ? (
                 <div
-                  className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] text-white font-black flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, #34d399, #10b981)" }}
+                  className="flex items-center justify-center text-[11px] text-white font-black flex-shrink-0"
+                  style={{
+                    width: 22, height: 22, borderRadius: "50%",
+                    background: "linear-gradient(135deg, #34d399, #10b981)",
+                  }}
                 >
                   ✓
                 </div>
               ) : (
-                <div className="flex items-center gap-[3px] bg-[#f5eeff] rounded-full px-[10px] py-1 flex-shrink-0">
+                <div
+                  className="flex items-center gap-[3px] bg-[#f5eeff] rounded-full flex-shrink-0"
+                  style={{ padding: "4px 10px" }}
+                >
                   <span className="text-[12px]">⚡</span>
                   <strong className="text-[12px] font-black text-[#7c3aed]">+{m.reward}</strong>
                 </div>
