@@ -72,12 +72,11 @@ export function MemeGallery() {
     queryKey: ["memes", page],
     queryFn: async () => {
       const res = await apiFetch<MemeItem[]>(`/api/memes?page=${page}&size=${PAGE_SIZE}`);
-      if (res.data) {
-        setAllMemes((prev) =>
-          page === 0 ? res.data! : [...prev, ...res.data!]
-        );
+      const data = res?.data ?? [];
+      if (data.length > 0) {
+        setAllMemes((prev) => (page === 0 ? data : [...prev, ...data]));
       }
-      return res.data ?? [];
+      return data;
     },
     staleTime: 30_000,
   });
