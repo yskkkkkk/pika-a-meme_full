@@ -16,7 +16,7 @@ export interface ServerHeartState {
 
 async function fetchHearts(): Promise<ServerHeartState> {
   const res = await apiFetch<ServerHeartState>("/api/hearts");
-  if (!res.success || !res.data) throw new Error(res.error?.message ?? "하트 조회 실패");
+  if (!res || !res.success || !res.data) throw new Error(res?.error?.message ?? "하트 조회 실패");
   return res.data;
 }
 

@@ -29,7 +29,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
       <div className="px-8 pb-12 flex flex-col flex-1">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-black tracking-tight text-gray-900 mb-4">
-            PICK-A-<span className="text-primary italic">MEME</span>
+            PICK-A-<em style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</em>
           </h2>
           <p className="text-gray-500 font-medium leading-relaxed">
             나만의 B급 감성 밈을 만들고<br />
