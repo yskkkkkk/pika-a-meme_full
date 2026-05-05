@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Pretendard", "-apple-system", "sans-serif";
+  --color-primary: #FF6B9D;
+  --color-primary-deep: #C44DFF;
+  --color-brand-surface: #FFF0F5;
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
