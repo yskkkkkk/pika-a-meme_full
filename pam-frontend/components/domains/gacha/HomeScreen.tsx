@@ -15,16 +15,22 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
   return (
     <div
       className="flex-1 flex flex-col items-center w-full animate-in fade-in zoom-in duration-300"
-      style={{ padding: "20px 20px 28px", gap: 14 }}
+      style={{ padding: "20px 20px 28px" }}
     >
       <h1
         className="font-black text-center leading-none"
-        style={{ fontSize: 40, letterSpacing: "-0.03em", color: "#111" }}
+        style={{ fontSize: 40, letterSpacing: "-0.03em", color: "#111", marginBottom: 6 }}
       >
         PICK-A-<em style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</em>
       </h1>
+      <p
+        className="text-center text-[#bbb]"
+        style={{ fontSize: 13, marginBottom: 20 }}
+      >
+        오늘의 밈을 뽑아보세요
+      </p>
 
-      <div className="flex w-full" style={{ gap: 8 }}>
+      <div className="flex w-full" style={{ gap: 8, marginBottom: 12 }}>
         {PREVIEW_MEMES.map((meme) => (
           <div
             key={meme.id}
@@ -56,7 +62,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
         ))}
       </div>
 
-      <div className="flex flex-col w-full" style={{ gap: 10 }}>
+      <div className="flex flex-col w-full" style={{ gap: 10, marginTop: "auto" }}>
         <button
           onClick={onBasicDraw}
           className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
