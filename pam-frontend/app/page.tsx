@@ -198,7 +198,7 @@ export default function Home() {
             className="absolute bottom-8 font-black text-white/30"
             style={{ fontSize: 11, letterSpacing: "0.2em" }}
           >
-            PICK-A-<span className="text-primary italic">MEME</span>
+            PICK-A-<span style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</span>
           </div>
         </div>
       )}
