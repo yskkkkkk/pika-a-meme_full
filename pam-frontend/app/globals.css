@@ -13,7 +13,7 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .glass {
