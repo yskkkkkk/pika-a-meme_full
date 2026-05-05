@@ -14,25 +14,23 @@ interface Props {
 export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
   return (
     <div
-      className="flex-1 flex flex-col items-center w-full animate-in fade-in zoom-in duration-300"
-      style={{ padding: "20px 20px 28px" }}
+      className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in duration-300"
+      style={{ padding: "20px 20px 28px", gap: 16 }}
     >
-      <h1
-        className="font-black text-center leading-none"
-        style={{ fontSize: 40, letterSpacing: "-0.03em", color: "#111", marginBottom: 6 }}
-      >
-        PICK-A-<em style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</em>
-      </h1>
-      <p
-        className="text-center text-[#bbb]"
-        style={{ fontSize: 13, marginBottom: 20 }}
-      >
-        오늘의 밈을 뽑아보세요
-      </p>
+      <div className="flex flex-col items-center w-full" style={{ gap: 4 }}>
+        <h1
+          className="font-black text-center leading-none"
+          style={{ fontSize: 40, letterSpacing: "-0.03em", color: "#111" }}
+        >
+          PICK-A-<em style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</em>
+        </h1>
+        <p className="text-center text-[#bbb]" style={{ fontSize: 13 }}>
+          오늘의 밈을 뽑아보세요
+        </p>
+      </div>
 
-      {/* 미리보기 + 버튼을 묶어서 아래 고정 — 로고와 이 그룹 사이 빈 공간 형성 */}
-      <div className="flex flex-col w-full" style={{ gap: 10, marginTop: "auto" }}>
-        <div className="flex w-full" style={{ gap: 8, marginBottom: 2 }}>
+      <div className="flex flex-col w-full" style={{ gap: 10 }}>
+        <div className="flex w-full" style={{ gap: 8 }}>
           {PREVIEW_MEMES.map((meme) => (
             <div
               key={meme.id}
@@ -102,7 +100,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
             ⚡
           </div>
         </button>
-      </div>  {/* 묶음 그룹 끝 */}
+      </div>
     </div>
   );
 }
