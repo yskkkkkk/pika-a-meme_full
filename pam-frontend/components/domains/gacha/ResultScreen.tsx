@@ -2,112 +2,132 @@
 
 import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import { cn } from "@/lib/utils";
 import { MemeResult } from "@/hooks/useMemeApi";
 
 // ─── 말풍선 ──────────────────────────────────────────────────────────────────
 
 type TailDir = "up" | "down" | "left" | "right";
 
-// 꼬리는 동물 쪽을 가리킴 (버블이 반대편에 있으므로)
+const BG = "rgba(255,255,255,0.97)";
+
+// ① 꼬리 방향: 동물 쪽을 가리킴
 function getTailDir(pos: string): TailDir {
   switch (pos.toLowerCase()) {
-    case "bottom": case "bottom_left": case "bottom_right":
-      return "down";   // 버블이 위 → 꼬리가 아래 (동물 방향)
-    case "left": case "full_vertical":
-      return "left";   // 버블이 오른쪽 → 꼬리가 왼쪽 (동물 방향)
-    case "right":
-      return "right";  // 버블이 왼쪽 → 꼬리가 오른쪽 (동물 방향)
-    default:
-      return "up";     // 버블이 아래 → 꼬리가 위 (동물 방향)
+    case "bottom": case "bottom_left": case "bottom_right": return "down";
+    case "left":   case "full_vertical":                    return "left";
+    case "right":                                           return "right";
+    default:                                                return "up";
   }
 }
 
-// 버블 본체 모양 (border-radius) + 꼬리 가로 위치(%) — B급 랜덤
+// ② 버블 본체 모양 (border-radius) + 꼬리 가로 위치(%)
 const BUBBLE_VARIANTS = [
-  { radius: "22px",                     tailX: 50 },
-  { radius: "30px",                     tailX: 35 },
-  { radius: "30px",                     tailX: 62 },
-  { radius: "24px 24px 6px 24px",       tailX: 22 },
-  { radius: "24px 6px 24px 24px",       tailX: 76 },
-  { radius: "18px 28px 18px 28px",      tailX: 50 },
+  { radius: "22px",                tailX: 50 },
+  { radius: "30px",                tailX: 35 },
+  { radius: "30px",                tailX: 64 },
+  { radius: "24px 24px 6px 24px",  tailX: 24 },
+  { radius: "24px 6px 24px 24px",  tailX: 74 },
+  { radius: "18px 28px 18px 28px", tailX: 50 },
 ];
 
-const BG = "rgba(255,255,255,0.97)";
+// ⑤ 꼬리 상세 모양: 방향별 3종
+const TAIL_PATHS: Record<TailDir, string[]> = {
+  up: [
+    "M0,12 C5,12 7,3 9,0 C11,3 13,12 18,12 Z",       // 대칭 중앙
+    "M0,12 C4,12 6,5 8,0 C11,4 14,12 18,12 Z",        // 좌로 기울기
+    "M0,12 C4,12 7,4 10,0 C12,5 14,12 18,12 Z",       // 우로 기울기
+  ],
+  down: [
+    "M0,0 C5,0 7,9 9,12 C11,9 13,0 18,0 Z",
+    "M0,0 C4,0 6,7 8,12 C11,8 14,0 18,0 Z",
+    "M0,0 C4,0 7,8 10,12 C12,7 14,0 18,0 Z",
+  ],
+  left: [
+    "M12,0 C12,5 3,7 0,9 C3,11 12,13 12,18 Z",
+    "M12,0 C12,4 4,6 0,8 C4,11 12,14 12,18 Z",
+    "M12,0 C12,5 2,8 0,10 C3,12 12,14 12,18 Z",
+  ],
+  right: [
+    "M0,0 C0,5 9,7 12,9 C9,11 0,13 0,18 Z",
+    "M0,0 C0,4 8,6 12,8 C8,11 0,14 0,18 Z",
+    "M0,0 C0,5 10,8 12,10 C9,12 0,14 0,18 Z",
+  ],
+};
 
-function TailSVG({ dir }: { dir: TailDir }) {
-  if (dir === "down") return (
-    <svg width="18" height="12" viewBox="0 0 18 12">
-      <path d="M0,0 C5,0 7,9 9,12 C11,9 13,0 18,0 Z" fill={BG} />
-    </svg>
-  );
-  if (dir === "up") return (
-    <svg width="18" height="12" viewBox="0 0 18 12">
-      <path d="M0,12 C5,12 7,3 9,0 C11,3 13,12 18,12 Z" fill={BG} />
-    </svg>
-  );
-  if (dir === "left") return (
-    <svg width="12" height="18" viewBox="0 0 12 18">
-      <path d="M12,0 C12,5 3,7 0,9 C3,11 12,13 12,18 Z" fill={BG} />
-    </svg>
-  );
+function TailSVG({ dir, pathIdx }: { dir: TailDir; pathIdx: number }) {
+  const path = TAIL_PATHS[dir][pathIdx % TAIL_PATHS[dir].length];
+  const isH = dir === "up" || dir === "down";
   return (
-    <svg width="12" height="18" viewBox="0 0 12 18">
-      <path d="M0,0 C0,5 9,7 12,9 C9,11 0,13 0,18 Z" fill={BG} />
+    <svg
+      width={isH ? 18 : 12}
+      height={isH ? 12 : 18}
+      viewBox={isH ? "0 0 18 12" : "0 0 12 18"}
+    >
+      <path d={path} fill={BG} />
     </svg>
   );
 }
 
-function SpeechBubble({ pos, text, variantIdx }: { pos: string; text: string; variantIdx: number }) {
+// ③ 버블 위치: 동물 반대편 + 상세 위치 랜덤 (jx, jy: 0~1)
+function getBubbleStyle(pos: string, jx: number, jy: number): React.CSSProperties {
+  const lx = Math.round(22 + jx * 38);   // left 22%~60%
+  const bm = Math.round(64 + jy * 32);   // bottom 64~96px
+  const tp = Math.round(14 + jy * 24);   // top 14~38px
+  const ty = Math.round(22 + jy * 38);   // top% 22%~60% (좌우 배치)
+  const sd = Math.round(10 + jx * 16);   // side 10~26px (좌우 고정 배치)
+
+  switch (pos.toLowerCase()) {
+    case "top":   case "center": case "full":
+      return { bottom: bm, left: `${lx}%`, transform: "translateX(-50%)" };
+    case "bottom": case "full_horizontal":
+      return { top: tp,   left: `${lx}%`, transform: "translateX(-50%)" };
+    case "left":  case "full_vertical":
+      return { right: 12, top: `${ty}%`,  transform: "translateY(-50%)" };
+    case "right":
+      return { left:  12, top: `${ty}%`,  transform: "translateY(-50%)" };
+    case "top_left":
+      return { bottom: bm, right: sd };
+    case "top_right":
+      return { bottom: bm, left:  sd };
+    case "bottom_left":
+      return { top: tp,    right: sd };
+    case "bottom_right":
+      return { top: tp,    left:  sd };
+    default:
+      return { bottom: bm, left: `${lx}%`, transform: "translateX(-50%)" };
+  }
+}
+
+function SpeechBubble({
+  pos, text, shapeIdx, tailPathIdx,
+}: { pos: string; text: string; shapeIdx: number; tailPathIdx: number }) {
   const dir = getTailDir(pos);
-  const v = BUBBLE_VARIANTS[variantIdx % BUBBLE_VARIANTS.length];
-
+  const v = BUBBLE_VARIANTS[shapeIdx % BUBBLE_VARIANTS.length];
   const isVertical = dir === "left" || dir === "right";
-
   const tailWrap: React.CSSProperties = {
     position: "absolute",
     ...(dir === "down"  && { bottom: -11, left: `${v.tailX}%`, transform: "translateX(-50%)" }),
     ...(dir === "up"    && { top:    -11, left: `${v.tailX}%`, transform: "translateX(-50%)" }),
-    ...(dir === "left"  && { left:   -11, top: "50%",          transform: "translateY(-50%)" }),
-    ...(dir === "right" && { right:  -11, top: "50%",          transform: "translateY(-50%)" }),
+    ...(dir === "left"  && { left:   -11, top: "50%", transform: "translateY(-50%)" }),
+    ...(dir === "right" && { right:  -11, top: "50%", transform: "translateY(-50%)" }),
   };
-
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
-      <div style={{
-        padding: isVertical ? "10px 14px" : "10px 16px",
-        borderRadius: v.radius,
-        background: BG,
-        display: "inline-block",
-      }}>
+      <div
+        style={{
+          padding: isVertical ? "10px 14px" : "10px 16px",
+          borderRadius: v.radius,
+          background: BG,
+          display: "inline-block",
+        }}
+      >
         <p className="font-black text-center text-[#111] break-keep" style={{ fontSize: 15, lineHeight: 1.4 }}>
           {text}
         </p>
       </div>
-      <div style={tailWrap}>
-        <TailSVG dir={dir} />
-      </div>
+      <div style={tailWrap}><TailSVG dir={dir} pathIdx={tailPathIdx} /></div>
     </div>
   );
-}
-
-// 동물 반대편에 버블 배치 (A안)
-function getPositionClasses(pos: string): string {
-  switch (pos.toLowerCase()) {
-    case "top":             return "bottom-16 left-1/2 -translate-x-1/2";
-    case "bottom":          return "top-4 left-1/2 -translate-x-1/2";
-    case "left":            return "top-1/2 right-4 -translate-y-1/2";
-    case "right":           return "top-1/2 left-4 -translate-y-1/2";
-    case "center":          return "bottom-16 left-1/2 -translate-x-1/2";
-    case "top_left":        return "bottom-16 right-4";
-    case "top_right":       return "bottom-16 left-4";
-    case "bottom_left":     return "top-4 right-4";
-    case "bottom_right":    return "top-4 left-4";
-    case "full_horizontal": return "top-4 left-1/2 -translate-x-1/2";
-    case "full_vertical":   return "top-1/2 right-4 -translate-y-1/2";
-    case "full":            return "bottom-16 left-1/2 -translate-x-1/2";
-    default:                return "bottom-16 left-1/2 -translate-x-1/2";
-  }
 }
 
 async function captureCard(el: HTMLElement): Promise<Blob> {
@@ -151,7 +171,10 @@ interface Props {
 export function ResultScreen({ result, onRedraw }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
-  const bubbleVariantRef = useRef(Math.floor(Math.random() * BUBBLE_VARIANTS.length));
+  const shapeIdxRef    = useRef(Math.floor(Math.random() * BUBBLE_VARIANTS.length));
+  const posJxRef       = useRef(Math.random());
+  const posJyRef       = useRef(Math.random());
+  const tailPathIdxRef = useRef(Math.floor(Math.random() * 3));
 
   const handleSave = async () => {
     if (!cardRef.current || saving) return;
@@ -183,11 +206,15 @@ export function ResultScreen({ result, onRedraw }: Props) {
           crossOrigin="anonymous"
         />
 
-        <div className={cn("absolute z-10 max-w-[80%]", getPositionClasses(result.subjectPosition))}>
+        <div
+          className="absolute z-10 max-w-[80%]"
+          style={getBubbleStyle(result.subjectPosition, posJxRef.current, posJyRef.current)}
+        >
           <SpeechBubble
             pos={result.subjectPosition}
             text={result.phrase}
-            variantIdx={bubbleVariantRef.current}
+            shapeIdx={shapeIdxRef.current}
+            tailPathIdx={tailPathIdxRef.current}
           />
         </div>
 
