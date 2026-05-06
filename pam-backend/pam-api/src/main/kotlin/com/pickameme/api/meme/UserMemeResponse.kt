@@ -10,6 +10,7 @@ data class UserMemeResponse(
     val subjectPosition: String,
     val phraseText: String,
     val heartType: String,
+    val selectedTag: String?,
     val createdAt: LocalDateTime
 ) {
     companion object {
@@ -19,6 +20,7 @@ data class UserMemeResponse(
             subjectPosition = userMeme.composition.subjectPosition,
             phraseText = userMeme.composition.phraseText,
             heartType = userMeme.heartType.name,
+            selectedTag = userMeme.selectedTag,
             createdAt = userMeme.createdAt
         )
     }

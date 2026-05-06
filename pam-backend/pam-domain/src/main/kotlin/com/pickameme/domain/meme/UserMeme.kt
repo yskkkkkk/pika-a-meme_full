@@ -17,5 +17,6 @@ data class UserMeme(
     val phraseId: UUID,
     val heartType: HeartType,
     val composition: MemeComposition,
+    val selectedTag: String?,
     val createdAt: LocalDateTime
 )

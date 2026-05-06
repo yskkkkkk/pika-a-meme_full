@@ -45,6 +45,7 @@ class MemeComposeService(
                         subjectPosition = image.subjectPosition.name,
                         phraseText = phrase.text
                     ),
+                    selectedTag = tags.firstOrNull(),
                     createdAt = LocalDateTime.now()
                 )
             )
