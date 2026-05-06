@@ -10,6 +10,7 @@ import com.pickameme.application.meme.MemeComposeResult
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.CanvasState
 import com.pickameme.domain.meme.MemeCreationOption
+import com.pickameme.domain.meme.UserMemeRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -29,6 +30,7 @@ class MemeController(
     private val memeCreationService: MemeCreationService,
     private val memeQueryService: MemeQueryService,
     private val memeComposeService: MemeComposeService,
+    private val userMemeRepository: UserMemeRepository,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -88,14 +90,27 @@ class MemeController(
 
     /**
      * GET /api/memes/compose
-     * 밈 조합 생성 (뽑기용)
+     * 밈 조합 생성 (뽑기용) — 로그인 시 user_memes에 자동 저장
      */
     @GetMapping("/compose")
     fun compose(
+        @AuthenticationPrincipal userId: UUID?,
         @RequestParam("heartType") heartType: HeartType,
         @RequestParam(value = "tags", required = false) tags: List<String>?
     ): ApiResponse<MemeComposeResult> {
-        val result = memeComposeService.compose(heartType, tags ?: emptyList())
+        val result = memeComposeService.compose(heartType, tags ?: emptyList(), userId)
         return ApiResponse.ok(result)
     }
+
+    /**
+     * GET /api/memes/my-history
+     * 내 밈 생성 이력 조회 (로그인 필수)
+     */
+    @GetMapping("/my-history")
+    fun getMyHistory(
+        @AuthenticationPrincipal userId: UUID,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<List<UserMemeResponse>> =
+        ApiResponse.ok(userMemeRepository.findByUserId(userId, page, size).map { UserMemeResponse.from(it) })
 }
