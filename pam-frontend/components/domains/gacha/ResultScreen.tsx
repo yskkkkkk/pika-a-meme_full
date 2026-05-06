@@ -5,6 +5,87 @@ import html2canvas from "html2canvas";
 import { cn } from "@/lib/utils";
 import { MemeResult } from "@/hooks/useMemeApi";
 
+// ─── 말풍선 ──────────────────────────────────────────────────────────────────
+
+type TailDir = "up" | "down" | "left" | "right";
+
+function getTailDir(pos: string): TailDir {
+  switch (pos.toLowerCase()) {
+    case "top": case "top_left": case "top_right": return "down";
+    case "left": case "full_vertical":             return "right";
+    case "right":                                  return "left";
+    default:                                       return "up";
+  }
+}
+
+// 버블 본체 모양 (border-radius) + 꼬리 가로 위치(%) — B급 랜덤
+const BUBBLE_VARIANTS = [
+  { radius: "22px",                     tailX: 50 },
+  { radius: "30px",                     tailX: 35 },
+  { radius: "30px",                     tailX: 62 },
+  { radius: "24px 24px 6px 24px",       tailX: 22 },
+  { radius: "24px 6px 24px 24px",       tailX: 76 },
+  { radius: "18px 28px 18px 28px",      tailX: 50 },
+];
+
+const BG = "rgba(255,255,255,0.97)";
+
+function TailSVG({ dir }: { dir: TailDir }) {
+  if (dir === "down") return (
+    <svg width="18" height="12" viewBox="0 0 18 12">
+      <path d="M0,0 C5,0 7,9 9,12 C11,9 13,0 18,0 Z" fill={BG} />
+    </svg>
+  );
+  if (dir === "up") return (
+    <svg width="18" height="12" viewBox="0 0 18 12">
+      <path d="M0,12 C5,12 7,3 9,0 C11,3 13,12 18,12 Z" fill={BG} />
+    </svg>
+  );
+  if (dir === "left") return (
+    <svg width="12" height="18" viewBox="0 0 12 18">
+      <path d="M12,0 C12,5 3,7 0,9 C3,11 12,13 12,18 Z" fill={BG} />
+    </svg>
+  );
+  return (
+    <svg width="12" height="18" viewBox="0 0 12 18">
+      <path d="M0,0 C0,5 9,7 12,9 C9,11 0,13 0,18 Z" fill={BG} />
+    </svg>
+  );
+}
+
+function SpeechBubble({ pos, text, variantIdx }: { pos: string; text: string; variantIdx: number }) {
+  const dir = getTailDir(pos);
+  const v = BUBBLE_VARIANTS[variantIdx % BUBBLE_VARIANTS.length];
+
+  const isVertical = dir === "left" || dir === "right";
+
+  const tailWrap: React.CSSProperties = {
+    position: "absolute",
+    ...(dir === "down"  && { bottom: -11, left: `${v.tailX}%`, transform: "translateX(-50%)" }),
+    ...(dir === "up"    && { top:    -11, left: `${v.tailX}%`, transform: "translateX(-50%)" }),
+    ...(dir === "left"  && { left:   -11, top: "50%",          transform: "translateY(-50%)" }),
+    ...(dir === "right" && { right:  -11, top: "50%",          transform: "translateY(-50%)" }),
+  };
+
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <div style={{
+        padding: isVertical ? "10px 14px" : "10px 16px",
+        borderRadius: v.radius,
+        background: BG,
+        display: "inline-block",
+      }}>
+        <p className="font-black text-center text-[#111] break-keep" style={{ fontSize: 15, lineHeight: 1.4 }}>
+          {text}
+        </p>
+      </div>
+      <div style={tailWrap}>
+        <TailSVG dir={dir} />
+      </div>
+    </div>
+  );
+}
+
 function getPositionClasses(pos: string): string {
   switch (pos.toLowerCase()) {
     case "top":             return "top-4 left-1/2 -translate-x-1/2";
@@ -64,6 +145,7 @@ interface Props {
 export function ResultScreen({ result, onRedraw }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
+  const bubbleVariantRef = useRef(Math.floor(Math.random() * BUBBLE_VARIANTS.length));
 
   const handleSave = async () => {
     if (!cardRef.current || saving) return;
@@ -96,20 +178,11 @@ export function ResultScreen({ result, onRedraw }: Props) {
         />
 
         <div className={cn("absolute z-10 max-w-[80%]", getPositionClasses(result.subjectPosition))}>
-          <div
-            style={{
-              padding: "10px 16px",
-              borderRadius: 16,
-              background: "rgba(255,255,255,0.97)",
-              backdropFilter: "blur(8px)",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
-              display: "inline-block",
-            }}
-          >
-            <p className="font-black text-center text-[#111] break-keep" style={{ fontSize: 15, lineHeight: 1.4 }}>
-              {result.phrase}
-            </p>
-          </div>
+          <SpeechBubble
+            pos={result.subjectPosition}
+            text={result.phrase}
+            variantIdx={bubbleVariantRef.current}
+          />
         </div>
 
         <div
