@@ -33,6 +33,9 @@ class UserMemeJpaEntity(
     @Column(columnDefinition = "jsonb", nullable = false)
     val composition: MemeComposition,
 
+    @Column(name = "selected_tag", nullable = true, length = 20)
+    val selectedTag: String?,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime
 ) {
@@ -43,6 +46,7 @@ class UserMemeJpaEntity(
         phraseId = phraseId,
         heartType = heartType,
         composition = composition,
+        selectedTag = selectedTag,
         createdAt = createdAt
     )
 }

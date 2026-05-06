@@ -82,6 +82,7 @@
 | TASK-260504-09 | [프론트엔드] | [x] | SPECIAL 하트 태그 선택 UI 구현 (태그 멀티셀렉트 → 조합 요청 → 결과 표시) | TASK-260504-07 | TagSelectScreen 컴포넌트로 구현 완료. TASK-260504-07과 함께 진행 | 260504 / 260505 |
 | TASK-260504-10 | [프론트엔드] | [ ] | 로그인/서비스 소개 별도 화면 구현 (슬라이드 애니메이션 전환) | TASK-260504-07 | LoginSlideMenu로 기본 로그인 유도는 있으나, 서비스 소개 콘텐츠 및 온보딩 플로우 미구현 | 260504 / - |
 | TASK-260505-01 | [밈/이미지] | [x] | 밈 결과물 저장 기능 구현 (ResultScreen → html2canvas 캡처 → 기기 저장) | TASK-260504-08 | PC는 파일 다운로드, 모바일은 Web Share API로 갤러리 저장. TASK-260429-19(R2 어댑터)와 연계 | 260505 / 260505 |
+| TASK-260506-01 | [밈/이미지] | [x] | SPECIAL 뽑기 단일 태그 정책 적용 및 selected_tag 컬럼 추가 (V9 마이그레이션) | TASK-260505-01 | selected_tag NULL=BASIC, NOT NULL=SPECIAL. AIRULES.md 정책 문서화 포함 | 260506 / 260506 |
 
 ---
 
@@ -99,10 +100,11 @@
 - **이력:** heart_histories 테이블 (CONSUME/CHARGE/GRANT 모두 기록 — 운영 핵심 지표)
 
 ### 밈 생성 정책 (Meme Creation Policy)
-- **BASIC 하트 사용 시:** 기본 템플릿 고정, 텍스트 1개
-- **SPECIAL 하트 사용 시:** 폰트 변경, 스티커 추가, 확장 카테고리 템플릿 허용
-- **이미지 합성:** 프론트엔드에서 합성 후 결과 이미지 업로드 (canvas_state JSON + 이미지 Blob 동시 전송)
-- **저장 구조:** canvas_state → JSONB(DB), 합성 이미지 → Cloudflare R2
+- **BASIC 하트 사용 시:** 태그 무시, meme_images + meme_phrases 완전 랜덤 조합
+- **SPECIAL 하트 사용 시:** 단일 태그 선택 (멀티셀렉트 금지) → 해당 태그 기준 이미지+문구 필터링 후 조합
+- **저장 구조:** JSONB composition 스냅샷(imageUrl, subjectPosition, phraseText) → DB의 user_memes 테이블. 합성 이미지는 R2에 업로드하지 않음 (소스 이미지 재사용으로 렌더링)
+- **selected_tag 정책:** `user_memes.selected_tag IS NULL` = BASIC 뽑기, `IS NOT NULL` = SPECIAL 뽑기 (선택한 태그 값 저장)
+- **소스 데이터 불변 원칙:** `meme_images`, `meme_phrases` 소스 데이터는 절대 삭제하지 않는다. user_memes 이력 재현에 필수. 비활성화 필요 시 is_active 소프트딜리트 사용
 
 ### 사용자 상태별 흐름 (User State Flow)
 - **비로그인 하트:** localStorage SSOT, 5분 lazy 충전 계산은 클라이언트 전담. 서버 API 호출 없음

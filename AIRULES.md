@@ -95,16 +95,23 @@ created_at  TIMESTAMP
 - 맥락 불일치 '병맛' 결과 허용 (무료 서비스의 재미 요소)
 
 ### SPECIAL 하트 — Contextual Matching
-- 사용자가 태그를 선택하면 파라미터로 전달
-- 태그로 이미지군 + 문구군 1차 필터링
+- 사용자가 **단 하나의 태그만** 선택 (멀티셀렉트 금지)
+- 선택한 태그로 이미지군 + 문구군 1차 필터링
 - 필터링된 집합 내에서 조합 → 맥락에 맞는 완성도 높은 밈
 
 ### API 설계 방향
 ```
 GET /api/memes/compose?heartType=BASIC
-GET /api/memes/compose?heartType=SPECIAL&tags=피곤,직장인
+GET /api/memes/compose?heartType=SPECIAL&tags=피곤
 ```
 응답: `{ imageUrl, imagePresignedUrl, subjectPosition, phrase, tags }`
+
+### user_memes 저장 정책
+- 로그인 유저가 뽑기를 진행하면 `user_memes` 테이블에 자동 저장
+- `selected_tag IS NULL` → BASIC 하트 뽑기
+- `selected_tag IS NOT NULL` → SPECIAL 하트 뽑기 (선택한 태그 값)
+- SPECIAL 뽑기에서 tags 배열의 첫 번째 값이 `selected_tag`에 저장됨
+- 소스 데이터(`meme_images`, `meme_phrases`)는 **절대 삭제하지 않는다** (user_memes 이력 재현에 필수)
 
 ---
 
