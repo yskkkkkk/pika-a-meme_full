@@ -26,18 +26,18 @@ export function HeartDisplay({ onMenuOpen }: Props) {
 
   return (
     <>
-      {/* Top bar — 500px 컨테이너 기준 */}
+      {/* Top bar */}
       <div
-        className="flex items-center justify-between z-10 relative"
-        style={{ padding: "16px 24px 12px" }}
+        className="flex items-center z-10 relative"
+        style={{ padding: "12px 14px 10px", gap: 8 }}
       >
-        {/* BASIC energy bar */}
+        {/* BASIC energy bar — flex:1 으로 남은 공간 채움 */}
         <div
-          className="flex items-center bg-white border border-[#f0e8f5]"
+          className="flex items-center bg-white border border-[#f0e8f5] flex-1 min-w-0"
           style={{
-            gap: 12,
+            gap: 8,
             borderRadius: 20,
-            padding: "10px 15px",
+            padding: "10px 14px",
             boxShadow: "0 2px 12px rgba(255,107,157,0.1)",
           }}
         >
@@ -51,11 +51,11 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           >
             ❤️
           </div>
-          <div className="flex flex-col" style={{ gap: 4 }}>
+          <div className="flex flex-col flex-1 min-w-0" style={{ gap: 4 }}>
             <div className="font-bold text-[#bbb]" style={{ fontSize: 9, letterSpacing: "0.1em" }}>
               BASIC
             </div>
-            <div className="overflow-hidden rounded-full" style={{ width: 88, height: 7, background: "#f0e8f5" }}>
+            <div className="overflow-hidden rounded-full w-full" style={{ height: 7, background: "#f0e8f5" }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -65,9 +65,9 @@ export function HeartDisplay({ onMenuOpen }: Props) {
               />
             </div>
           </div>
-          <div className="font-black text-[#111] leading-none" style={{ fontSize: 22 }}>
+          <div className="font-black text-[#111] leading-none flex-shrink-0" style={{ fontSize: 22 }}>
             {basicCount}
-            <span className="font-medium text-[#ccc]" style={{ fontSize: 13 }}>/{basicMax}</span>
+            <span className="font-semibold text-[#ccc]" style={{ fontSize: 13 }}>/{basicMax}</span>
           </div>
         </div>
 
