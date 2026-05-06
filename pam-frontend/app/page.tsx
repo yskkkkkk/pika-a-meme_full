@@ -16,7 +16,7 @@ type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("HOME");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
 
   const { hearts, consumeHeart } = useGuestHeart();
@@ -47,14 +47,16 @@ export default function Home() {
       setIsMenuOpen(true);
       return;
     }
+    setSelectedTag(null);
     setAppState("TAG_SELECT");
   };
 
   const executeSpecialDraw = async () => {
+    if (!selectedTag) return;
     setAppState("SPINNING");
     try {
       const [result] = await Promise.all([
-        composeMeme("SPECIAL", selectedTags),
+        composeMeme("SPECIAL", [selectedTag]),
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
       setMemeResult(result);
@@ -63,12 +65,6 @@ export default function Home() {
       alert("오류가 발생했습니다.");
       setAppState("HOME");
     }
-  };
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
   };
 
   return (
@@ -85,8 +81,8 @@ export default function Home() {
 
       {appState === "TAG_SELECT" && (
         <TagSelectScreen
-          selectedTags={selectedTags}
-          onToggleTag={toggleTag}
+          selectedTag={selectedTag}
+          onSelectTag={setSelectedTag}
           onBack={() => setAppState("HOME")}
           onConfirm={executeSpecialDraw}
         />

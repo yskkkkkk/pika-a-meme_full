@@ -8,13 +8,13 @@ const AVAILABLE_TAGS = [
 ];
 
 interface Props {
-  selectedTags: string[];
-  onToggleTag: (tag: string) => void;
+  selectedTag: string | null;
+  onSelectTag: (tag: string) => void;
   onBack: () => void;
   onConfirm: () => void;
 }
 
-export function TagSelectScreen({ selectedTags, onToggleTag, onBack, onConfirm }: Props) {
+export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }: Props) {
   return (
     <div
       className="flex-1 flex flex-col w-full animate-in slide-in-from-bottom-8 duration-300"
@@ -31,16 +31,16 @@ export function TagSelectScreen({ selectedTags, onToggleTag, onBack, onConfirm }
         오늘의 기분은?
       </h2>
       <p className="font-medium text-[#bbb]" style={{ fontSize: 14, marginBottom: 24 }}>
-        태그를 선택하면 더 찰진 밈이 나와요
+        딱 하나만 골라요 — 그게 더 찰진 밈이 나와요
       </p>
       <div className="flex flex-wrap justify-center" style={{ gap: 10, marginBottom: 28 }}>
         {AVAILABLE_TAGS.map((tag) => (
           <button
             key={tag}
-            onClick={() => onToggleTag(tag)}
+            onClick={() => onSelectTag(tag)}
             className={cn(
               "font-bold border-2 transition-all",
-              selectedTags.includes(tag)
+              selectedTag === tag
                 ? "text-white border-transparent"
                 : "bg-white text-[#666] border-[#eee]",
             )}
@@ -48,7 +48,7 @@ export function TagSelectScreen({ selectedTags, onToggleTag, onBack, onConfirm }
               padding: "10px 18px",
               borderRadius: 9999,
               fontSize: 15,
-              ...(selectedTags.includes(tag)
+              ...(selectedTag === tag
                 ? {
                     background: "linear-gradient(135deg, #FF6B9D, #C44DFF)",
                     boxShadow: "0 2px 10px rgba(255,107,157,0.3)",
@@ -62,17 +62,19 @@ export function TagSelectScreen({ selectedTags, onToggleTag, onBack, onConfirm }
       </div>
       <button
         onClick={onConfirm}
+        disabled={!selectedTag}
         className="w-full text-white font-black active:scale-[0.98] transition-transform"
         style={{
           marginTop: "auto",
           padding: 18,
-          background: "#111",
+          background: selectedTag ? "#111" : "#ccc",
           borderRadius: 22,
           border: "none",
           fontSize: 17,
+          cursor: selectedTag ? "pointer" : "not-allowed",
         }}
       >
-        선택 완료하고 뽑기!
+        {selectedTag ? `#${selectedTag} 로 뽑기!` : "태그를 선택해 주세요"}
       </button>
     </div>
   );
