@@ -9,12 +9,17 @@ import { MemeResult } from "@/hooks/useMemeApi";
 
 type TailDir = "up" | "down" | "left" | "right";
 
+// 꼬리는 동물 쪽을 가리킴 (버블이 반대편에 있으므로)
 function getTailDir(pos: string): TailDir {
   switch (pos.toLowerCase()) {
-    case "top": case "top_left": case "top_right": return "down";
-    case "left": case "full_vertical":             return "right";
-    case "right":                                  return "left";
-    default:                                       return "up";
+    case "bottom": case "bottom_left": case "bottom_right":
+      return "down";   // 버블이 위 → 꼬리가 아래 (동물 방향)
+    case "left": case "full_vertical":
+      return "left";   // 버블이 오른쪽 → 꼬리가 왼쪽 (동물 방향)
+    case "right":
+      return "right";  // 버블이 왼쪽 → 꼬리가 오른쪽 (동물 방향)
+    default:
+      return "up";     // 버블이 아래 → 꼬리가 위 (동물 방향)
   }
 }
 
@@ -86,21 +91,22 @@ function SpeechBubble({ pos, text, variantIdx }: { pos: string; text: string; va
   );
 }
 
+// 동물 반대편에 버블 배치 (A안)
 function getPositionClasses(pos: string): string {
   switch (pos.toLowerCase()) {
-    case "top":             return "top-4 left-1/2 -translate-x-1/2";
-    case "bottom":          return "bottom-16 left-1/2 -translate-x-1/2";
-    case "left":            return "top-1/2 left-4 -translate-y-1/2";
-    case "right":           return "top-1/2 right-4 -translate-y-1/2";
-    case "center":          return "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2";
-    case "top_left":        return "top-4 left-4";
-    case "top_right":       return "top-4 right-4";
-    case "bottom_left":     return "bottom-16 left-4";
-    case "bottom_right":    return "bottom-16 right-4";
-    case "full_horizontal": return "bottom-16 left-0 w-full flex justify-center";
-    case "full_vertical":   return "top-1/2 left-4 -translate-y-1/2";
-    case "full":            return "top-4 left-4";
-    default:                return "bottom-16 right-4";
+    case "top":             return "bottom-16 left-1/2 -translate-x-1/2";
+    case "bottom":          return "top-4 left-1/2 -translate-x-1/2";
+    case "left":            return "top-1/2 right-4 -translate-y-1/2";
+    case "right":           return "top-1/2 left-4 -translate-y-1/2";
+    case "center":          return "bottom-16 left-1/2 -translate-x-1/2";
+    case "top_left":        return "bottom-16 right-4";
+    case "top_right":       return "bottom-16 left-4";
+    case "bottom_left":     return "top-4 right-4";
+    case "bottom_right":    return "top-4 left-4";
+    case "full_horizontal": return "top-4 left-1/2 -translate-x-1/2";
+    case "full_vertical":   return "top-1/2 right-4 -translate-y-1/2";
+    case "full":            return "bottom-16 left-1/2 -translate-x-1/2";
+    default:                return "bottom-16 left-1/2 -translate-x-1/2";
   }
 }
 
