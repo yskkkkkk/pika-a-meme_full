@@ -72,13 +72,14 @@ export function MyGallery() {
     queryKey: ["my-memes", page],
     queryFn: async () => {
       const res = await apiFetch<MemeItem[]>(`/api/memes/my-history?page=${page}&size=${PAGE_SIZE}`);
-      const data = res?.data ?? [];
+      if (!res || !res.success) throw new Error(res?.error?.message ?? "조회 실패");
+      const data = res.data ?? [];
       if (data.length > 0) {
         setAllMemes((prev) => (page === 0 ? data : [...prev, ...data]));
       }
       return data;
     },
-    staleTime: 30_000,
+    staleTime: 0,
   });
 
   const hasMore = allMemes.length === (page + 1) * PAGE_SIZE;
