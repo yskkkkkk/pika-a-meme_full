@@ -1,5 +1,3 @@
-import { getToken } from "./auth";
-
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export interface ApiResponse<T> {
@@ -12,17 +10,14 @@ export async function apiFetch<T>(
   path: string,
   init?: RequestInit
 ): Promise<ApiResponse<T> | undefined> {
-  const token = getToken();
-  const headers: Record<string, string> = {
-    ...(init?.headers as Record<string, string>),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
   try {
-    const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      credentials: "include",
+    });
     return (await res.json()) as ApiResponse<T>;
   } catch (e) {
-    console.error('apiFetch error:', e);
+    console.error("apiFetch error:", e);
     return undefined;
   }
 }
