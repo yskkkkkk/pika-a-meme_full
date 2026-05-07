@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGuestHeart } from "@/hooks/useGuestHeart";
 import { useAuth } from "@/hooks/useAuth";
 import { composeMeme, MemeResult } from "@/hooks/useMemeApi";
@@ -21,6 +22,7 @@ export default function Home() {
 
   const { hearts, consumeHeart } = useGuestHeart();
   const { isLoggedIn } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleBasicDraw = async () => {
     if (hearts <= 0) {
@@ -36,6 +38,7 @@ export default function Home() {
       ]);
       setMemeResult(result);
       setAppState("RESULT");
+      queryClient.invalidateQueries({ queryKey: ["my-memes"] });
     } catch {
       alert("오류가 발생했습니다.");
       setAppState("HOME");
@@ -61,6 +64,7 @@ export default function Home() {
       ]);
       setMemeResult(result);
       setAppState("RESULT");
+      queryClient.invalidateQueries({ queryKey: ["my-memes"] });
     } catch {
       alert("오류가 발생했습니다.");
       setAppState("HOME");
