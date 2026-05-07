@@ -33,8 +33,14 @@ class JwtAuthenticationFilter(
         filterChain.doFilter(request, response)
     }
 
-    private fun resolveToken(request: HttpServletRequest): String? =
+    private fun resolveToken(request: HttpServletRequest): String? {
         request.getHeader("Authorization")
             ?.takeIf { it.startsWith("Bearer ") }
             ?.substring(7)
+            ?.let { return it }
+
+        return request.cookies
+            ?.firstOrNull { it.name == "pam_token" }
+            ?.value
+    }
 }

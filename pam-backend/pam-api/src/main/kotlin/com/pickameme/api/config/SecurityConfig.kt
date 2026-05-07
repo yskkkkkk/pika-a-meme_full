@@ -3,6 +3,7 @@ package com.pickameme.api.config
 import com.pickameme.api.auth.CustomOAuth2UserService
 import com.pickameme.api.auth.JwtAuthenticationFilter
 import com.pickameme.api.auth.OAuth2SuccessHandler
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -19,7 +20,8 @@ import org.springframework.web.cors.CorsConfigurationSource
 class SecurityConfig(
     private val customOAuth2UserService: CustomOAuth2UserService,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    @Value("\${cors.allowed-origins}") private val allowedOrigins: String
 ) {
 
     @Bean
@@ -31,6 +33,7 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/oauth2/**", "/login/**", "/actuator/health").permitAll()
+                    .requestMatchers("/api/auth/logout", "/api/auth/me").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/memes/**", "/api/hearts").permitAll()
                     .anyRequest().authenticated()
             }
@@ -47,7 +50,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("http://localhost:3000")
+        configuration.allowedOrigins = allowedOrigins.split(",").map { it.trim() }
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true
