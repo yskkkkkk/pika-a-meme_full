@@ -12,10 +12,12 @@ interface MeResponse {
 
 export function useAuth() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     apiFetch<MeResponse>("/api/auth/me").then((res) => {
       setLoggedIn(!!res?.data);
+      setIsLoaded(true);
     });
   }, []);
 
@@ -28,5 +30,5 @@ export function useAuth() {
     window.location.href = getLoginUrl(provider);
   }, []);
 
-  return { isLoggedIn: loggedIn, logout, loginWith };
+  return { isLoggedIn: loggedIn, isLoaded, logout, loginWith };
 }

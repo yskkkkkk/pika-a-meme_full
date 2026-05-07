@@ -7,16 +7,16 @@ import { MyGallery } from "@/components/domains/meme/MyGallery";
 import { ArrowLeft } from "lucide-react";
 
 export default function MyPage() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoaded } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoggedIn === false) {
+    if (isLoaded && !isLoggedIn) {
       router.replace("/");
     }
-  }, [isLoggedIn, router]);
+  }, [isLoaded, isLoggedIn, router]);
 
-  if (!isLoggedIn) return null;
+  if (!isLoaded || !isLoggedIn) return null;
 
   return (
     <div className="flex flex-col flex-1">
