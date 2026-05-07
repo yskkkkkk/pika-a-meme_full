@@ -5,9 +5,11 @@ import { isAuthenticated, removeToken, getLoginUrl } from "@/lib/auth";
 
 export function useAuth() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setLoggedIn(isAuthenticated());
+    setIsLoaded(true);
   }, []);
 
   const logout = useCallback(() => {
@@ -19,5 +21,5 @@ export function useAuth() {
     window.location.href = getLoginUrl(provider);
   }, []);
 
-  return { isLoggedIn: loggedIn, logout, loginWith };
+  return { isLoggedIn: loggedIn, isLoaded, logout, loginWith };
 }
