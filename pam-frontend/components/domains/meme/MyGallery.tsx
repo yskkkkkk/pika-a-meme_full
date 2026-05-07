@@ -8,7 +8,10 @@ import { ImageIcon, Star, Heart, Clock } from "lucide-react";
 interface MemeItem {
   id: string;
   imageUrl: string;
-  heartType: "BASIC" | "SPECIAL";
+  subjectPosition: string;
+  phraseText: string;
+  heartType: string;
+  selectedTag: string | null;
   createdAt: string;
 }
 
@@ -68,7 +71,7 @@ export function MyGallery() {
   const { isFetching, isError } = useQuery({
     queryKey: ["my-memes", page],
     queryFn: async () => {
-      const res = await apiFetch<MemeItem[]>(`/api/memes/my?page=${page}&size=${PAGE_SIZE}`);
+      const res = await apiFetch<MemeItem[]>(`/api/memes/my-history?page=${page}&size=${PAGE_SIZE}`);
       const data = res?.data ?? [];
       if (data.length > 0) {
         setAllMemes((prev) => (page === 0 ? data : [...prev, ...data]));
