@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import { MemeResult } from "@/hooks/useMemeApi";
+import { useAuth } from "@/hooks/useAuth";
 
 // ─── 말풍선 ──────────────────────────────────────────────────────────────────
 
@@ -171,6 +173,8 @@ interface Props {
 export function ResultScreen({ result, onRedraw }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
+  const { isLoggedIn } = useAuth();
+  const router = useRouter();
   const shapeIdxRef    = useRef(Math.floor(Math.random() * BUBBLE_VARIANTS.length));
   const posJxRef       = useRef(Math.random());
   const posJyRef       = useRef(Math.random());
@@ -267,6 +271,16 @@ export function ResultScreen({ result, onRedraw }: Props) {
           {saving ? "저장 중..." : "저장하기"}
         </button>
       </div>
+
+      {isLoggedIn && (
+        <button
+          onClick={() => router.push("/my")}
+          className="font-bold text-[#aaa] active:scale-95 transition-transform"
+          style={{ fontSize: 13 }}
+        >
+          내 밈 갤러리 보기 →
+        </button>
+      )}
     </div>
   );
 }
