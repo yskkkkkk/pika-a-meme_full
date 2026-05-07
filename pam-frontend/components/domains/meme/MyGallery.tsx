@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch, ApiResponse } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { ImageIcon, Star, Heart, Clock } from "lucide-react";
 
 interface MemeItem {
@@ -29,7 +30,7 @@ function MemeCard({ meme }: { meme: MemeItem }) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <Link href={`/my/${meme.id}`} className="group relative block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300" aria-label="내 밈 상세 보기">
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {imgError ? (
           <div className="w-full h-full flex items-center justify-center">
@@ -55,11 +56,14 @@ function MemeCard({ meme }: { meme: MemeItem }) {
           )}
         </div>
       </div>
-      <div className="px-3 py-2 flex items-center gap-1.5 text-xs text-gray-400">
-        <Clock className="w-3 h-3" />
-        <span>{timeAgo(meme.createdAt)}</span>
+      <div className="px-3 py-2 flex items-center justify-between gap-2 text-xs text-gray-400">
+        <span className="flex items-center gap-1.5">
+          <Clock className="w-3 h-3" />
+          <span>{timeAgo(meme.createdAt)}</span>
+        </span>
+        <span className="font-bold text-gray-300 group-hover:text-gray-500 transition-colors">상세 보기</span>
       </div>
-    </div>
+    </Link>
   );
 }
 

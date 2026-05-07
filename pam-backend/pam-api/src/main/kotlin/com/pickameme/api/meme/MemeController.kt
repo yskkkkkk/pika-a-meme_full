@@ -15,12 +15,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 
@@ -113,4 +115,18 @@ class MemeController(
         @RequestParam(defaultValue = "20") size: Int
     ): ApiResponse<List<UserMemeResponse>> =
         ApiResponse.ok(userMemeRepository.findByUserId(userId, page, size).map { UserMemeResponse.from(it) })
+
+    /**
+     * GET /api/memes/my-history/{memeId}
+     * 내 밈 생성 이력 상세 조회 (로그인 필수)
+     */
+    @GetMapping("/my-history/{memeId}")
+    fun getMyHistoryDetail(
+        @AuthenticationPrincipal userId: UUID,
+        @PathVariable memeId: UUID
+    ): ApiResponse<UserMemeResponse> {
+        val userMeme = userMemeRepository.findByUserIdAndId(userId, memeId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+        return ApiResponse.ok(UserMemeResponse.from(userMeme))
+    }
 }
