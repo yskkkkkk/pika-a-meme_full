@@ -1,21 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { saveToken } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 
 function CallbackHandler() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      saveToken(token);
-    }
     router.replace("/");
-  }, [router, searchParams]);
+  }, [router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
