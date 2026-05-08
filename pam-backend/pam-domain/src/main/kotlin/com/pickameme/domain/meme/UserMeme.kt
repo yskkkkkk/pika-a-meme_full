@@ -18,5 +18,6 @@ data class UserMeme(
     val heartType: HeartType,
     val composition: MemeComposition,
     val selectedTag: String?,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val enabled: Boolean = true
 )
