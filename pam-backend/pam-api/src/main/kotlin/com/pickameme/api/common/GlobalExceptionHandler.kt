@@ -9,10 +9,12 @@ import com.pickameme.domain.exception.MemeSourceNotFoundException
 import com.pickameme.domain.exception.UserNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.server.ResponseStatusException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -77,6 +79,14 @@ class GlobalExceptionHandler {
             success = false,
             error = ErrorDetail(ErrorCode.INVALID_REQUEST.name, e.message ?: ErrorCode.INVALID_REQUEST.message)
         )
+    }
+
+    // ResponseStatusException — HTTP 상태 코드를 그대로 전달
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatus(e: ResponseStatusException): ResponseEntity<ApiResponse<Nothing>> {
+        val code = if (e.statusCode.value() == 404) ErrorCode.MEME_SOURCE_NOT_FOUND.name else ErrorCode.INTERNAL_SERVER_ERROR.name
+        return ResponseEntity.status(e.statusCode)
+            .body(ApiResponse(success = false, error = ErrorDetail(code, e.reason ?: e.message ?: "error")))
     }
 
     // 500 — 예상치 못한 예외

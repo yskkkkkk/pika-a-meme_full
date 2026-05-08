@@ -7,13 +7,13 @@ import java.util.UUID
 
 interface SpringDataJpaMemeImageRepository : JpaRepository<MemeImageJpaEntity, UUID> {
 
-    @Query(value = "SELECT * FROM meme_images ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM meme_images WHERE enabled = true ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
     fun findOneRandom(): MemeImageJpaEntity?
 
     @Query(
         value = """
             SELECT * FROM meme_images
-            WHERE EXISTS (
+            WHERE enabled = true AND EXISTS (
                 SELECT 1 FROM jsonb_array_elements_text(tags) t
                 WHERE t = ANY(string_to_array(:tagsCsv, ','))
             )

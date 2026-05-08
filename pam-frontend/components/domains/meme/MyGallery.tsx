@@ -67,12 +67,6 @@ function MemeCard({ meme }: { meme: MemeItem }) {
   );
 }
 
-const DISABLED_IMAGE_KEYS = ["point_robot"];
-
-function isDisabledMeme(meme: MemeItem): boolean {
-  return DISABLED_IMAGE_KEYS.some((key) => meme.imageUrl.includes(key));
-}
-
 export function MyGallery() {
   const [page, setPage] = useState(0);
   const [allMemes, setAllMemes] = useState<MemeItem[]>([]);
@@ -83,7 +77,7 @@ export function MyGallery() {
     queryFn: async () => {
       const res = await apiFetch<MemeItem[]>(`/api/memes/my-history?page=${page}&size=${PAGE_SIZE}`);
       if (!res || !res.success) throw new Error(res?.error?.message ?? "조회 실패");
-      const data = (res.data ?? []).filter((m) => !isDisabledMeme(m));
+      const data = res.data ?? [];
       if (data.length > 0) {
         setAllMemes((prev) => (page === 0 ? data : [...prev, ...data]));
       }
