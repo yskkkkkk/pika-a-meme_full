@@ -91,7 +91,7 @@ export function RecentMemeCarousel() {
   return (
     <div
       className="relative w-full overflow-hidden"
-      style={{ aspectRatio: "3 / 1" }}
+      style={{ aspectRatio: "1 / 1" }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
