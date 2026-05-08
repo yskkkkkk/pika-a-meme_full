@@ -2,6 +2,7 @@ package com.pickameme.infrastructure.meme
 
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.util.UUID
@@ -10,27 +11,25 @@ interface SpringDataJpaUserMemeRepository : JpaRepository<UserMemeJpaEntity, UUI
 
     @Query(
         value = """
-            SELECT um.* FROM user_memes um
-            JOIN meme_images mi ON um.image_id = mi.id
-            WHERE um.user_id = :userId AND mi.enabled = true
-            ORDER BY um.created_at DESC
+            SELECT * FROM user_memes
+            WHERE user_id = :userId AND enabled = true
+            ORDER BY created_at DESC
         """,
-        countQuery = """
-            SELECT count(*) FROM user_memes um
-            JOIN meme_images mi ON um.image_id = mi.id
-            WHERE um.user_id = :userId AND mi.enabled = true
-        """,
+        countQuery = "SELECT count(*) FROM user_memes WHERE user_id = :userId AND enabled = true",
         nativeQuery = true
     )
-    fun findByUserIdAndEnabledImages(@Param("userId") userId: UUID, pageable: Pageable): List<UserMemeJpaEntity>
+    fun findByUserIdAndEnabled(@Param("userId") userId: UUID, pageable: Pageable): List<UserMemeJpaEntity>
 
     @Query(
-        value = """
-            SELECT um.* FROM user_memes um
-            JOIN meme_images mi ON um.image_id = mi.id
-            WHERE um.user_id = :userId AND um.id = :id AND mi.enabled = true
-        """,
+        value = "SELECT * FROM user_memes WHERE user_id = :userId AND id = :id",
         nativeQuery = true
     )
-    fun findByUserIdAndIdAndEnabledImage(@Param("userId") userId: UUID, @Param("id") id: UUID): UserMemeJpaEntity?
+    fun findByUserIdAndId(@Param("userId") userId: UUID, @Param("id") id: UUID): UserMemeJpaEntity?
+
+    @Modifying
+    @Query(
+        value = "UPDATE user_memes SET enabled = :enabled WHERE user_id = :userId AND id = :id",
+        nativeQuery = true
+    )
+    fun updateEnabled(@Param("userId") userId: UUID, @Param("id") id: UUID, @Param("enabled") enabled: Boolean)
 }

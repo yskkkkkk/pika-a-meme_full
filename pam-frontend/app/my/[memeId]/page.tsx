@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Heart, ImageIcon, Star, Tag } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Clock, Eye, EyeOff, Heart, ImageIcon, Star, Tag } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
@@ -16,6 +16,7 @@ interface MemeDetail {
   heartType: "BASIC" | "SPECIAL" | string;
   selectedTag: string | null;
   createdAt: string;
+  enabled: boolean;
 }
 
 function formatDateTime(iso: string): string {
@@ -33,6 +34,9 @@ export default function MyMemeDetailPage() {
   const router = useRouter();
   const params = useParams<{ memeId: string }>();
   const memeId = params.memeId;
+  const queryClient = useQueryClient();
+
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoaded && !isLoggedIn) {
@@ -50,6 +54,30 @@ export default function MyMemeDetailPage() {
     enabled: isLoaded && isLoggedIn && Boolean(memeId),
     staleTime: 30_000,
   });
+
+  const visibilityMutation = useMutation({
+    mutationFn: async (nextEnabled: boolean) => {
+      const res = await apiFetch(`/api/memes/my-history/${memeId}/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: nextEnabled }),
+      });
+      if (!res?.success) throw new Error("변경 실패");
+      return nextEnabled;
+    },
+    onSuccess: (nextEnabled) => {
+      queryClient.setQueryData(["my-meme", memeId], (old: MemeDetail | undefined) =>
+        old ? { ...old, enabled: nextEnabled } : old
+      );
+      queryClient.invalidateQueries({ queryKey: ["my-memes"] });
+      showToast(nextEnabled ? "갤러리에 다시 표시됩니다" : "갤러리에서 숨겼어요");
+    },
+  });
+
+  function showToast(msg: string) {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
+  }
 
   if (!isLoaded || !isLoggedIn) return null;
 
@@ -106,7 +134,7 @@ export default function MyMemeDetailPage() {
 
             <div className="bg-gray-50 rounded-3xl p-5 space-y-4">
               <p className="font-black text-[#111] leading-relaxed" style={{ fontSize: 20 }}>
-                “{meme.phraseText}”
+                "{meme.phraseText}"
               </p>
 
               <div className="flex flex-wrap gap-2">
@@ -132,9 +160,37 @@ export default function MyMemeDetailPage() {
                 <span>{formatDateTime(meme.createdAt)} 생성</span>
               </div>
             </div>
+
+            <button
+              onClick={() => visibilityMutation.mutate(!meme.enabled)}
+              disabled={visibilityMutation.isPending}
+              className={`w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-black text-sm transition-all active:scale-[0.98] disabled:opacity-50 ${
+                meme.enabled
+                  ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "bg-black text-white hover:bg-gray-800"
+              }`}
+            >
+              {meme.enabled ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  갤러리에서 숨기기
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  갤러리에 다시 표시하기
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>
+
+      {toastMsg && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 bg-gray-900 text-white text-sm font-bold rounded-2xl shadow-xl animate-fade-in z-50">
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 }

@@ -37,7 +37,10 @@ class UserMemeJpaEntity(
     val selectedTag: String?,
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+
+    @Column(name = "enabled", nullable = false)
+    val enabled: Boolean = true
 ) {
     fun toDomain() = UserMeme(
         id = id,
@@ -47,6 +50,7 @@ class UserMemeJpaEntity(
         heartType = heartType,
         composition = composition,
         selectedTag = selectedTag,
-        createdAt = createdAt
+        createdAt = createdAt,
+        enabled = enabled
     )
 }

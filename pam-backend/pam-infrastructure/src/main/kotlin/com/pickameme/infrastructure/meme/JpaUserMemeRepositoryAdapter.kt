@@ -2,6 +2,7 @@ package com.pickameme.infrastructure.meme
 
 import com.pickameme.domain.meme.UserMeme
 import com.pickameme.domain.meme.UserMemeRepository
+import jakarta.transaction.Transactional
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -26,9 +27,13 @@ class JpaUserMemeRepositoryAdapter(
     }
 
     override fun findByUserId(userId: UUID, page: Int, size: Int): List<UserMeme> =
-        jpaRepository.findByUserIdAndEnabledImages(userId, PageRequest.of(page, size))
+        jpaRepository.findByUserIdAndEnabled(userId, PageRequest.of(page, size))
             .map { it.toDomain() }
 
     override fun findByUserIdAndId(userId: UUID, id: UUID): UserMeme? =
-        jpaRepository.findByUserIdAndIdAndEnabledImage(userId, id)?.toDomain()
+        jpaRepository.findByUserIdAndId(userId, id)?.toDomain()
+
+    @Transactional
+    override fun updateEnabled(userId: UUID, id: UUID, enabled: Boolean) =
+        jpaRepository.updateEnabled(userId, id, enabled)
 }
