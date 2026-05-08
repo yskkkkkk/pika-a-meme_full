@@ -30,6 +30,10 @@ class JpaUserMemeRepositoryAdapter(
         jpaRepository.findByUserIdAndEnabled(userId, PageRequest.of(page, size))
             .map { it.toDomain() }
 
+    override fun findAllByUserId(userId: UUID, page: Int, size: Int): List<UserMeme> =
+        jpaRepository.findAllByUserId(userId, PageRequest.of(page, size))
+            .map { it.toDomain() }
+
     override fun findByUserIdAndId(userId: UUID, id: UUID): UserMeme? =
         jpaRepository.findByUserIdAndId(userId, id)?.toDomain()
 

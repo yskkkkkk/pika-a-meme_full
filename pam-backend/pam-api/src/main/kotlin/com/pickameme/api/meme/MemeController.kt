@@ -109,14 +109,21 @@ class MemeController(
     /**
      * GET /api/memes/my-history
      * 내 밈 생성 이력 조회 (로그인 필수)
+     * includeHidden=true 이면 숨김 처리된 밈도 포함
      */
     @GetMapping("/my-history")
     fun getMyHistory(
         @AuthenticationPrincipal userId: UUID,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int
-    ): ApiResponse<List<UserMemeResponse>> =
-        ApiResponse.ok(userMemeRepository.findByUserId(userId, page, size).map { UserMemeResponse.from(it) })
+        @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(defaultValue = "false") includeHidden: Boolean
+    ): ApiResponse<List<UserMemeResponse>> {
+        val memes = if (includeHidden)
+            userMemeRepository.findAllByUserId(userId, page, size)
+        else
+            userMemeRepository.findByUserId(userId, page, size)
+        return ApiResponse.ok(memes.map { UserMemeResponse.from(it) })
+    }
 
     /**
      * GET /api/memes/my-history/{memeId}

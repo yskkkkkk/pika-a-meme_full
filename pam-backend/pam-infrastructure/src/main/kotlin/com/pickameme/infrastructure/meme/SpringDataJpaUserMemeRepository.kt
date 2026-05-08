@@ -10,15 +10,18 @@ import java.util.UUID
 interface SpringDataJpaUserMemeRepository : JpaRepository<UserMemeJpaEntity, UUID> {
 
     @Query(
-        value = """
-            SELECT * FROM user_memes
-            WHERE user_id = :userId AND enabled = true
-            ORDER BY created_at DESC
-        """,
+        value = "SELECT * FROM user_memes WHERE user_id = :userId AND enabled = true ORDER BY created_at DESC",
         countQuery = "SELECT count(*) FROM user_memes WHERE user_id = :userId AND enabled = true",
         nativeQuery = true
     )
     fun findByUserIdAndEnabled(@Param("userId") userId: UUID, pageable: Pageable): List<UserMemeJpaEntity>
+
+    @Query(
+        value = "SELECT * FROM user_memes WHERE user_id = :userId ORDER BY created_at DESC",
+        countQuery = "SELECT count(*) FROM user_memes WHERE user_id = :userId",
+        nativeQuery = true
+    )
+    fun findAllByUserId(@Param("userId") userId: UUID, pageable: Pageable): List<UserMemeJpaEntity>
 
     @Query(
         value = "SELECT * FROM user_memes WHERE user_id = :userId AND id = :id",
