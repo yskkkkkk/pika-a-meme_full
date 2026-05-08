@@ -37,6 +37,10 @@ class JpaUserMemeRepositoryAdapter(
     override fun findByUserIdAndId(userId: UUID, id: UUID): UserMeme? =
         jpaRepository.findByUserIdAndId(userId, id)?.toDomain()
 
+    override fun findRecentTagMatched(limit: Int): List<UserMeme> =
+        jpaRepository.findRecentTagMatched(limit)
+            .map { it.toDomain() }
+
     @Transactional
     override fun updateEnabled(userId: UUID, id: UUID, enabled: Boolean) =
         jpaRepository.updateEnabled(userId, id, enabled)

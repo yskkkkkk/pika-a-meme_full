@@ -107,6 +107,16 @@ class MemeController(
     }
 
     /**
+     * GET /api/memes/recent-matched
+     * 이미지와 문구 태그가 매칭된 최근 완성 밈 조회 (공개)
+     */
+    @GetMapping("/recent-matched")
+    fun getRecentMatched(
+        @RequestParam(defaultValue = "10") size: Int
+    ): ApiResponse<List<UserMemeResponse>> =
+        ApiResponse.ok(userMemeRepository.findRecentTagMatched(size).map { UserMemeResponse.from(it) })
+
+    /**
      * GET /api/memes/my-history
      * 내 밈 생성 이력 조회 (로그인 필수)
      * includeHidden=true 이면 숨김 처리된 밈도 포함
