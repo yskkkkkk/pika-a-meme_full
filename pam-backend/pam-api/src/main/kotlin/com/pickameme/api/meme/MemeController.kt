@@ -15,12 +15,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 
@@ -77,6 +79,16 @@ class MemeController(
         ApiResponse.ok(memeQueryService.findAll(page, size).map { MemeResponse.from(it) })
 
     /**
+     * GET /api/memes/recent-matched
+     * 이미지와 문구 태그가 겹치는 최근 완성 밈 조회 (공개)
+     */
+    @GetMapping("/recent-matched")
+    fun getRecentMatched(
+        @RequestParam(defaultValue = "10") size: Int
+    ): ApiResponse<List<UserMemeResponse>> =
+        ApiResponse.ok(userMemeRepository.findRecentTagMatched(size).map { UserMemeResponse.from(it) })
+
+    /**
      * GET /api/memes/my
      * 내 밈 목록 조회 (로그인 필수)
      */
@@ -113,4 +125,18 @@ class MemeController(
         @RequestParam(defaultValue = "20") size: Int
     ): ApiResponse<List<UserMemeResponse>> =
         ApiResponse.ok(userMemeRepository.findByUserId(userId, page, size).map { UserMemeResponse.from(it) })
+
+    /**
+     * GET /api/memes/my-history/{memeId}
+     * 내 밈 생성 이력 상세 조회 (로그인 필수)
+     */
+    @GetMapping("/my-history/{memeId}")
+    fun getMyHistoryDetail(
+        @AuthenticationPrincipal userId: UUID,
+        @PathVariable memeId: UUID
+    ): ApiResponse<UserMemeResponse> {
+        val userMeme = userMemeRepository.findByUserIdAndId(userId, memeId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+        return ApiResponse.ok(UserMemeResponse.from(userMeme))
+    }
 }

@@ -1,10 +1,6 @@
 "use client";
 
-const PREVIEW_MEMES = [
-  { id: 1, bg: "linear-gradient(135deg,#2d1b4e,#1a0d2e)", animal: "🐱", phrase: "야근 5일차" },
-  { id: 2, bg: "linear-gradient(135deg,#1a2d1a,#0d1f0d)", animal: "🐶", phrase: "퇴근 5분 전" },
-  { id: 3, bg: "linear-gradient(135deg,#2d1a1a,#1a0d0d)", animal: "🐻", phrase: "월요일 아침" },
-];
+import { RecentMemeCarousel } from "@/components/domains/meme/RecentMemeCarousel";
 
 interface Props {
   onBasicDraw: () => void;
@@ -30,37 +26,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
       </div>
 
       <div className="flex flex-col w-full" style={{ gap: 10 }}>
-        <div className="flex w-full" style={{ gap: 8 }}>
-          {PREVIEW_MEMES.map((meme) => (
-            <div
-              key={meme.id}
-              className="flex-1 overflow-hidden relative"
-              style={{ aspectRatio: "1", borderRadius: 16 }}
-            >
-              <div className="absolute inset-0" style={{ background: meme.bg }} />
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ fontSize: 34, opacity: 0.85 }}
-              >
-                {meme.animal}
-              </div>
-              <div
-                className="absolute inset-0 flex items-end"
-                style={{
-                  background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)",
-                  padding: 7,
-                }}
-              >
-                <p
-                  className="text-white font-black leading-tight"
-                  style={{ fontSize: 10, textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
-                >
-                  {meme.phrase}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <RecentMemeCarousel />
         <button
           onClick={onBasicDraw}
           className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
