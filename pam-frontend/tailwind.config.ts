@@ -25,6 +25,20 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateX(-50%) translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateX(-50%) translateY(0)" },
+        },
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.2s ease-out",
+        marquee: "marquee 20s linear infinite",
+      },
     },
   },
   plugins: [],

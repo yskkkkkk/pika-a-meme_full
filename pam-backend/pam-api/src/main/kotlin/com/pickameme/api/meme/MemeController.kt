@@ -10,16 +10,21 @@ import com.pickameme.application.meme.MemeComposeResult
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.CanvasState
 import com.pickameme.domain.meme.MemeCreationOption
+import com.pickameme.domain.meme.UserMemeRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 
@@ -29,6 +34,7 @@ class MemeController(
     private val memeCreationService: MemeCreationService,
     private val memeQueryService: MemeQueryService,
     private val memeComposeService: MemeComposeService,
+    private val userMemeRepository: UserMemeRepository,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -88,14 +94,76 @@ class MemeController(
 
     /**
      * GET /api/memes/compose
-     * 밈 조합 생성 (뽑기용)
+     * 밈 조합 생성 (뽑기용) — 로그인 시 user_memes에 자동 저장
      */
     @GetMapping("/compose")
     fun compose(
+        @AuthenticationPrincipal userId: UUID?,
         @RequestParam("heartType") heartType: HeartType,
         @RequestParam(value = "tags", required = false) tags: List<String>?
     ): ApiResponse<MemeComposeResult> {
-        val result = memeComposeService.compose(heartType, tags ?: emptyList())
+        val result = memeComposeService.compose(heartType, tags ?: emptyList(), userId)
         return ApiResponse.ok(result)
     }
+
+    /**
+     * GET /api/memes/recent-matched
+     * 이미지와 문구 태그가 매칭된 최근 완성 밈 조회 (공개)
+     */
+    @GetMapping("/recent-matched")
+    fun getRecentMatched(
+        @RequestParam(defaultValue = "10") size: Int
+    ): ApiResponse<List<UserMemeResponse>> =
+        ApiResponse.ok(userMemeRepository.findRecentTagMatched(size).map { UserMemeResponse.from(it) })
+
+    /**
+     * GET /api/memes/my-history
+     * 내 밈 생성 이력 조회 (로그인 필수)
+     * includeHidden=true 이면 숨김 처리된 밈도 포함
+     */
+    @GetMapping("/my-history")
+    fun getMyHistory(
+        @AuthenticationPrincipal userId: UUID,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(defaultValue = "false") includeHidden: Boolean
+    ): ApiResponse<List<UserMemeResponse>> {
+        val memes = if (includeHidden)
+            userMemeRepository.findAllByUserId(userId, page, size)
+        else
+            userMemeRepository.findByUserId(userId, page, size)
+        return ApiResponse.ok(memes.map { UserMemeResponse.from(it) })
+    }
+
+    /**
+     * GET /api/memes/my-history/{memeId}
+     * 내 밈 생성 이력 상세 조회 (로그인 필수)
+     */
+    @GetMapping("/my-history/{memeId}")
+    fun getMyHistoryDetail(
+        @AuthenticationPrincipal userId: UUID,
+        @PathVariable memeId: UUID
+    ): ApiResponse<UserMemeResponse> {
+        val userMeme = userMemeRepository.findByUserIdAndId(userId, memeId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+        return ApiResponse.ok(UserMemeResponse.from(userMeme))
+    }
+
+    /**
+     * PATCH /api/memes/my-history/{memeId}/visibility
+     * 내 밈 갤러리 노출 여부 변경 (로그인 필수)
+     */
+    @PatchMapping("/my-history/{memeId}/visibility")
+    fun updateVisibility(
+        @AuthenticationPrincipal userId: UUID,
+        @PathVariable memeId: UUID,
+        @RequestBody body: UpdateVisibilityRequest
+    ): ApiResponse<Unit> {
+        userMemeRepository.findByUserIdAndId(userId, memeId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+        userMemeRepository.updateEnabled(userId, memeId, body.enabled)
+        return ApiResponse.ok()
+    }
 }
+
+data class UpdateVisibilityRequest(val enabled: Boolean)

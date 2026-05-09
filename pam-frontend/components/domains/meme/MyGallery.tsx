@@ -1,16 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch, ApiResponse } from "@/lib/api";
-import { ImageIcon, Star, Heart, Clock } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { EyeOff, ImageIcon, Star, Heart, Clock, Sparkles } from "lucide-react";
 
 interface MemeItem {
   id: string;
   imageUrl: string;
-  heartType: "BASIC" | "SPECIAL";
+  subjectPosition: string;
+  phraseText: string;
+  heartType: string;
+  selectedTag: string | null;
+  matchedTags: string[];
   createdAt: string;
+  enabled: boolean;
 }
+
+type ViewMode = "all" | "matched" | "special";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -22,11 +30,36 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}일 전`;
 }
 
-function MemeCard({ meme }: { meme: MemeItem }) {
+function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      role="switch"
+      aria-checked={on}
+      className={`relative inline-flex items-center w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+        on ? "bg-gray-700" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`inline-block w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+          on ? "translate-x-5" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
+}
+
+function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <Link
+      href={`/my/${meme.id}`}
+      className={`group relative block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${
+        dimmed ? "opacity-40" : ""
+      }`}
+      aria-label="내 밈 상세 보기"
+    >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         {imgError ? (
           <div className="w-full h-full flex items-center justify-center">
@@ -40,7 +73,7 @@ function MemeCard({ meme }: { meme: MemeItem }) {
             onError={() => setImgError(true)}
           />
         )}
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
           {meme.heartType === "SPECIAL" ? (
             <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-400 text-white text-xs font-black rounded-full shadow">
               <Star className="w-3 h-3 fill-white" /> SPECIAL
@@ -50,51 +83,134 @@ function MemeCard({ meme }: { meme: MemeItem }) {
               <Heart className="w-3 h-3 fill-white" /> BASIC
             </span>
           )}
+          {dimmed && (
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-700 text-white text-xs font-black rounded-full shadow">
+              <EyeOff className="w-3 h-3" /> 숨김
+            </span>
+          )}
         </div>
       </div>
-      <div className="px-3 py-2 flex items-center gap-1.5 text-xs text-gray-400">
-        <Clock className="w-3 h-3" />
-        <span>{timeAgo(meme.createdAt)}</span>
+
+      <div className="px-3 pt-2 pb-1.5 space-y-1.5">
+        {meme.matchedTags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {meme.matchedTags.map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full"
+                style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
+              >
+                <Sparkles className="w-2.5 h-2.5" /> {tag}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-2 text-xs text-gray-400">
+          <span className="flex items-center gap-1.5">
+            <Clock className="w-3 h-3" />
+            <span>{timeAgo(meme.createdAt)}</span>
+          </span>
+          <span className="font-bold text-gray-300 group-hover:text-gray-500 transition-colors">상세 보기</span>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
+
+const VIEW_OPTIONS: { key: ViewMode; label: string }[] = [
+  { key: "all", label: "최신순" },
+  { key: "matched", label: "태그 매칭" },
+  { key: "special", label: "SPECIAL" },
+];
 
 export function MyGallery() {
   const [page, setPage] = useState(0);
   const [allMemes, setAllMemes] = useState<MemeItem[]>([]);
+  const [showAll, setShowAll] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
   const PAGE_SIZE = 20;
 
   const { isFetching, isError } = useQuery({
-    queryKey: ["my-memes", page],
+    queryKey: ["my-memes", page, showAll],
     queryFn: async () => {
-      const res = await apiFetch<MemeItem[]>(`/api/memes/my?page=${page}&size=${PAGE_SIZE}`);
-      const data = res?.data ?? [];
+      const url = `/api/memes/my-history?page=${page}&size=${PAGE_SIZE}${showAll ? "&includeHidden=true" : ""}`;
+      const res = await apiFetch<MemeItem[]>(url);
+      if (!res || !res.success) throw new Error(res?.error?.message ?? "조회 실패");
+      const data = res.data ?? [];
       if (data.length > 0) {
         setAllMemes((prev) => (page === 0 ? data : [...prev, ...data]));
       }
       return data;
     },
-    staleTime: 30_000,
+    staleTime: 0,
   });
+
+  const displayMemes = useMemo(() => {
+    if (viewMode === "special") return allMemes.filter((m) => m.heartType === "SPECIAL");
+    if (viewMode === "matched") {
+      return [...allMemes].sort((a, b) => {
+        if (b.matchedTags.length !== a.matchedTags.length) return b.matchedTags.length - a.matchedTags.length;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+    return allMemes;
+  }, [allMemes, viewMode]);
+
+  function handleToggle() {
+    setPage(0);
+    setAllMemes([]);
+    setShowAll((v) => !v);
+  }
+
+  function handleViewMode(mode: ViewMode) {
+    setViewMode(mode);
+  }
 
   const hasMore = allMemes.length === (page + 1) * PAGE_SIZE;
 
-  if (!isFetching && !isError && allMemes.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-400">
-        <div className="text-6xl">🖼️</div>
-        <p className="text-lg font-bold">아직 뽑은 밈이 없어요</p>
-        <p className="text-sm">첫 번째 밈을 뽑아보세요!</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
+      {/* 헤더: 총 개수 + 숨김 토글 */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-black text-gray-400">
+          {allMemes.length > 0 && `총 ${allMemes.length}개`}
+        </span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-bold text-gray-400">모든 결과물 보기</span>
+          <Toggle on={showAll} onToggle={handleToggle} />
+        </div>
+      </div>
+
+      {/* 필터/정렬 탭 */}
+      <div className="flex gap-2">
+        {VIEW_OPTIONS.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => handleViewMode(key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-black transition-all ${
+              viewMode === key
+                ? "bg-black text-white"
+                : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {!isFetching && !isError && displayMemes.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-gray-400">
+          <div className="text-6xl">🖼️</div>
+          <p className="text-lg font-bold">
+            {allMemes.length === 0 ? "아직 뽑은 밈이 없어요" : "해당하는 밈이 없어요"}
+          </p>
+          {allMemes.length === 0 && <p className="text-sm">첫 번째 밈을 뽑아보세요!</p>}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
-        {allMemes.map((meme) => (
-          <MemeCard key={meme.id} meme={meme} />
+        {displayMemes.map((meme) => (
+          <MemeCard key={meme.id} meme={meme} dimmed={showAll && !meme.enabled} />
         ))}
         {isFetching &&
           Array.from({ length: 6 }).map((_, i) => (

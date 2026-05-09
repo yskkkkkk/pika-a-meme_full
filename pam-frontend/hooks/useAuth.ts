@@ -1,19 +1,28 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { isAuthenticated, removeToken, getLoginUrl } from "@/lib/auth";
+import { getLoginUrl } from "@/lib/auth";
+import { apiFetch } from "@/lib/api";
+
+interface MeResponse {
+  id: string;
+  username: string;
+  email: string;
+}
 
 export function useAuth() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setLoggedIn(isAuthenticated());
-    setIsLoaded(true);
+    apiFetch<MeResponse>("/api/auth/me").then((res) => {
+      setLoggedIn(!!res?.data);
+      setIsLoaded(true);
+    });
   }, []);
 
-  const logout = useCallback(() => {
-    removeToken();
+  const logout = useCallback(async () => {
+    await apiFetch("/api/auth/logout", { method: "POST" });
     setLoggedIn(false);
   }, []);
 
