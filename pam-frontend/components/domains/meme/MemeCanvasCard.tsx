@@ -1,13 +1,12 @@
 "use client";
 
-import { CSSProperties, forwardRef, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, CSSProperties, forwardRef } from "react";
 import { cn } from "@/lib/utils";
-
-// ─── 말풍선 ──────────────────────────────────────────────────────────────────
 
 type TailDir = "up" | "down" | "left" | "right";
 
 const BG = "rgba(255,255,255,0.97)";
+const BASE_WIDTH = 400;
 
 function hashSeed(seed: string): number {
   let hash = 2166136261;
@@ -36,7 +35,6 @@ function useMemeBubbleStyle(seed?: string) {
 
   return useMemo(() => {
     if (!seed) return randomRef.current;
-
     const random = seededRandom(hashSeed(seed));
     return {
       shapeIdx: Math.floor(random() * BUBBLE_VARIANTS.length),
@@ -47,7 +45,6 @@ function useMemeBubbleStyle(seed?: string) {
   }, [seed]);
 }
 
-// ① 꼬리 방향: 동물 쪽을 가리킴
 function getTailDir(pos: string): TailDir {
   switch (pos.toLowerCase()) {
     case "bottom":
@@ -64,7 +61,6 @@ function getTailDir(pos: string): TailDir {
   }
 }
 
-// ② 버블 본체 모양 (border-radius) + 꼬리 가로 위치(%)
 const BUBBLE_VARIANTS = [
   { radius: "22px", tailX: 50 },
   { radius: "30px", tailX: 35 },
@@ -74,7 +70,6 @@ const BUBBLE_VARIANTS = [
   { radius: "18px 28px 18px 28px", tailX: 50 },
 ];
 
-// ⑤ 꼬리 상세 모양: 방향별 3종
 const TAIL_PATHS: Record<TailDir, string[]> = {
   up: [
     "M0,12 C5,12 7,3 9,0 C11,3 13,12 18,12 Z",
@@ -98,27 +93,25 @@ const TAIL_PATHS: Record<TailDir, string[]> = {
   ],
 };
 
-function TailSVG({ dir, pathIdx }: { dir: TailDir; pathIdx: number }) {
+function TailSVG({ dir, pathIdx, scale }: { dir: TailDir; pathIdx: number; scale: number }) {
   const path = TAIL_PATHS[dir][pathIdx % TAIL_PATHS[dir].length];
   const isH = dir === "up" || dir === "down";
+  const w = Math.round((isH ? 18 : 12) * scale);
+  const h = Math.round((isH ? 12 : 18) * scale);
   return (
-    <svg
-      width={isH ? 18 : 12}
-      height={isH ? 12 : 18}
-      viewBox={isH ? "0 0 18 12" : "0 0 12 18"}
-    >
+    <svg width={w} height={h} viewBox={isH ? "0 0 18 12" : "0 0 12 18"}>
       <path d={path} fill={BG} />
     </svg>
   );
 }
 
-// ③ 버블 위치: 동물 반대편 + 상세 위치 랜덤 (jx, jy: 0~1)
-function getBubbleStyle(pos: string, jx: number, jy: number): CSSProperties {
+function getBubbleStyle(pos: string, jx: number, jy: number, scale: number): CSSProperties {
+  const p = (n: number) => Math.round(n * scale);
   const lx = Math.round(22 + jx * 38);
-  const bm = Math.round(64 + jy * 32);
-  const tp = Math.round(14 + jy * 24);
+  const bm = p(64 + jy * 32);
+  const tp = p(14 + jy * 24);
   const ty = Math.round(22 + jy * 38);
-  const sd = Math.round(10 + jx * 16);
+  const sd = p(10 + jx * 16);
 
   switch (pos.toLowerCase()) {
     case "top":
@@ -130,9 +123,9 @@ function getBubbleStyle(pos: string, jx: number, jy: number): CSSProperties {
       return { top: tp, left: `${lx}%`, transform: "translateX(-50%)" };
     case "left":
     case "full_vertical":
-      return { right: 12, top: `${ty}%`, transform: "translateY(-50%)" };
+      return { right: p(12), top: `${ty}%`, transform: "translateY(-50%)" };
     case "right":
-      return { left: 12, top: `${ty}%`, transform: "translateY(-50%)" };
+      return { left: p(12), top: `${ty}%`, transform: "translateY(-50%)" };
     case "top_left":
       return { bottom: bm, right: sd };
     case "top_right":
@@ -147,42 +140,47 @@ function getBubbleStyle(pos: string, jx: number, jy: number): CSSProperties {
 }
 
 function SpeechBubble({
-  pos,
-  text,
-  shapeIdx,
-  tailPathIdx,
+  pos, text, shapeIdx, tailPathIdx, scale,
 }: {
   pos: string;
   text: string;
   shapeIdx: number;
   tailPathIdx: number;
+  scale: number;
 }) {
   const dir = getTailDir(pos);
   const v = BUBBLE_VARIANTS[shapeIdx % BUBBLE_VARIANTS.length];
+  const scaledRadius = v.radius.replace(/(\d+)px/g, (_: string, n: string) => `${Math.round(parseInt(n) * scale)}px`);
   const isVertical = dir === "left" || dir === "right";
+  const p = (n: number) => Math.round(n * scale);
+
   const tailWrap: CSSProperties = {
     position: "absolute",
-    ...(dir === "down" && { bottom: -11, left: `${v.tailX}%`, transform: "translateX(-50%)" }),
-    ...(dir === "up" && { top: -11, left: `${v.tailX}%`, transform: "translateX(-50%)" }),
-    ...(dir === "left" && { left: -11, top: "50%", transform: "translateY(-50%)" }),
-    ...(dir === "right" && { right: -11, top: "50%", transform: "translateY(-50%)" }),
+    ...(dir === "down" && { bottom: p(-11), left: `${v.tailX}%`, transform: "translateX(-50%)" }),
+    ...(dir === "up" && { top: p(-11), left: `${v.tailX}%`, transform: "translateX(-50%)" }),
+    ...(dir === "left" && { left: p(-11), top: "50%", transform: "translateY(-50%)" }),
+    ...(dir === "right" && { right: p(-11), top: "50%", transform: "translateY(-50%)" }),
   };
+
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
       <div
         style={{
-          padding: isVertical ? "10px 14px" : "10px 16px",
-          borderRadius: v.radius,
+          padding: isVertical ? `${p(10)}px ${p(14)}px` : `${p(10)}px ${p(16)}px`,
+          borderRadius: scaledRadius,
           background: BG,
           display: "inline-block",
         }}
       >
-        <p className="font-black text-center text-[#111] break-keep" style={{ fontSize: 15, lineHeight: 1.4 }}>
+        <p
+          className="font-black text-center text-[#111] break-keep"
+          style={{ fontSize: Math.max(9, Math.round(15 * scale)), lineHeight: 1.4 }}
+        >
           {text}
         </p>
       </div>
       <div style={tailWrap}>
-        <TailSVG dir={dir} pathIdx={tailPathIdx} />
+        <TailSVG dir={dir} pathIdx={tailPathIdx} scale={scale} />
       </div>
     </div>
   );
@@ -206,12 +204,26 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
   showBrandBar = true,
   className,
   imageAlt = "밈 이미지",
-}, ref) {
+}, externalRef) {
+  const [scale, setScale] = useState(1);
   const bubble = useMemeBubbleStyle(seed);
+  const roRef = useRef<ResizeObserver | null>(null);
+
+  const mergedRef = useCallback((el: HTMLDivElement | null) => {
+    if (typeof externalRef === "function") externalRef(el);
+    else if (externalRef) (externalRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+
+    roRef.current?.disconnect();
+    if (!el) return;
+    const update = (width: number) => setScale(width / BASE_WIDTH);
+    update(el.offsetWidth);
+    roRef.current = new ResizeObserver(([entry]) => update(entry.contentRect.width));
+    roRef.current.observe(el);
+  }, [externalRef]);
 
   return (
     <div
-      ref={ref}
+      ref={mergedRef}
       className={cn("relative overflow-hidden", className)}
       style={{ aspectRatio: "1", borderRadius: 24, boxShadow: "0 8px 28px rgba(0,0,0,0.12)" }}
     >
@@ -224,13 +236,14 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
 
       <div
         className="absolute z-10 max-w-[80%]"
-        style={getBubbleStyle(subjectPosition, bubble.posJx, bubble.posJy)}
+        style={getBubbleStyle(subjectPosition, bubble.posJx, bubble.posJy, scale)}
       >
         <SpeechBubble
           pos={subjectPosition}
           text={phrase}
           shapeIdx={bubble.shapeIdx}
           tailPathIdx={bubble.tailPathIdx}
+          scale={scale}
         />
       </div>
 

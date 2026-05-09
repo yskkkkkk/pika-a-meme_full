@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
@@ -45,6 +46,10 @@ function PreviewFallback() {
 }
 
 export function RecentMemeCarousel() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [cardWidth, setCardWidth] = useState(0);
+
   const { data: memes = [] } = useQuery({
     queryKey: ["recent-matched-memes"],
     queryFn: async () => {
@@ -55,20 +60,52 @@ export function RecentMemeCarousel() {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (memes.length === 0) {
-    return <PreviewFallback />;
-  }
+  // 카드 너비를 컨테이너 크기 기반으로 계산 (반응형)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setCardWidth((el.offsetWidth - 8) / 2); // 2개 + gap 8px
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
-  // 카드 수가 적으면 무한 루프를 위해 최소 4개 이상 되도록 복제
+  // requestAnimationFrame 기반 마퀴 (DOM 직접 조작 → 리렌더 없음)
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || cardWidth === 0) return;
+    let frame: number;
+    let offset = 0;
+
+    const step = () => {
+      offset += 0.5; // 속도: px/frame (60fps 기준 ~30px/s)
+      const halfWidth = track.scrollWidth / 2;
+      if (offset >= halfWidth) offset -= halfWidth;
+      track.style.transform = `translateX(-${offset}px)`;
+      frame = requestAnimationFrame(step);
+    };
+
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [cardWidth, memes.length]);
+
+  if (memes.length === 0) return <PreviewFallback />;
+
+  // seamless loop를 위해 최소 4개 이상 되도록 복제
   const loopMemes = memes.length < 4
     ? [...memes, ...memes, ...memes, ...memes]
     : [...memes, ...memes];
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl">
-      <div className="flex animate-marquee" style={{ gap: 8 }}>
+    <div ref={containerRef} className="w-full overflow-hidden">
+      <div ref={trackRef} className="flex" style={{ gap: 8 }}>
         {loopMemes.map((meme, i) => (
-          <div key={`${meme.id}-${i}`} className="flex-shrink-0" style={{ width: "calc(50% - 4px)" }}>
+          <div
+            key={`${meme.id}-${i}`}
+            className="flex-shrink-0"
+            style={{ width: cardWidth > 0 ? cardWidth : "calc(50% - 4px)" }}
+          >
             <MemeCanvasCard
               imageUrl={meme.imageUrl}
               subjectPosition={meme.subjectPosition}

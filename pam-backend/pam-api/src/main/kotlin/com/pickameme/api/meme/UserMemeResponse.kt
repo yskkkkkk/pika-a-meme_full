@@ -11,6 +11,7 @@ data class UserMemeResponse(
     val phraseText: String,
     val heartType: String,
     val selectedTag: String?,
+    val matchedTags: List<String>,
     val createdAt: LocalDateTime,
     val enabled: Boolean
 ) {
@@ -22,6 +23,7 @@ data class UserMemeResponse(
             phraseText = userMeme.composition.phraseText,
             heartType = userMeme.heartType.name,
             selectedTag = userMeme.selectedTag,
+            matchedTags = userMeme.matchedTags,
             createdAt = userMeme.createdAt,
             enabled = userMeme.enabled
         )
