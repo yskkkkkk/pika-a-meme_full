@@ -21,6 +21,7 @@ class JpaUserMemeRepositoryAdapter(
             heartType = userMeme.heartType,
             composition = userMeme.composition,
             selectedTag = userMeme.selectedTag,
+            matchedTags = userMeme.matchedTags,
             createdAt = userMeme.createdAt
         )
         return jpaRepository.save(entity).toDomain()

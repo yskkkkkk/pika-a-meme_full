@@ -18,6 +18,7 @@ data class UserMeme(
     val heartType: HeartType,
     val composition: MemeComposition,
     val selectedTag: String?,
+    val matchedTags: List<String> = emptyList(),
     val createdAt: LocalDateTime,
     val enabled: Boolean = true
 )

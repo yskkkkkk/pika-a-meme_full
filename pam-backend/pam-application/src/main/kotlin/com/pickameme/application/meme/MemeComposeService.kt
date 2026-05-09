@@ -33,6 +33,7 @@ class MemeComposeService(
         }
 
         if (userId != null) {
+            val matchedTags = image.tags.intersect(phrase.tags.toSet()).toList()
             userMemeRepository.save(
                 UserMeme(
                     id = UUID.randomUUID(),
@@ -46,6 +47,7 @@ class MemeComposeService(
                         phraseText = phrase.text
                     ),
                     selectedTag = tags.firstOrNull(),
+                    matchedTags = matchedTags,
                     createdAt = LocalDateTime.now()
                 )
             )
