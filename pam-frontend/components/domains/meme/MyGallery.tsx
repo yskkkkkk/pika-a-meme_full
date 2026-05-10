@@ -68,40 +68,36 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           imageAlt="내 밈"
           className="w-full"
         />
-        {/* 뱃지 오버레이 */}
-        <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-20">
-          {meme.heartType === "SPECIAL" ? (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-400 text-white text-xs font-black rounded-full shadow">
-              <Star className="w-3 h-3 fill-white" /> SPECIAL
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-black rounded-full shadow">
-              <Heart className="w-3 h-3 fill-white" /> BASIC
-            </span>
-          )}
-          {dimmed && (
+        {/* 숨김 뱃지만 이미지 오버레이에 유지 */}
+        {dimmed && (
+          <div className="absolute top-2 right-2 z-20">
             <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-700 text-white text-xs font-black rounded-full shadow">
               <EyeOff className="w-3 h-3" /> 숨김
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* 하단 정보 */}
-      <div className="px-1 pt-1.5 pb-1 flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1 text-[10px] text-gray-400 font-bold">
+      {/* 하단 정보: [BASIC/SPECIAL] [#태그] [날짜] */}
+      <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
+        {meme.heartType === "SPECIAL" ? (
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-400 text-white text-[10px] font-black rounded-full">
+            <Star className="w-2.5 h-2.5 fill-white" /> SPECIAL
+          </span>
+        ) : (
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-pink-500 text-white text-[10px] font-black rounded-full">
+            <Heart className="w-2.5 h-2.5 fill-white" /> BASIC
+          </span>
+        )}
+        {meme.matchedTags.length > 0 && (
+          <span className="text-[10px] font-black" style={{ color: "#C44DFF" }}>
+            {meme.matchedTags.map((t) => `#${t}`).join(" ")}
+          </span>
+        )}
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-400 font-bold">
           <Clock className="w-3 h-3" />
           {timeAgo(meme.createdAt)}
         </span>
-        {meme.matchedTags.length > 0 && (
-          <div className="flex flex-wrap justify-end gap-1">
-            {meme.matchedTags.map((tag) => (
-              <span key={tag} className="text-[10px] font-black" style={{ color: "#C44DFF" }}>
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
     </Link>
   );
