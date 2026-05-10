@@ -142,7 +142,7 @@ GET /api/memes/compose?heartType=SPECIAL&tags=피곤
 
 | 레이어 | 플랫폼 |
 |---|---|
-| Frontend | Cloudflare Pages |
+| Frontend | Vercel |
 | Backend | Railway (Docker 컨테이너) |
 | Database | Neon (PostgreSQL) |
 | 이미지 스토리지 | Cloudflare R2 |

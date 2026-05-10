@@ -28,7 +28,7 @@ class OAuth2SuccessHandler(
         val cookie = ResponseCookie.from("pam_token", token)
             .httpOnly(true)
             .secure(cookieSecure)
-            .sameSite(if (cookieSecure) "None" else "Lax")
+            .sameSite("Lax")
             .path("/")
             .maxAge(expirationMs / 1000)
             .build()
