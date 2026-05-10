@@ -31,7 +31,7 @@ class AuthController(
         val expiredCookie = ResponseCookie.from("pam_token", "")
             .httpOnly(true)
             .secure(cookieSecure)
-            .sameSite(if (cookieSecure) "None" else "Lax")
+            .sameSite("Lax")
             .path("/")
             .maxAge(0)
             .build()
