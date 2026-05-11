@@ -14,6 +14,10 @@ dependencies {
     // Spring Web
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    // RedisTemplate compile-time access for RateLimitFilter
+    // (pam-infrastructure declares this as 'implementation', so it is not transitively visible here)
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
     // Spring Security + OAuth2 Client
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
