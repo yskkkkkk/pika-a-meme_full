@@ -56,7 +56,7 @@
 | TASK-260501-02 | [프론트엔드] | [x] | 프론트엔드 API 클라이언트 구현 (fetch + Bearer 헤더 + POST /api/memes 연동) | - | - | 260501 / 260503 |
 | TASK-260501-03 | [프론트엔드] | [ ] | 밈 완성 후 축하 모달 및 "다시 뽑기" 플로우 구현 | - | "다시 뽑기" 버튼은 ResultScreen에 구현됨. 축하 모달(애니메이션 연출) 미구현 | 260501 / - |
 | TASK-260501-04 | [프론트엔드] | [x] | Canvas에 추가된 아이템의 크기(fontSize/stickerScale) 조절 UI 구현 | TASK-260429-24 | v2 재설계로 Canvas 에디터 자체가 제거됨. TASK-260429-24, TASK-260504-08 참고 | 260501 / 260505 |
-| TASK-260501-05 | [인프라/공통] | [ ] | CI/CD 구축 및 클라우드 배포 (Frontend: Vercel, Backend: Docker) | - | - | 260501 / - |
+| TASK-260501-05 | [인프라/공통] | [x] | CI/CD 구축 및 클라우드 배포 (Frontend: Vercel + GitHub Actions, Backend: Railway Docker) | - | Vercel 자동배포(GitHub Actions + Vercel CLI), Railway Docker 자동배포 완료. 도메인: pick-a-me.me / api.pick-a-me.me | 260501 / 260511 |
 | TASK-260502-01 | [인프라/공통] | [ ] | Sentry 기반 프론트/백엔드 에러 트래킹 및 알림 채널(Slack/Email) 연동 | TASK-260429-14 | - | 260502 / - |
 | TASK-260502-02 | [인프라/공통] | [ ] | 헬스체크/레디니스 엔드포인트 및 외부 의존성(DB/Redis/R2) 상태 점검 추가 | TASK-260501-05 | - | 260502 / - |
 | TASK-260502-03 | [밈/이미지] | [ ] | 업로드 이미지 파일 크기/MIME 검증 및 악성 파일 방어 정책 적용 | TASK-260429-20 | - | 260502 / - |
@@ -83,15 +83,27 @@
 | TASK-260504-10 | [프론트엔드] | [ ] | 로그인/서비스 소개 별도 화면 구현 (슬라이드 애니메이션 전환) | TASK-260504-07 | LoginSlideMenu로 기본 로그인 유도는 있으나, 서비스 소개 콘텐츠 및 온보딩 플로우 미구현 | 260504 / - |
 | TASK-260505-01 | [밈/이미지] | [x] | 밈 결과물 저장 기능 구현 (ResultScreen → html2canvas 캡처 → 기기 저장) | TASK-260504-08 | PC는 파일 다운로드, 모바일은 Web Share API로 갤러리 저장. TASK-260429-19(R2 어댑터)와 연계 | 260505 / 260505 |
 | TASK-260506-01 | [밈/이미지] | [x] | SPECIAL 뽑기 단일 태그 정책 적용 및 selected_tag 컬럼 추가 (V9 마이그레이션) | TASK-260505-01 | selected_tag NULL=BASIC, NOT NULL=SPECIAL. AIRULES.md 정책 문서화 포함 | 260506 / 260506 |
+| TASK-260511-01 | [회원/인증] | [x] | HttpOnly Cookie JWT 전환 (localStorage → pam_token 쿠키, SameSite=Lax) | TASK-260429-28 | OAuth2SuccessHandler, JwtAuthenticationFilter, AuthController(/me, /logout) 구현. CORS allowCredentials=true | 260511 / 260511 |
+| TASK-260511-02 | [프론트엔드] | [x] | AuthContext 전역 상태 도입 (/api/auth/me 중복 호출 제거) | TASK-260429-29 | AuthProvider + useAuth Context 패턴. 6개 컴포넌트 → 앱 루트 1회 호출로 통합 | 260511 / 260511 |
+| TASK-260511-03 | [인프라/공통] | [x] | Redis Rate Limiting 구현 (RateLimitFilter, 엔드포인트별 토큰 버킷) | - | ConditionalOnBean(RedisTemplate), failClosed 정책, compose/meme-create/oauth2/auth-me 규칙 적용 | 260511 / 260511 |
+| TASK-260511-04 | [인프라/공통] | [x] | R2 커스텀 도메인 전환 (pub-*.r2.dev → img.pick-a-me.me, V13 마이그레이션) | - | Cloudflare R2 커스텀 도메인 연결 + meme_images.image_url 일괄 교체 | 260511 / 260511 |
+| TASK-260511-05 | [인프라/공통] | [ ] | Origin Shielding 구현 (Railway 기본 도메인 직접 접근 차단) | TASK-260511-03 | X-Origin-Verify 헤더 검증 또는 Cloudflare Tunnel 검토 필요 | 260511 / - |
+| TASK-260511-06 | [인프라/공통] | [ ] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | Cloudflare Proxy 우회 검증 후 활성화. RATE_LIMIT_USE_FORWARDED_HEADERS=true 환경변수 전환 필요 | 260511 / - |
+| TASK-260511-07 | [회원/인증] | [ ] | JWT Refresh Token 회전 구현 (Access Token 15분 + Refresh Token rotation + jti denylist) | TASK-260511-01 | - | 260511 / - |
+| TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
 
 ---
 
 ## 🏗️ 프로젝트 결정 사항 (Project Decisions)
 
 ### 인프라 (Infrastructure)
+- **DNS / WAF:** Cloudflare Proxy (주황 구름) — `pick-a-me.me`, `api.pick-a-me.me`, `img.pick-a-me.me` 전체 Proxied
+- **Frontend:** Vercel / Custom Domain: `pick-a-me.me` / GitHub Actions + Vercel CLI 자동배포
+- **Backend:** Railway (Docker) / Custom Domain: `api.pick-a-me.me` / 자동배포
 - **Database:** NEON (PostgreSQL 17) / Region: Singapore
 - **Cache/Stamina:** Upstash (Redis) / Region: Singapore / Strategy: Eviction Disabled
-- **Storage:** Cloudflare R2 (S3 API Compatible)
+- **Storage:** Cloudflare R2 (S3 API Compatible) / Custom Domain: `img.pick-a-me.me` / Egress Fee 0원
+- **인증:** HttpOnly Cookie JWT (`pam_token`, SameSite=Lax, Secure=true in prod)
 
 ### 하트 시스템 (Heart System)
 - **BASIC 하트:** Redis SSOT, Lazy Charging (5분/1개, 최대 5개), Redisson 분산 락

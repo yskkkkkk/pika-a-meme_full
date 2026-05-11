@@ -9,12 +9,39 @@
 
 ```
 BASIC 하트  → 이미지/문구 각각 랜덤 추출 → 조합 (병맛 허용)
-SPECIAL 하트 → 태그 선택 → 필터링된 이미지/문구 조합 → 완성도 높은 밈
+SPECIAL 하트 → 단일 태그 선택 → 필터링된 이미지/문구 조합 → 완성도 높은 밈
 ```
 
 ---
 
 ## 아키텍처
+
+### 인프라 구조
+
+```
+                        ┌─────────────────────────────┐
+                        │      Cloudflare              │
+                        │  DNS Proxy · WAF · Edge Cache│
+                        └────────┬────────┬────────────┘
+                                 │        │
+              ┌──────────────────┘        └─────────────────┐
+              ▼                                             ▼
+   ┌──────────────────┐                        ┌──────────────────────┐
+   │      Vercel       │                        │       Railway         │
+   │  pick-a-me.me    │ ──── API 호출 ────────▶│  api.pick-a-me.me    │
+   │  (Next.js)        │                        │  (Spring Boot/Docker) │
+   └──────────────────┘                        └────────┬─────────────┘
+                                                        │
+                                   ┌────────────────────┼──────────────┐
+                                   ▼                    ▼              ▼
+                         ┌──────────────┐   ┌────────────────┐  ┌──────────┐
+                         │  Neon (PG)   │   │ Upstash (Redis)│  │  R2      │
+                         │  Singapore   │   │   Singapore    │  │  img.*   │
+                         └──────────────┘   └────────────────┘  └──────────┘
+```
+
+모든 외부 트래픽은 Cloudflare Proxy(주황 구름)를 통과한다.  
+원본 서버(Railway, Vercel) IP는 외부에 노출되지 않는다.
 
 ### 백엔드 — Clean Architecture + DDD
 
@@ -24,7 +51,9 @@ pam-api (REST) → pam-application (UseCase) → pam-domain (Core)
                          pam-infrastructure (JPA/Redis/R2 Adapters)
 ```
 
-Domain 엔티티는 JPA 어노테이션 없는 순수 Kotlin 객체. 영속성 세부 사항은 Infrastructure에서 숨긴다.
+- `pam-domain` 엔티티는 JPA 어노테이션 없는 순수 Kotlin 객체를 유지한다.
+- 비즈니스 불변식은 도메인 엔티티 내부에서 검증한다.
+- Command는 Spring Data JPA, Query는 필요 시 네이티브 쿼리로 처리한다.
 
 ### 프론트엔드 — 모바일 퍼스트
 
@@ -34,15 +63,49 @@ Domain 엔티티는 JPA 어노테이션 없는 순수 Kotlin 객체. 영속성 �
 
 ---
 
+## Security & Infrastructure
+
+### 인증 — HttpOnly Cookie JWT
+
+OAuth2 로그인 성공 후 백엔드가 `pam_token` JWT를 `HttpOnly`, `Secure`, `SameSite=Lax` 쿠키로 발급한다.  
+`pick-a-me.me`와 `api.pick-a-me.me`는 동일 등록 도메인이므로 Lax 정책으로 쿠키가 자동 전송된다.  
+프론트엔드는 토큰에 직접 접근하지 않으며, XSS로 토큰을 탈취할 수 없다.
+
+### DDoS 방어
+
+- Cloudflare Proxy가 L3/L4/L7 대규모 공격을 흡수한다.
+- 백엔드 Redis Rate Limiting이 Railway 컨테이너·DB·R2 비용 폭탄을 방지한다.
+- 엔드포인트 위험도별 독립 규칙 적용 (compose, meme-create, oauth2, auth-me).
+
+### Origin Shielding (미완 → Roadmap)
+
+Railway 기본 도메인(`*.up.railway.app`) 직접 접근 시 Cloudflare를 우회한다.  
+`X-Origin-Verify` 커스텀 헤더 검증을 통해 Cloudflare 경유 요청만 수락하는 구조를 검토 중이다.
+
+### CORS
+
+`CORS_ALLOWED_ORIGINS` 환경 변수로 허용 Origin을 운영 환경에서 명시 지정한다.  
+`allowCredentials = true` + `SameSite=Lax` 조합으로 불필요한 preflight를 최소화한다.
+
+### R2 Egress Fee 0원
+
+Cloudflare R2에 커스텀 도메인(`img.pick-a-me.me`)을 연결하면 R2 → 브라우저 데이터 전송에 대한 Egress Fee가 발생하지 않는다.  
+Cloudflare Edge 캐싱으로 이미지 서빙 응답 속도도 개선된다.
+
+---
+
 ## 핵심 DB 구조
 
 | 테이블 | 역할 |
 |---|---|
-| `meme_images` | 동물 이미지 URL + `subject_position` + `tags` JSONB |
+| `meme_images` | 동물 이미지 URL(`img.pick-a-me.me`) + `subject_position` + `tags` JSONB |
 | `meme_phrases` | 말풍선 문구 텍스트 + `tags` JSONB |
-| `memes` | 생성된 밈 결과 (이미지 합성 후 R2 저장) |
-| `hearts` | SPECIAL 하트 (BASIC은 Redis) |
+| `user_memes` | 뽑기 이력 스냅샷 (composition JSONB + `selected_tag`) |
+| `memes` | 최종 저장된 밈 (image_key + canvas_state) |
+| `hearts` | SPECIAL 하트 (BASIC은 Upstash Redis) |
 | `users` | OAuth2 유저 |
+
+> `selected_tag IS NULL` = BASIC 뽑기, `IS NOT NULL` = SPECIAL 뽑기 (선택한 태그 값)
 
 ---
 
@@ -52,20 +115,23 @@ Domain 엔티티는 JPA 어노테이션 없는 순수 Kotlin 객체. 영속성 �
 |---|---|
 | Language | Kotlin |
 | Framework | Spring Boot 3 |
-| Persistence | Spring Data JPA + jOOQ |
+| Persistence | Spring Data JPA + Flyway |
 | Cache / 하트 | Upstash Redis + Redisson |
-| Storage | Cloudflare R2 |
-| Schema | Flyway |
+| Storage | Cloudflare R2 (`img.pick-a-me.me`) |
 | Frontend | Next.js (App Router) + Tailwind CSS |
-| Infra | Railway (Backend) / Cloudflare Pages (Frontend) / Neon (DB) |
+| Auth | Spring Security OAuth2 (Kakao, Google) + JWT HttpOnly Cookie |
+| DNS / WAF | Cloudflare Proxy |
+| Frontend 배포 | Vercel (`pick-a-me.me`) |
+| Backend 배포 | Railway — Docker (`api.pick-a-me.me`) |
+| Database | Neon PostgreSQL (Singapore) |
 
 ---
 
 ## 로컬 실행
 
 ```bash
-# 환경 변수 설정
-cp .env.local.example .env.local
+# 백엔드 환경 변수 설정
+cp pam-backend/.env.local.example pam-backend/.env.local
 # 값 채워넣기
 
 # 백엔드
@@ -88,7 +154,18 @@ cd pam-backend
 
 - **Domain**: JUnit 5 + AssertJ (Spring 없음)
 - **Application**: Mockito + JUnit 5
-- **API**: @WebMvcTest 슬라이스
+- **API**: `@WebMvcTest` 슬라이스
+
+---
+
+## Roadmap
+
+- [ ] **IP 기반 Rate Limiting 고도화** — `useForwardedHeaders: true` 전환 후 Cloudflare `CF-Connecting-IP` 실제 IP 식별. 엔드포인트별 일별 quota 추가.
+- [ ] **Origin Shielding** — Railway 기본 도메인 직접 접근 차단 (`X-Origin-Verify` 헤더 또는 Cloudflare Tunnel).
+- [ ] **JWT Refresh Token 회전** — Access Token TTL 단축(15분) + Refresh Token rotation + `jti` Redis denylist.
+- [ ] **인프라 모니터링 강화** — Railway CPU/Memory/429 비율, Neon slow query, Upstash command count, R2 operation count 대시보드 및 임계치 알림.
+- [ ] **Sentry 에러 트래킹** — 프론트/백엔드 에러 집중 수집 및 Slack 알림 연동.
+- [ ] **헬스체크 엔드포인트** — DB/Redis/R2 외부 의존성 상태 점검 포함.
 
 ---
 
