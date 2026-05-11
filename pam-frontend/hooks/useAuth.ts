@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getLoginUrl } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 
@@ -10,7 +10,16 @@ interface MeResponse {
   email: string;
 }
 
-export function useAuth() {
+export interface AuthContextValue {
+  isLoggedIn: boolean;
+  isLoaded: boolean;
+  logout: () => Promise<void>;
+  loginWith: (provider: "kakao" | "google") => void;
+}
+
+export const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function useAuthState() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -31,4 +40,10 @@ export function useAuth() {
   }, []);
 
   return { isLoggedIn: loggedIn, isLoaded, logout, loginWith };
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }
