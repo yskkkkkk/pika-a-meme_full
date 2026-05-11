@@ -3,8 +3,12 @@ package com.pickameme.api.config
 import com.pickameme.api.auth.CustomOAuth2UserService
 import com.pickameme.api.auth.JwtAuthenticationFilter
 import com.pickameme.api.auth.OAuth2SuccessHandler
+import com.pickameme.api.ratelimit.RateLimitFilter
+import com.pickameme.api.ratelimit.RateLimitProperties
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -17,10 +21,12 @@ import org.springframework.web.cors.CorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
+@EnableConfigurationProperties(RateLimitProperties::class)
 class SecurityConfig(
     private val customOAuth2UserService: CustomOAuth2UserService,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val rateLimitFilterProvider: ObjectProvider<RateLimitFilter>,
     @Value("\${cors.allowed-origins}") private val allowedOrigins: String
 ) {
 
@@ -43,6 +49,10 @@ class SecurityConfig(
                     .successHandler(oAuth2SuccessHandler)
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+
+        rateLimitFilterProvider.ifAvailable { rateLimitFilter ->
+            http.addFilterAfter(rateLimitFilter, JwtAuthenticationFilter::class.java)
+        }
 
         return http.build()
     }
