@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2, Star, Tag } from "lucide-react";
+import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2, Star } from "lucide-react";
 import html2canvas from "html2canvas";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,6 @@ interface MemeDetail {
   subjectPosition: string;
   phraseText: string;
   heartType: "BASIC" | "SPECIAL" | string;
-  selectedTag: string | null;
   matchedTags: string[];
   createdAt: string;
   enabled: boolean;
@@ -240,26 +239,16 @@ export default function MyMemeDetailPage() {
                     <Heart className="w-3.5 h-3.5 fill-white" /> BASIC
                   </span>
                 )}
-                {meme.selectedTag && (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 text-gray-600 text-xs font-black rounded-full">
-                    <Tag className="w-3.5 h-3.5" /> {meme.selectedTag}
+                {meme.matchedTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2.5 py-1 text-xs font-black rounded-full"
+                    style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
+                  >
+                    #{tag}
                   </span>
-                )}
+                ))}
               </div>
-
-              {meme.matchedTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {meme.matchedTags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2.5 py-1 text-xs font-black rounded-full"
-                      style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
 
               {/* 생성일 */}
               <div className="flex items-center gap-1.5 text-xs text-gray-400 font-bold">

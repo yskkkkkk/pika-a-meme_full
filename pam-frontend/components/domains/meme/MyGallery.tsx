@@ -90,9 +90,17 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           </span>
         )}
         {meme.matchedTags.length > 0 && (
-          <span className="text-[10px] font-black" style={{ color: "#C44DFF" }}>
-            {meme.matchedTags.map((t) => `#${t}`).join(" ")}
-          </span>
+          <div className="flex flex-wrap gap-1">
+            {meme.matchedTags.map((tag) => (
+              <span
+                key={tag}
+                className="px-1.5 py-0.5 text-[10px] font-black rounded-full"
+                style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
         )}
         <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-400 font-bold">
           <Clock className="w-3 h-3" />
@@ -168,15 +176,15 @@ export function MyGallery() {
       </div>
 
       {/* 필터/정렬 탭 */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 border-b border-gray-100 pb-2">
         {VIEW_OPTIONS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => handleViewMode(key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-black transition-all ${
+            className={`px-3 py-1.5 text-xs font-black transition-all border-b-2 -mb-2.5 ${
               viewMode === key
-                ? "bg-black text-white"
-                : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                ? "border-black text-black"
+                : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
             {label}
