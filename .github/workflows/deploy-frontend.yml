@@ -25,9 +25,11 @@ jobs:
         working-directory: pam-frontend
 
       - name: Build
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        # 뒤에 . 을 붙여서 "현재 위치(pam-frontend)가 빌드 대상이다"라고 명시합니다.
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} .
         working-directory: pam-frontend
 
       - name: Deploy
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        # 마찬가지로 . 을 붙여서 현재 폴더의 빌드 결과물을 배포하도록 합니다.
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} .
         working-directory: pam-frontend
