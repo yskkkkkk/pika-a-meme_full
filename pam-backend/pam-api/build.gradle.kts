@@ -14,9 +14,6 @@ dependencies {
     // Spring Web
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // Redis-backed API rate limiting
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
     // Spring Security + OAuth2 Client
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
