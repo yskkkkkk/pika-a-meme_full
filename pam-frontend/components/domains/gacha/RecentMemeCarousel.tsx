@@ -61,6 +61,7 @@ export function RecentMemeCarousel() {
   });
 
   // 카드 너비를 컨테이너 크기 기반으로 계산 (반응형)
+  // memes.length 의존: 초기 렌더 시 PreviewFallback이 표시돼 containerRef가 null이므로 memes 로드 후 재실행 필요
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -69,7 +70,7 @@ export function RecentMemeCarousel() {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [memes.length]);
 
   // requestAnimationFrame 기반 마퀴 (DOM 직접 조작 → 리렌더 없음)
   useEffect(() => {

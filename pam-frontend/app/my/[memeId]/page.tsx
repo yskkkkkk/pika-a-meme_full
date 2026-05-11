@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2, Sparkles, Star, Tag } from "lucide-react";
+import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2, Star, Tag } from "lucide-react";
+import html2canvas from "html2canvas";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
@@ -18,6 +19,22 @@ interface MemeDetail {
   matchedTags: string[];
   createdAt: string;
   enabled: boolean;
+}
+
+async function captureCard(el: HTMLElement): Promise<Blob> {
+  const canvas = await html2canvas(el, {
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: null,
+    scale: window.devicePixelRatio ?? 2,
+  });
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("canvas empty"))),
+      "image/jpeg",
+      0.92
+    )
+  );
 }
 
 function formatDateTime(iso: string): string {
@@ -36,6 +53,7 @@ export default function MyMemeDetailPage() {
   const params = useParams<{ memeId: string }>();
   const memeId = params.memeId;
   const queryClient = useQueryClient();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -81,11 +99,10 @@ export default function MyMemeDetailPage() {
   }
 
   async function handleSave() {
-    if (!meme || isSaving) return;
+    if (!cardRef.current || !meme || isSaving) return;
     setIsSaving(true);
     try {
-      const res = await fetch(meme.imageUrl);
-      const blob = await res.blob();
+      const blob = await captureCard(cardRef.current);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -101,12 +118,11 @@ export default function MyMemeDetailPage() {
   }
 
   async function handleShare() {
-    if (!meme || isSharing) return;
+    if (!cardRef.current || !meme || isSharing) return;
     setIsSharing(true);
     try {
-      const res = await fetch(meme.imageUrl);
-      const blob = await res.blob();
-      const file = new File([blob], "pika-meme.jpg", { type: blob.type });
+      const blob = await captureCard(cardRef.current);
+      const file = new File([blob], "pika-meme.jpg", { type: "image/jpeg" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "PICK-A-MEME", text: meme.phraseText });
@@ -160,14 +176,31 @@ export default function MyMemeDetailPage() {
 
         {meme && (
           <div className="space-y-4">
-            <MemeCanvasCard
-              imageUrl={meme.imageUrl}
-              subjectPosition={meme.subjectPosition}
-              phrase={meme.phraseText}
-              seed={meme.id}
-              imageAlt="내 밈 상세 이미지"
-              className="w-full"
-            />
+            {/* 이미지 카드 (html2canvas 캡처 대상) + 태그 오버레이 */}
+            <div className="relative">
+              <MemeCanvasCard
+                ref={cardRef}
+                imageUrl={meme.imageUrl}
+                subjectPosition={meme.subjectPosition}
+                phrase={meme.phraseText}
+                seed={meme.id}
+                imageAlt="내 밈 상세 이미지"
+                className="w-full"
+              />
+              {meme.matchedTags.length > 0 && (
+                <div className="absolute bottom-14 right-3 flex flex-col items-end gap-1 z-20">
+                  {meme.matchedTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] font-black px-2 py-0.5 rounded-full"
+                      style={{ background: "rgba(0,0,0,0.55)", color: "#fff", backdropFilter: "blur(4px)" }}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* 저장 / 공유 버튼 */}
             <div className="grid grid-cols-2 gap-3">
@@ -214,21 +247,17 @@ export default function MyMemeDetailPage() {
                 )}
               </div>
 
-              {/* 태그 매칭 */}
               {meme.matchedTags.length > 0 && (
-                <div className="space-y-1.5">
-                  <p className="text-[11px] font-black text-gray-400">태그 매칭</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {meme.matchedTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-full"
-                        style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
-                      >
-                        <Sparkles className="w-3 h-3" /> {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {meme.matchedTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2.5 py-1 text-xs font-black rounded-full"
+                      style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
               )}
 

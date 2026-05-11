@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { EyeOff, ImageIcon, Star, Heart, Clock, Sparkles } from "lucide-react";
+import { EyeOff, Star, Heart, Clock } from "lucide-react";
+import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
 interface MemeItem {
   id: string;
@@ -50,68 +51,53 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 }
 
 function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
-  const [imgError, setImgError] = useState(false);
-
   return (
     <Link
       href={`/my/${meme.id}`}
-      className={`group relative block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${
-        dimmed ? "opacity-40" : ""
-      }`}
+      className={`group block hover:-translate-y-1 transition-all duration-300 ${dimmed ? "opacity-40" : ""}`}
       aria-label="내 밈 상세 보기"
     >
-      <div className="aspect-square bg-gray-100 relative overflow-hidden">
-        {imgError ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon className="w-10 h-10 text-gray-300" />
-          </div>
-        ) : (
-          <img
-            src={meme.imageUrl}
-            alt="meme"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={() => setImgError(true)}
-          />
-        )}
-        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-          {meme.heartType === "SPECIAL" ? (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-400 text-white text-xs font-black rounded-full shadow">
-              <Star className="w-3 h-3 fill-white" /> SPECIAL
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-black rounded-full shadow">
-              <Heart className="w-3 h-3 fill-white" /> BASIC
-            </span>
-          )}
-          {dimmed && (
+      {/* 이미지 + 말풍선 */}
+      <div className="relative">
+        <MemeCanvasCard
+          imageUrl={meme.imageUrl}
+          subjectPosition={meme.subjectPosition}
+          phrase={meme.phraseText}
+          seed={meme.id}
+          showBrandBar={false}
+          imageAlt="내 밈"
+          className="w-full"
+        />
+        {/* 숨김 뱃지만 이미지 오버레이에 유지 */}
+        {dimmed && (
+          <div className="absolute top-2 right-2 z-20">
             <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-700 text-white text-xs font-black rounded-full shadow">
               <EyeOff className="w-3 h-3" /> 숨김
             </span>
-          )}
-        </div>
-      </div>
-
-      <div className="px-3 pt-2 pb-1.5 space-y-1.5">
-        {meme.matchedTags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {meme.matchedTags.map((tag) => (
-              <span
-                key={tag}
-                className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full"
-                style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
-              >
-                <Sparkles className="w-2.5 h-2.5" /> {tag}
-              </span>
-            ))}
           </div>
         )}
-        <div className="flex items-center justify-between gap-2 text-xs text-gray-400">
-          <span className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3" />
-            <span>{timeAgo(meme.createdAt)}</span>
+      </div>
+
+      {/* 하단 정보: [BASIC/SPECIAL] [#태그] [날짜] */}
+      <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
+        {meme.heartType === "SPECIAL" ? (
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-400 text-white text-[10px] font-black rounded-full">
+            <Star className="w-2.5 h-2.5 fill-white" /> SPECIAL
           </span>
-          <span className="font-bold text-gray-300 group-hover:text-gray-500 transition-colors">상세 보기</span>
-        </div>
+        ) : (
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-pink-500 text-white text-[10px] font-black rounded-full">
+            <Heart className="w-2.5 h-2.5 fill-white" /> BASIC
+          </span>
+        )}
+        {meme.matchedTags.length > 0 && (
+          <span className="text-[10px] font-black" style={{ color: "#C44DFF" }}>
+            {meme.matchedTags.map((t) => `#${t}`).join(" ")}
+          </span>
+        )}
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-400 font-bold">
+          <Clock className="w-3 h-3" />
+          {timeAgo(meme.createdAt)}
+        </span>
       </div>
     </Link>
   );
