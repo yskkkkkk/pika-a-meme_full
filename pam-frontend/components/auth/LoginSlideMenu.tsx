@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { X, LogOut, Zap, Diamond, Cloud } from "lucide-react";
+import { X, LogOut, Zap, Diamond, Cloud, Images } from "lucide-react";
 
 interface LoginSlideMenuProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface LoginSlideMenuProps {
 
 export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
   const { isLoggedIn, loginWith, logout } = useAuth();
+  const router = useRouter();
 
   return (
     <div
@@ -38,8 +40,17 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
         </div>
 
         {isLoggedIn ? (
-          <div className="mb-12 bg-gray-50 rounded-3xl p-6 text-center border border-gray-100">
-            <p className="text-sm font-bold text-gray-700 mb-4">현재 로그인되어 있습니다.</p>
+          <div className="mb-12 bg-gray-50 rounded-3xl p-6 border border-gray-100 flex flex-col gap-3">
+            <button
+              onClick={() => {
+                onClose();
+                router.push("/my");
+              }}
+              className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-[#f0e8f5] rounded-xl text-[#7c3aed] font-bold shadow-sm hover:bg-[#fdf8ff] transition-colors"
+            >
+              <Images className="w-5 h-5" />
+              내 밈 갤러리
+            </button>
             <button
               onClick={() => {
                 logout();

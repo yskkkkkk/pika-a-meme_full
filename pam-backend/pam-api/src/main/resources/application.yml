@@ -70,6 +70,50 @@ cloudflare:
 oauth2:
   redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:3000/oauth2/callback}
 
+cookie:
+  secure: ${COOKIE_SECURE:false}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+app:
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    fail-closed: ${RATE_LIMIT_FAIL_CLOSED:true}
+    # Cloudflare Proxy 적용 및 Origin 우회 차단 후 true 전환
+    use-forwarded-headers: ${RATE_LIMIT_USE_FORWARDED_HEADERS:false}
+    rules:
+      - name: meme-compose
+        path: /api/memes/compose
+        method: GET
+        capacity: ${RATE_LIMIT_COMPOSE_PER_MINUTE:10}
+        window: 60s
+        key: USER_OR_IP
+      - name: meme-create
+        path: /api/memes
+        method: POST
+        capacity: ${RATE_LIMIT_MEME_CREATE_PER_MINUTE:5}
+        window: 60s
+        key: USER_AND_IP
+      - name: oauth2-start
+        path: /oauth2/authorization/
+        method: GET
+        capacity: ${RATE_LIMIT_OAUTH_START_PER_MINUTE:10}
+        window: 60s
+        key: IP
+      - name: oauth2-callback
+        path: /login/oauth2/code/
+        method: GET
+        capacity: ${RATE_LIMIT_OAUTH_CALLBACK_PER_MINUTE:20}
+        window: 60s
+        key: IP
+      - name: auth-me
+        path: /api/auth/me
+        method: GET
+        capacity: ${RATE_LIMIT_AUTH_ME_PER_MINUTE:60}
+        window: 60s
+        key: USER_AND_IP
+
 server:
   port: 8080
 

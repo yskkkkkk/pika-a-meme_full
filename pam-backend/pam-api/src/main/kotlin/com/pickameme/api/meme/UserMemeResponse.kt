@@ -11,7 +11,9 @@ data class UserMemeResponse(
     val phraseText: String,
     val heartType: String,
     val selectedTag: String?,
-    val createdAt: LocalDateTime
+    val matchedTags: List<String>,
+    val createdAt: LocalDateTime,
+    val enabled: Boolean
 ) {
     companion object {
         fun from(userMeme: UserMeme) = UserMemeResponse(
@@ -21,7 +23,9 @@ data class UserMemeResponse(
             phraseText = userMeme.composition.phraseText,
             heartType = userMeme.heartType.name,
             selectedTag = userMeme.selectedTag,
-            createdAt = userMeme.createdAt
+            matchedTags = userMeme.matchedTags,
+            createdAt = userMeme.createdAt,
+            enabled = userMeme.enabled
         )
     }
 }

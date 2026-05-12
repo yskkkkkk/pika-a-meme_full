@@ -2,6 +2,7 @@ package com.pickameme.infrastructure.meme
 
 import com.pickameme.domain.meme.UserMeme
 import com.pickameme.domain.meme.UserMemeRepository
+import jakarta.transaction.Transactional
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -20,12 +21,28 @@ class JpaUserMemeRepositoryAdapter(
             heartType = userMeme.heartType,
             composition = userMeme.composition,
             selectedTag = userMeme.selectedTag,
+            matchedTags = userMeme.matchedTags,
             createdAt = userMeme.createdAt
         )
         return jpaRepository.save(entity).toDomain()
     }
 
     override fun findByUserId(userId: UUID, page: Int, size: Int): List<UserMeme> =
-        jpaRepository.findByUserIdOrderByCreatedAtDesc(userId, PageRequest.of(page, size))
+        jpaRepository.findByUserIdAndEnabled(userId, PageRequest.of(page, size))
             .map { it.toDomain() }
+
+    override fun findAllByUserId(userId: UUID, page: Int, size: Int): List<UserMeme> =
+        jpaRepository.findAllByUserId(userId, PageRequest.of(page, size))
+            .map { it.toDomain() }
+
+    override fun findByUserIdAndId(userId: UUID, id: UUID): UserMeme? =
+        jpaRepository.findByUserIdAndId(userId, id)?.toDomain()
+
+    override fun findRecentTagMatched(limit: Int): List<UserMeme> =
+        jpaRepository.findRecentTagMatched(limit)
+            .map { it.toDomain() }
+
+    @Transactional
+    override fun updateEnabled(userId: UUID, id: UUID, enabled: Boolean) =
+        jpaRepository.updateEnabled(userId, id, enabled)
 }

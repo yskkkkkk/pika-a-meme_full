@@ -36,8 +36,15 @@ class UserMemeJpaEntity(
     @Column(name = "selected_tag", nullable = true, length = 20)
     val selectedTag: String?,
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "matched_tags", columnDefinition = "jsonb", nullable = false)
+    val matchedTags: List<String> = emptyList(),
+
     @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+
+    @Column(name = "enabled", nullable = false)
+    val enabled: Boolean = true
 ) {
     fun toDomain() = UserMeme(
         id = id,
@@ -47,6 +54,8 @@ class UserMemeJpaEntity(
         heartType = heartType,
         composition = composition,
         selectedTag = selectedTag,
-        createdAt = createdAt
+        matchedTags = matchedTags,
+        createdAt = createdAt,
+        enabled = enabled
     )
 }
