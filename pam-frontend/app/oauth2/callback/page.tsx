@@ -8,6 +8,10 @@ function CallbackHandler() {
   const router = useRouter();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("welcome") === "1") {
+      localStorage.setItem("pam_show_welcome", "1");
+    }
     router.replace("/");
   }, [router]);
 

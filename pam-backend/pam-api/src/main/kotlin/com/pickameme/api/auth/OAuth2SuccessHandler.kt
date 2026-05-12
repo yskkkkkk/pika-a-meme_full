@@ -34,6 +34,7 @@ class OAuth2SuccessHandler(
             .build()
 
         response.addHeader("Set-Cookie", cookie.toString())
-        redirectStrategy.sendRedirect(request, response, redirectUri)
+        val target = if (principal.isNewUser) "$redirectUri?welcome=1" else redirectUri
+        redirectStrategy.sendRedirect(request, response, target)
     }
 }
