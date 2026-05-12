@@ -82,6 +82,7 @@ export function useGuestHeart() {
 
     const newData = { count: newCount, lastChargeAt: newLastChargeAt };
     setHeartData(newData);
+    setCurrentHearts(newCount); // calculateState 재실행 대기 없이 즉시 UI 반영
     localStorage.setItem(HEART_STORAGE_KEY, JSON.stringify(newData));
     return true;
   };

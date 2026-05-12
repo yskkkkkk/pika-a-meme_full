@@ -66,8 +66,8 @@ export default function Home() {
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
       queryClient.refetchQueries({ queryKey: ["hearts"] });
-    } catch {
-      alert("오류가 발생했습니다.");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "오류가 발생했습니다.");
       setAppState("HOME");
     }
   };
@@ -93,8 +93,8 @@ export default function Home() {
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
       queryClient.refetchQueries({ queryKey: ["hearts"] });
-    } catch {
-      alert("오류가 발생했습니다.");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "오류가 발생했습니다.");
       setAppState("HOME");
     }
   };
