@@ -22,11 +22,7 @@ class MemeComposeService(
 
     @Transactional
     fun compose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
-        // 로그인 유저는 하트 차감 먼저 (부족 시 InsufficientHeartException → 400)
-        if (userId != null) {
-            heartService.consumeHeart(userId, heartType)
-        }
-
+        // 1단계: 이미지/문구 조합 (순수 조회 — 실패 시 하트 차감 없음)
         val image = if (heartType == HeartType.SPECIAL && tags.isNotEmpty()) {
             memeImageRepository.findRandomByTags(tags) ?: memeImageRepository.findRandom()
         } else {
@@ -39,6 +35,12 @@ class MemeComposeService(
             memePhraseRepository.findRandom()
         }
 
+        // 2단계: 로그인 유저 하트 차감 (부족 시 InsufficientHeartException → 400, DB 저장 없음)
+        if (userId != null) {
+            heartService.consumeHeart(userId, heartType)
+        }
+
+        // 3단계: DB 저장
         if (userId != null) {
             val matchedTags = image.tags.intersect(phrase.tags.toSet()).toList()
             userMemeRepository.save(

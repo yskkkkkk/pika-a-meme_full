@@ -95,6 +95,7 @@
 | TASK-260512-02 | [프론트엔드] | [x] | 로그아웃 시 홈(/) 리다이렉트 구현 | TASK-260429-29 | LoginSlideMenu 로그아웃 버튼에 router.replace("/") 추가 | 260512 / 260512 |
 | TASK-260512-03 | [프론트엔드] | [x] | 미로그인 상태 스페셜 미션(⚡) 버튼 클릭 시 로그인 메뉴 오픈 | TASK-260504-07 | HeartDisplay ⚡ 버튼에 isLoggedIn 분기 추가. 미로그인 → onMenuOpen(), 로그인 → 미션 시트 | 260512 / 260512 |
 | TASK-260512-04 | [회원/인증] | [x] | 최초 로그인 웰컴 알럿 + SPECIAL 하트 1개 지급 | TASK-260429-22 | HeartInitializeListener에서 신규 가입 시 SPECIAL 1개 추가 지급. OAuth2SuccessHandler에서 신규 유저 시 ?welcome=1 파라미터로 리다이렉트. 프론트엔드 콜백에서 감지 → 홈에서 웰컴 알럿 표시 | 260512 / 260512 |
+| TASK-260512-05 | [프론트엔드] | [x] | 로그인 직후 하트 표시 깜빡임(0→5→실제값) 수정 | TASK-260512-01 | (1) useHeart에 placeholderData: prev 추가 — 리페치 중 이전 값 유지. (2) MemeComposeService 하트 차감 순서 안전하게 재정렬(조합→차감→저장). (3) HeartDisplay 초기 로딩 중(serverHearts=null) 숫자 0 대신 '—' 표시(heartsReady 플래그) | 260512 / 260512 |
 
 ---
 

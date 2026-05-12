@@ -27,5 +27,6 @@ export function useHeart(enabled: boolean = true) {
     refetchInterval: 60_000,
     retry: false,
     enabled: enabled,
+    placeholderData: (prev) => prev, // 리페치 중 이전 데이터 유지 → 깜빡임 방지
   });
 }
