@@ -55,6 +55,10 @@
   --pam-special-text: #7c3aed;
   --pam-special-border: #dbc8ff;
 
+  /* Accent (형광 포인트 — 다크모드에서 교체됨) */
+  --pam-accent: #FF6B9D;
+  --pam-accent-text: #ffffff;
+
   /* Tabs */
   --pam-tab-active-bg: #FF6B9D;
   --pam-tab-active-text: #ffffff;
@@ -65,6 +69,10 @@
   --pam-tag-bg: #FFF0F5;
   --pam-tag-border: #FFD6E7;
   --pam-tag-text: #FF6B9D;
+
+  /* SPECIAL 배지 그라디언트 */
+  --pam-special-badge-from: #C44DFF;
+  --pam-special-badge-to: #FF6B9D;
 
   /* Spinning screen */
   --pam-spin-bg: #1a1010;
@@ -128,8 +136,12 @@
   --pam-special-text: #ffabf3;
   --pam-special-border: #564052;
 
+  /* Accent (전기 라임 — 다크 전용 포인트) */
+  --pam-accent: #c3f400;
+  --pam-accent-text: #1c0f1a;
+
   /* Tabs */
-  --pam-tab-active-bg: #ffabf3;
+  --pam-tab-active-bg: #c3f400;
   --pam-tab-active-text: #1c0f1a;
   --pam-tab-inactive-bg: #40303c;
   --pam-tab-inactive-text: #a4899d;
@@ -137,14 +149,18 @@
   /* Tags */
   --pam-tag-bg: #291b27;
   --pam-tag-border: #564052;
-  --pam-tag-text: #ffabf3;
+  --pam-tag-text: #c3f400;
+
+  /* SPECIAL 배지 그라디언트 (보라 → 전기 라임) */
+  --pam-special-badge-from: #C44DFF;
+  --pam-special-badge-to: #c3f400;
 
   /* Spinning screen */
   --pam-spin-bg: #160a15;
   --pam-spin-overlay: rgba(255, 171, 243, 0.07);
   --pam-spin-dot-1: #ffabf3;
   --pam-spin-dot-2: #ff00ff;
-  --pam-spin-dot-3: #c3f400; /* electric yellow-green accent */
+  --pam-spin-dot-3: #c3f400;
 
   /* Misc */
   --pam-icon-overlay: rgba(255, 171, 243, 0.15);
