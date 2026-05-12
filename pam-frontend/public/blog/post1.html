@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pet-Pass를 마치고, 픽-아-밈을 시작한다 | pick-a-meme Dev Blog</title>
+  <title>Pet-Pass를 마치고, 피카밈을 시작한다 | pick-a-meme Dev Blog</title>
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
@@ -85,11 +85,11 @@
 
   <main class="blog-content glass">
     <div class="post-meta">
-      <span class="post-series-tag">픽-아-밈 개발기 · 시작하며</span>
+      <span class="post-series-tag">피카밈 개발기 · 시작하며</span>
       <span class="read-time">📖 약 4분</span>
     </div>
 
-    <h1 class="post-main-title">Pet-Pass를 마치고,<br>픽-아-밈을 시작한다</h1>
+    <h1 class="post-main-title">Pet-Pass를 마치고,<br>피카밈을 시작한다</h1>
 
     <div class="post-tags">
       <span class="tag-chip">#바이브코딩</span>
@@ -102,7 +102,7 @@
       <ol>
         <li><a href="#connect">연결 고리</a></li>
         <li><a href="#condition">다음 프로젝트의 조건 세 가지</a></li>
-        <li><a href="#service">픽-아-밈이란</a></li>
+        <li><a href="#service">피카밈이란</a></li>
         <li><a href="#structure">이번엔 구조를 먼저 짓는다</a></li>
         <li><a href="#series">이 블로그에서 다룰 것들</a></li>
       </ol>
@@ -110,7 +110,7 @@
 
     <h2 id="connect">연결 고리</h2>
 
-    <p>Pet-Pass 마지막 글에서 픽-아-밈을 언급했다. 거기서부터 이어진다.</p>
+    <p>Pet-Pass 마지막 글에서 피카밈을 언급했다. 거기서부터 이어진다.</p>
 
     <p>Pet-Pass는 잘 돌아간다. 매일 두 번 sync가 돌고, 지도에 핀이 찍히고, 데이터가 쌓인다. 근데 아무도 안 쓴다. 기능이 부족해서가 아니라, 굳이 올 이유가 없어서다. 반려동물 관련 앱은 이미 여럿 있고, Pet-Pass가 그것들보다 뭔가 명확히 나은 게 없었다.</p>
 
@@ -142,7 +142,7 @@
 
     <p>조건을 명확히 쓰고 나니까 아이디어가 빠르게 좁혀졌다.</p>
 
-    <h2 id="service">픽-아-밈이란</h2>
+    <h2 id="service">피카밈이란</h2>
 
     <p>B급 감성의 동물 사진과 '킹받는' 문구를 조합해서 밈을 생성하는 가챠형 서비스다. 피카-밈으로 읽을지 픽-어-밈으로 읽을지는 아직 정하지 않았다.</p>
 
@@ -173,7 +173,7 @@
 
     <p>Pet-Pass 코드를 돌아보면, 기능이 생길 때마다 파일을 하나씩 추가했다. 나쁜 방법은 아니었지만, 수정할 때마다 예상치 못한 곳이 터졌다.</p>
 
-    <p>픽-아-밈은 처음부터 <strong>Clean Architecture + DDD</strong>로 설계했다. 백엔드는 Kotlin + Spring Boot, 4개의 Gradle 모듈로 쪼개진 멀티 모듈 구조다. 프론트엔드는 Next.js 14 App Router. 데이터베이스는 NEON (PostgreSQL), 하트 시스템은 Upstash Redis, 이미지 저장은 Cloudflare R2다.</p>
+    <p>피카밈은 처음부터 <strong>Clean Architecture + DDD</strong>로 설계했다. 백엔드는 Kotlin + Spring Boot, 4개의 Gradle 모듈로 쪼개진 멀티 모듈 구조다. 프론트엔드는 Next.js 14 App Router. 데이터베이스는 NEON (PostgreSQL), 하트 시스템은 Upstash Redis, 이미지 저장은 Cloudflare R2다.</p>
 
     <p>구조를 먼저 잡는다는 건 초반에 시간이 더 든다는 뜻이기도 하다. 근데 Pet-Pass에서 나중에 구조를 바꾸는 게 얼마나 힘든지 배웠기 때문에, 이번엔 처음부터 하기로 했다.</p>
 

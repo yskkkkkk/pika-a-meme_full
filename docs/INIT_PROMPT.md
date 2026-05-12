@@ -6,7 +6,7 @@
 # Project Master Blueprint: pick-a-meme
 
 ## 1. Context & Vision
-- **Project Name:** pick-a-meme (픽-아-밈)
+- **Project Name:** pick-a-meme (피카밈)
 - **Concept:** B급 감성의 동물 사진과 소위 '킹받는' 문구를 조합하여 생성하는 가챠형 밈 생성 서비스.
 - **Core Value:** 짧은 호흡의 즐거움(Instant Fun)과 폭발적인 공유(Viral). 
 - **Business Logic:** 유저는 밈을 생성할 때마다 '하트'를 소모하며, 하트는 5분마다 1개씩(최대 5개) 자동 충전됨. 이 시스템은 단순한 스테미나를 넘어 트래픽 제어 및 리텐션 유지의 핵심 기제임.
