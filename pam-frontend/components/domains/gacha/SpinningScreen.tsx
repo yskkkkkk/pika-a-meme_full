@@ -40,10 +40,13 @@ export function SpinningScreen() {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#1a1010]">
+    <div
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+      style={{ backgroundColor: "var(--pam-spin-bg)" }}
+    >
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at center, rgba(255,107,157,0.07) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse at center, var(--pam-spin-overlay) 0%, transparent 70%)" }}
       />
       <div className="relative loading-float mb-8">
         <div className="loading-pulse" />
@@ -64,7 +67,7 @@ export function SpinningScreen() {
         style={{ fontSize: 13, minHeight: 20, opacity: stepVisible ? 1 : 0 }}
       >
         {LOADING_STEPS[stepIdx].text}
-        <span style={{ color: "#FF6B9D" }}>{".".repeat(dotCount)}</span>
+        <span style={{ color: "var(--pam-spin-dot-1)" }}>{".".repeat(dotCount)}</span>
       </div>
       <div className="flex mt-4" style={{ gap: 6 }}>
         {[0, 1, 2].map((i) => (
@@ -72,14 +75,14 @@ export function SpinningScreen() {
             key={i}
             className="loading-bounce-dot"
             style={{
-              background: i === 0 ? "#FF6B9D" : i === 1 ? "#d966ff" : "#C44DFF",
+              background: i === 0 ? "var(--pam-spin-dot-1)" : i === 1 ? "var(--pam-spin-dot-2)" : "var(--pam-spin-dot-3)",
               animationDelay: `${i * 0.18}s`,
             }}
           />
         ))}
       </div>
       <div className="absolute bottom-8 font-black text-white/30" style={{ fontSize: 11, letterSpacing: "0.2em" }}>
-        PICK-A-<span style={{ color: "#FF6B9D", fontStyle: "italic" }}>MEME</span>
+        PICK-A-<span style={{ color: "var(--pam-spin-dot-1)", fontStyle: "italic" }}>MEME</span>
       </div>
     </div>
   );

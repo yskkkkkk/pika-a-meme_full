@@ -16,17 +16,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
+        {/* 다크모드 깜빡임 방지: hydration 전에 테마 적용 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('pam_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`,
+          }}
+        />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
       </head>
-      <body className="font-sans font-bold bg-slate-100 antialiased">
+      <body className="font-sans font-bold antialiased" style={{ backgroundColor: "var(--pam-bg-outer)" }}>
         <Providers>
           <div className="flex justify-center min-h-[100dvh]">
-            <div className="w-full max-w-[500px] bg-white shadow-2xl relative flex flex-col overflow-hidden">
+            <div
+              className="w-full max-w-[500px] shadow-2xl relative flex flex-col overflow-hidden"
+              style={{ backgroundColor: "var(--pam-bg)" }}
+            >
               <main className="flex-1 flex flex-col relative">
                 {children}
               </main>

@@ -26,13 +26,11 @@ async function captureCard(el: HTMLElement): Promise<Blob> {
 async function saveMeme(blob: Blob) {
   const file = new File([blob], "pick-a-meme.png", { type: "image/png" });
 
-  // 모바일: Web Share API (iOS 사진앱, Android 갤러리)
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({ files: [file], title: "PICK-A-MEME" });
     return;
   }
 
-  // PC: 파일 다운로드
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -51,6 +49,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
   const [saving, setSaving] = useState(false);
   const { isLoggedIn } = useAuth();
   const router = useRouter();
+
   const handleSave = async () => {
     if (!cardRef.current || saving) return;
     setSaving(true);
@@ -81,8 +80,15 @@ export function ResultScreen({ result, onRedraw }: Props) {
       <div className="flex w-full" style={{ gap: 10 }}>
         <button
           onClick={onRedraw}
-          className="flex-1 font-black text-[#333] active:scale-95 transition-transform"
-          style={{ padding: 15, background: "#f5f0fa", borderRadius: 16, border: "none", fontSize: 15 }}
+          className="flex-1 font-black active:scale-95 transition-transform"
+          style={{
+            padding: 15,
+            backgroundColor: "var(--pam-btn-secondary-bg)",
+            color: "var(--pam-btn-secondary-text)",
+            borderRadius: 16,
+            border: "none",
+            fontSize: 15,
+          }}
         >
           다시 뽑기
         </button>
@@ -93,11 +99,11 @@ export function ResultScreen({ result, onRedraw }: Props) {
           style={{
             gap: 5,
             padding: 15,
-            background: saving ? "#ccc" : "linear-gradient(135deg, #FF6B9D, #C44DFF)",
+            background: saving ? "var(--pam-text-disabled)" : "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
             borderRadius: 16,
             border: "none",
             fontSize: 15,
-            boxShadow: saving ? "none" : "0 4px 14px rgba(255,107,157,0.3)",
+            boxShadow: saving ? "none" : "0 4px 14px var(--pam-shadow-pink-btn)",
             cursor: saving ? "not-allowed" : "pointer",
           }}
         >
@@ -117,8 +123,8 @@ export function ResultScreen({ result, onRedraw }: Props) {
       {isLoggedIn && (
         <button
           onClick={() => router.push("/my")}
-          className="font-bold text-[#aaa] active:scale-95 transition-transform"
-          style={{ fontSize: 13 }}
+          className="font-bold active:scale-95 transition-transform"
+          style={{ fontSize: 13, color: "var(--pam-text-muted)" }}
         >
           내 밈 갤러리 보기 →
         </button>
