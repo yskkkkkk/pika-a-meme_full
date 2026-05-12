@@ -7,6 +7,13 @@ const AVAILABLE_TAGS = [
   "분노", "놀람", "눈치", "광기", "질문", "의지",
 ];
 
+const TAG_EMOJI: Record<string, string> = {
+  "피곤": "😮‍💨", "직장인": "💼", "기쁨": "🎉",
+  "주말": "🌴", "귀여움": "🐾", "분노": "😤",
+  "놀람": "😲", "눈치": "👀", "광기": "🤪",
+  "질문": "❓", "의지": "💪",
+};
+
 interface Props {
   selectedTag: string | null;
   onSelectTag: (tag: string) => void;
@@ -39,24 +46,26 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
             key={tag}
             onClick={() => onSelectTag(tag)}
             className={cn(
-              "font-bold border-2 transition-all",
+              "font-bold border-[1.5px] transition-all flex items-center gap-[5px]",
               selectedTag === tag
                 ? "text-white border-transparent"
-                : "bg-white text-[#666] border-[#eee]",
+                : "text-[#222] border-[#FFD6E7]",
             )}
             style={{
-              padding: "10px 18px",
+              padding: "8px 14px",
               borderRadius: 9999,
               fontSize: 15,
               ...(selectedTag === tag
                 ? {
-                    background: "linear-gradient(135deg, #FF6B9D, #C44DFF)",
+                    background: "linear-gradient(135deg,#FF6B9D,#C44DFF)",
                     boxShadow: "0 2px 10px rgba(255,107,157,0.3)",
                   }
-                : {}),
+                : { background: "#FFF0F5" }),
             }}
           >
-            #{tag}
+            <span>{TAG_EMOJI[tag]}</span>
+            <span style={{ color: selectedTag === tag ? "rgba(255,255,255,.65)" : "#FF6B9D" }}>#</span>
+            {tag}
           </button>
         ))}
       </div>
