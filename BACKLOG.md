@@ -97,6 +97,7 @@
 | TASK-260512-04 | [회원/인증] | [x] | 최초 로그인 웰컴 알럿 + SPECIAL 하트 1개 지급 | TASK-260429-22 | HeartInitializeListener에서 신규 가입 시 SPECIAL 1개 추가 지급. OAuth2SuccessHandler에서 신규 유저 시 ?welcome=1 파라미터로 리다이렉트. 프론트엔드 콜백에서 감지 → 홈에서 웰컴 알럿 표시 | 260512 / 260512 |
 | TASK-260512-05 | [프론트엔드] | [x] | 로그인 직후 하트 표시 깜빡임(0→5→실제값) 수정 | TASK-260512-01 | (1) useHeart에 placeholderData: prev 추가 — 리페치 중 이전 값 유지. (2) MemeComposeService 하트 차감 순서 안전하게 재정렬(조합→차감→저장). (3) HeartDisplay 초기 로딩 중(serverHearts=null) 숫자 0 대신 '—' 표시(heartsReady 플래그) | 260512 / 260512 |
 | TASK-260512-06 | [프론트엔드] | [x] | 다크모드 구현 및 라이트/다크 토글 | - | CSS 커스텀 프로퍼티(:root / [data-theme=dark]) 기반 토큰 시스템(피카밈 브랜드 네온 팔레트). useTheme 훅 + ThemeProvider + localStorage 영속. flash 방지 인라인 스크립트. 전 컴포넌트(15개) 인라인 스타일 var(--pam-*) 교체. HeartDisplay 상단바 🌙/☀️ 버튼 + LoginSlideMenu 토글 배치. 향후 영어 버전 대응 가능 ThemeContext 구조 | 260512 / 260512 |
+| TASK-260512-07 | [프론트엔드] | [ ] | 영어 버전(i18n) 구현 — 한/영 언어 토글 | TASK-260512-06 | ThemeContext 옆에 LocaleContext(ko/en) 추가. 모든 UI 한국어 문자열을 번역 키로 추출 후 locale별 사전 적용. LoginSlideMenu에 언어 전환 버튼 배치. localStorage 영속. SSR flash 방지(layout.tsx 인라인 스크립트 확장). 번역 대상: 홈/태그선택/결과/스피닝/HeartDisplay/LoginSlideMenu/갤러리/상세페이지 전체 | 260512 / - |
 
 ---
 
