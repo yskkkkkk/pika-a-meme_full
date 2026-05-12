@@ -81,17 +81,22 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
       {/* 하단 정보 */}
       <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
         {meme.heartType === "SPECIAL" ? (
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-white text-[10px] font-black rounded-full"
-            style={{ background: "linear-gradient(135deg, var(--pam-special-badge-from), var(--pam-special-badge-to))" }}
+          <span
+            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full"
+            style={{
+              background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
+              color: "var(--pam-badge-special-text)",
+            }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             SPECIAL
           </span>
         ) : (
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-white text-[10px] font-black rounded-full"
-            style={{ backgroundColor: "var(--pam-pink)" }}
+          <span
+            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full"
+            style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
           >
-            <Heart className="w-2.5 h-2.5 fill-white" /> BASIC
+            <Heart className="w-2.5 h-2.5" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
           </span>
         )}
         {meme.matchedTags.length > 0 && (

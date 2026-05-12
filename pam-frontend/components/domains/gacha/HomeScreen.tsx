@@ -18,7 +18,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
           className="font-black text-center leading-none"
           style={{ fontSize: 40, letterSpacing: "-0.03em", color: "var(--pam-text)" }}
         >
-          PICK-A-<em style={{ color: "var(--pam-pink)", fontStyle: "italic" }}>MEME</em>
+          PICK-A-<em className="pam-brand-em">MEME</em>
         </h1>
         <p className="text-center" style={{ fontSize: 13, color: "var(--pam-text-faint)" }}>
           오늘의 밈을 뽑아보세요
@@ -48,11 +48,11 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
           onClick={onSpecialDraw}
           className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
           style={{
-            background: "linear-gradient(135deg, var(--pam-purple), var(--pam-pink))",
+            background: "linear-gradient(135deg, var(--pam-btn-special-from), var(--pam-btn-special-to))",
             borderRadius: 20,
             padding: "16px 20px",
             border: "none",
-            boxShadow: "0 6px 20px var(--pam-shadow-purple-btn)",
+            boxShadow: "0 6px 20px var(--pam-btn-special-shadow)",
           }}
         >
           <div className="text-left">

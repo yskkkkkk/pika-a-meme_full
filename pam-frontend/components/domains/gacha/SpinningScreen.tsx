@@ -82,7 +82,7 @@ export function SpinningScreen() {
         ))}
       </div>
       <div className="absolute bottom-8 font-black text-white/30" style={{ fontSize: 11, letterSpacing: "0.2em" }}>
-        PICK-A-<span style={{ color: "var(--pam-spin-dot-1)", fontStyle: "italic" }}>MEME</span>
+        PICK-A-<em className="pam-brand-em">MEME</em>
       </div>
     </div>
   );

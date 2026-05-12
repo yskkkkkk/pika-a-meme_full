@@ -236,17 +236,22 @@ export default function MyMemeDetailPage() {
 
               <div className="flex flex-wrap gap-2">
                 {meme.heartType === "SPECIAL" ? (
-                  <span className="flex items-center gap-1.5 px-3 py-1 text-white text-xs font-black rounded-full shadow-sm"
-                    style={{ background: "linear-gradient(135deg, var(--pam-special-badge-from), var(--pam-special-badge-to))" }}
+                  <span
+                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full shadow-sm"
+                    style={{
+                      background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
+                      color: "var(--pam-badge-special-text)",
+                    }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     SPECIAL
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 px-3 py-1 text-white text-xs font-black rounded-full shadow-sm"
-                    style={{ backgroundColor: "var(--pam-pink)" }}
+                  <span
+                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full shadow-sm"
+                    style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
                   >
-                    <Heart className="w-3.5 h-3.5 fill-white" /> BASIC
+                    <Heart className="w-3.5 h-3.5" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
                   </span>
                 )}
                 {meme.matchedTags.map((tag) => (
