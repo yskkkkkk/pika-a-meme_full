@@ -50,7 +50,7 @@ const BASE_MISSIONS: Mission[] = [
     name: "7일 연속 방문",
     desc: "매일 방문해서 연속 기록을 쌓아요",
     reward: 2,
-    progress: { current: 3, total: 7 },
+    progress: { current: 0, total: 7 },
   },
   {
     id: "fill-gallery-10",

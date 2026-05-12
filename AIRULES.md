@@ -140,16 +140,19 @@ GET /api/memes/compose?heartType=SPECIAL&tags=피곤
 
 ## 5. 인프라 배포 아키텍처
 
-| 레이어 | 플랫폼 |
-|---|---|
-| Frontend | Vercel |
-| Backend | Railway (Docker 컨테이너) |
-| Database | Neon (PostgreSQL) |
-| 이미지 스토리지 | Cloudflare R2 |
-| 캐시/하트 | Upstash Redis |
-| 스키마 관리 | Flyway |
+| 레이어 | 플랫폼 | 도메인 |
+|---|---|---|
+| DNS / WAF | Cloudflare Proxy (주황 구름 활성화) | — |
+| Frontend | Vercel | `pick-a-me.me` |
+| Backend | Railway (Docker 컨테이너) | `api.pick-a-me.me` |
+| Database | Neon (PostgreSQL, Singapore) | — |
+| 이미지 스토리지 | Cloudflare R2 (커스텀 도메인) | `img.pick-a-me.me` |
+| 캐시/하트 | Upstash Redis (Singapore) | — |
+| 스키마 관리 | Flyway | — |
 
-환경 변수(R2 Key, DB, Redis)는 소스 코드에 절대 노출하지 않는다. 배포 플랫폼 환경 변수로 주입한다.
+환경 변수(R2 Key, DB, Redis, JWT Secret)는 소스 코드에 절대 노출하지 않는다. 배포 플랫폼 환경 변수로 주입한다.
+
+인증은 `pam_token` JWT를 `HttpOnly`, `Secure`, `SameSite=Lax` 쿠키로 발급한다. 프론트엔드는 토큰에 직접 접근하지 않는다.
 
 ---
 
