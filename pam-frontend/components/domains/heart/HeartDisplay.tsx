@@ -73,7 +73,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
 
         {/* SPECIAL heart tap button */}
         <button
-          onClick={() => setMissionOpen(true)}
+          onClick={() => isLoggedIn ? setMissionOpen(true) : onMenuOpen()}
           className="flex items-center relative border border-[#dbc8ff] active:scale-95 transition-transform"
           style={{
             gap: 8,

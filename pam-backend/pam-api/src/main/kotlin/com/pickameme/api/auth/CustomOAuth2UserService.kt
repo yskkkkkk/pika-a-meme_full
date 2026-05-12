@@ -16,13 +16,13 @@ class CustomOAuth2UserService(
         val registrationId = userRequest.clientRegistration.registrationId
         val userInfo = OAuth2UserInfoFactory.of(registrationId, oAuth2User.attributes)
 
-        val user = oAuthLoginService.findOrRegister(
+        val (user, isNewUser) = oAuthLoginService.findOrRegister(
             provider = userInfo.provider,
             providerId = userInfo.providerId,
             email = userInfo.email,
             username = userInfo.username
         )
 
-        return PrincipalDetails(user, oAuth2User.attributes)
+        return PrincipalDetails(user, oAuth2User.attributes, isNewUser)
     }
 }

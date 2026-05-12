@@ -14,16 +14,20 @@ class OAuthLoginService(
     private val eventPublisher: ApplicationEventPublisher
 ) {
 
-    // 소셜 로그인 시 유저 조회 또는 신규 가입 처리
+    // 소셜 로그인 시 유저 조회 또는 신규 가입 처리. Pair<User, isNewUser>
     @Transactional
     fun findOrRegister(
         provider: OAuthProvider,
         providerId: String,
         email: String,
         username: String
-    ): User {
-        return userRepository.findByProviderAndProviderId(provider, providerId)
-            ?: registerNewUser(provider, providerId, email, username)
+    ): Pair<User, Boolean> {
+        val existing = userRepository.findByProviderAndProviderId(provider, providerId)
+        return if (existing != null) {
+            Pair(existing, false)
+        } else {
+            Pair(registerNewUser(provider, providerId, email, username), true)
+        }
     }
 
     private fun registerNewUser(

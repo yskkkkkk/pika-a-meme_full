@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGuestHeart } from "@/hooks/useGuestHeart";
+import { useHeart } from "@/hooks/useHeart";
 import { useAuth } from "@/hooks/useAuth";
 import { composeMeme, MemeResult } from "@/hooks/useMemeApi";
 import { LoginSlideMenu } from "@/components/auth/LoginSlideMenu";
@@ -20,16 +21,40 @@ export default function Home() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
 
-  const { hearts, consumeHeart } = useGuestHeart();
   const { isLoggedIn } = useAuth();
+  const guest = useGuestHeart();
+  const { data: serverHearts } = useHeart(isLoggedIn);
   const queryClient = useQueryClient();
 
+  // 최초 로그인 웰컴 알럿
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    if (localStorage.getItem("pam_show_welcome") !== "1") return;
+    localStorage.removeItem("pam_show_welcome");
+    queryClient.invalidateQueries({ queryKey: ["hearts"] });
+    // 약간의 딜레이 후 표시 (하트 UI가 렌더된 후)
+    const t = setTimeout(() => {
+      alert("🎉 환영합니다! 가입 축하 선물로 스페셜 하트 ⚡ 1개를 드렸어요!");
+    }, 500);
+    return () => clearTimeout(t);
+  }, [isLoggedIn, queryClient]);
+
   const handleBasicDraw = async () => {
-    if (hearts <= 0) {
-      alert("하트가 부족합니다! 잠시 후 다시 시도하거나 로그인하세요.");
-      return;
+    // 로그인 유저: 서버 하트 잔액 확인 (API가 차감 처리)
+    // 게스트: localStorage 하트 확인 및 소모
+    if (isLoggedIn) {
+      if ((serverHearts?.basic.count ?? 0) <= 0) {
+        alert("하트가 부족합니다! 미션을 완료하거나 잠시 후 다시 시도하세요.");
+        return;
+      }
+    } else {
+      if (guest.hearts <= 0) {
+        alert("하트가 부족합니다! 잠시 후 다시 시도하거나 로그인하세요.");
+        return;
+      }
+      if (!guest.consumeHeart()) return;
     }
-    if (!consumeHeart()) return;
+
     setAppState("SPINNING");
     try {
       const [result] = await Promise.all([
@@ -39,6 +64,7 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
+      queryClient.invalidateQueries({ queryKey: ["hearts"] });
     } catch {
       alert("오류가 발생했습니다.");
       setAppState("HOME");
@@ -65,6 +91,7 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
+      queryClient.invalidateQueries({ queryKey: ["hearts"] });
     } catch {
       alert("오류가 발생했습니다.");
       setAppState("HOME");

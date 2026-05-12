@@ -52,9 +52,10 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               내 밈 갤러리
             </button>
             <button
-              onClick={() => {
-                logout();
+              onClick={async () => {
+                await logout();
                 onClose();
+                router.replace("/");
               }}
               className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-gray-200 rounded-xl text-gray-600 font-bold shadow-sm hover:bg-gray-50 transition-colors"
             >
