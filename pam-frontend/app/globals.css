@@ -7,19 +7,196 @@
   --color-brand-surface: #FFF0F5;
 }
 
+/* ═══════════════════════════════════════════
+   LIGHT MODE (default)
+═══════════════════════════════════════════ */
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
-  --primary: #FF6B9D;
-  --primary-deep: #C44DFF;
-  --base: #111111;
-  --surface: #FFF0F5;
   --radius: 0.5rem;
+
+  /* Backgrounds */
+  --pam-bg: #ffffff;
+  --pam-bg-outer: #f1f5f9;
+  --pam-surface: #FFF0F5;
+  --pam-surface-card: #ffffff;
+  --pam-surface-elevated: #fdf8ff;
+
+  /* Text */
+  --pam-text: #111111;
+  --pam-text-sub: #333333;
+  --pam-text-muted: #aaaaaa;
+  --pam-text-faint: #bbbbbb;
+  --pam-text-disabled: #cccccc;
+
+  /* Brand */
+  --pam-pink: #FF6B9D;
+  --pam-pink-light: #ff8fb3;
+  --pam-purple: #C44DFF;
+  --pam-purple-dot: #d966ff;
+  --pam-purple-text: #7c3aed;
+
+  /* Borders */
+  --pam-border: #f0e8f5;
+  --pam-border-pink: #FFD6E7;
+  --pam-border-special: #dbc8ff;
+
+  /* Shadows */
+  --pam-shadow-pink: rgba(255, 107, 157, 0.1);
+  --pam-shadow-pink-btn: rgba(255, 107, 157, 0.3);
+  --pam-shadow-pink-strong: rgba(255, 59, 107, 0.35);
+  --pam-shadow-purple: rgba(196, 77, 255, 0.1);
+  --pam-shadow-purple-btn: rgba(196, 77, 255, 0.3);
+  --pam-shadow-special: rgba(196, 77, 255, 0.1);
+
+  /* Special (⚡) surface */
+  --pam-special-from: #f5eeff;
+  --pam-special-to: #ede0ff;
+  --pam-special-text: #7c3aed;
+  --pam-special-border: #dbc8ff;
+
+  /* Accent (형광 포인트 — 다크모드에서 교체됨) */
+  --pam-accent: #FF6B9D;
+  --pam-accent-text: #ffffff;
+
+  /* Tabs */
+  --pam-tab-active-bg: #FF6B9D;
+  --pam-tab-active-text: #ffffff;
+  --pam-tab-inactive-bg: #ece7f5;
+  --pam-tab-inactive-text: #bbbbbb;
+
+  /* Tags */
+  --pam-tag-bg: #FFF0F5;
+  --pam-tag-border: #FFD6E7;
+  --pam-tag-text: #FF6B9D;
+
+  /* 배지 */
+  --pam-badge-basic-bg: #FF6B9D;
+  --pam-badge-basic-text: #ffffff;
+  --pam-badge-special-from: #C44DFF;
+  --pam-badge-special-to: #FF6B9D;
+  --pam-badge-special-text: #ffffff;
+
+  /* SPECIAL 가챠 버튼 */
+  --pam-btn-special-from: #C44DFF;
+  --pam-btn-special-to: #FF6B9D;
+  --pam-btn-special-shadow: rgba(196, 77, 255, 0.3);
+
+  /* SPECIAL 배지 그라디언트 */
+  --pam-special-badge-from: #C44DFF;
+  --pam-special-badge-to: #FF6B9D;
+
+  /* Spinning screen */
+  --pam-spin-bg: #1a1010;
+  --pam-spin-overlay: rgba(255, 107, 157, 0.07);
+  --pam-spin-dot-1: #FF6B9D;
+  --pam-spin-dot-2: #d966ff;
+  --pam-spin-dot-3: #C44DFF;
+
+  /* Misc */
+  --pam-icon-overlay: rgba(255, 255, 255, 0.15);
+  --pam-progress-bg: #f0e8f5;
+  --pam-btn-secondary-bg: #f5f0fa;
+  --pam-btn-secondary-text: #333333;
+  --pam-menu-handle: #e8e0f0;
 }
 
+/* ═══════════════════════════════════════════
+   DARK MODE
+═══════════════════════════════════════════ */
+[data-theme="dark"] {
+  --background: 0 0% 11%;
+  --foreground: 300 47% 91%;
+
+  /* Backgrounds */
+  --pam-bg: #1c0f1a;
+  --pam-bg-outer: #160a15;
+  --pam-surface: #291b27;
+  --pam-surface-card: #251723;
+  --pam-surface-elevated: #343031;
+
+  /* Text */
+  --pam-text: #f4dcec;
+  --pam-text-sub: #dcbed4;
+  --pam-text-muted: #a4899d;
+  --pam-text-faint: #a4899d;
+  --pam-text-disabled: #564052;
+
+  /* Brand (neon shift) */
+  --pam-pink: #ffabf3;
+  --pam-pink-light: #ffd7f5;
+  --pam-purple: #ff00ff;
+  --pam-purple-dot: #ff00ff;
+  --pam-purple-text: #ffabf3;
+
+  /* Borders */
+  --pam-border: #564052;
+  --pam-border-pink: #564052;
+  --pam-border-special: #564052;
+
+  /* Shadows (neon glow) */
+  --pam-shadow-pink: rgba(255, 171, 243, 0.15);
+  --pam-shadow-pink-btn: rgba(255, 171, 243, 0.35);
+  --pam-shadow-pink-strong: rgba(255, 171, 243, 0.5);
+  --pam-shadow-purple: rgba(255, 0, 255, 0.15);
+  --pam-shadow-purple-btn: rgba(255, 0, 255, 0.35);
+  --pam-shadow-special: rgba(255, 0, 255, 0.15);
+
+  /* Special (⚡) surface */
+  --pam-special-from: #291b27;
+  --pam-special-to: #251723;
+  --pam-special-text: #ffabf3;
+  --pam-special-border: #564052;
+
+  /* Accent (네온 라임 — 다크 전용 포인트) */
+  --pam-accent: #dfff11;
+  --pam-accent-glow: rgba(223, 255, 17, 0.5);
+  --pam-accent-text: #1c0f1a;
+
+  /* Tabs */
+  --pam-tab-active-bg: var(--pam-accent);
+  --pam-tab-active-text: #1c0f1a;
+  --pam-tab-inactive-bg: #40303c;
+  --pam-tab-inactive-text: #a4899d;
+
+  /* Tags */
+  --pam-tag-bg: rgba(223, 255, 17, 0.08);
+  --pam-tag-border: rgba(223, 255, 17, 0.3);
+  --pam-tag-text: var(--pam-accent);
+
+  /* 배지 */
+  --pam-badge-basic-bg: var(--pam-accent);
+  --pam-badge-basic-text: #1c0f1a;
+  --pam-badge-special-from: var(--pam-accent);
+  --pam-badge-special-to: #ffabf3;
+  --pam-badge-special-text: #1c0f1a;
+
+  /* SPECIAL 가챠 버튼 (라임 → 연분홍) */
+  --pam-btn-special-from: var(--pam-accent);
+  --pam-btn-special-to: #ffc8d4;
+  --pam-btn-special-shadow: rgba(223, 255, 17, 0.4);
+
+  /* Spinning screen */
+  --pam-spin-bg: #160a15;
+  --pam-spin-overlay: rgba(255, 171, 243, 0.07);
+  --pam-spin-dot-1: #ffabf3;
+  --pam-spin-dot-2: #ff00ff;
+  --pam-spin-dot-3: var(--pam-accent);
+
+  /* Misc */
+  --pam-icon-overlay: rgba(255, 171, 243, 0.15);
+  --pam-progress-bg: #40303c;
+  --pam-btn-secondary-bg: #291b27;
+  --pam-btn-secondary-text: #dcbed4;
+  --pam-menu-handle: #564052;
+}
+
+/* ═══════════════════════════════════════════
+   BASE STYLES
+═══════════════════════════════════════════ */
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--pam-bg-outer);
+  color: var(--pam-text);
   font-weight: 700;
 }
 
@@ -27,6 +204,40 @@ body {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+[data-theme="dark"] .glass {
+  background: rgba(255, 171, 243, 0.05);
+  border: 1px solid rgba(255, 171, 243, 0.15);
+}
+
+/* ── MEME 브랜드 강조 텍스트 ── */
+.pam-brand-em {
+  color: var(--pam-pink);
+  font-style: italic;
+}
+[data-theme="dark"] .pam-brand-em {
+  color: var(--pam-accent);
+  text-shadow:
+    0 0 8px var(--pam-accent-glow),
+    0 0 16px var(--pam-accent-glow),
+    0 0 32px rgba(223, 255, 17, 0.3);
+}
+
+/* ── Neon Glow Utilities ── */
+[data-theme="dark"] .neon-glow-accent {
+  box-shadow: 
+    0 0 10px var(--pam-accent-glow),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .neon-border-accent {
+  border-color: var(--pam-accent);
+  box-shadow: 0 0 8px var(--pam-accent-glow);
+}
+
+/* ── Gradient Utilities ── */
+.bg-special-gradient {
+  background: linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to)) !important;
 }
 
 /* ── Loading screen animations ── */
@@ -46,10 +257,10 @@ body {
 }
 @keyframes loading-glow-pulse {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(255,107,157,0.3), 0 12px 32px rgba(255,107,157,0.3);
+    box-shadow: 0 0 20px var(--pam-shadow-pink-btn), 0 12px 32px var(--pam-shadow-pink-btn);
   }
   50% {
-    box-shadow: 0 0 60px rgba(255,107,157,0.7), 0 12px 48px rgba(196,77,255,0.4);
+    box-shadow: 0 0 60px var(--pam-shadow-pink-strong), 0 12px 48px var(--pam-shadow-purple-btn);
   }
 }
 @keyframes loading-bounce-dot {
@@ -64,9 +275,12 @@ body {
   position: absolute;
   inset: -2px;
   border-radius: 22px;
-  border: 2px solid rgba(255,107,157,0.6);
+  border: 2px solid rgba(255, 107, 157, 0.6);
   animation: loading-pulse-ring 1.6s ease-out infinite;
   pointer-events: none;
+}
+[data-theme="dark"] .loading-pulse {
+  border-color: rgba(255, 171, 243, 0.6);
 }
 .loading-flip-card {
   width: 120px;
@@ -88,12 +302,12 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .loading-flip-front {
-  background: linear-gradient(135deg, #FF6B9D, #C44DFF);
+  background: linear-gradient(135deg, var(--pam-pink), var(--pam-purple));
   animation: loading-glow-pulse 2s ease-in-out infinite;
 }
 .loading-flip-back {
-  background: #2a1a20;
-  border: 2px solid rgba(255,107,157,0.15);
+  background: var(--pam-spin-bg);
+  border: 2px solid var(--pam-border);
   transform: rotateY(180deg);
 }
 .loading-back-pattern {
@@ -101,7 +315,7 @@ body {
   border-radius: 14px;
   background-image: repeating-linear-gradient(
     45deg,
-    rgba(255,107,157,0.07) 0px, rgba(255,107,157,0.07) 3px,
+    var(--pam-shadow-pink) 0px, var(--pam-shadow-pink) 3px,
     transparent 3px, transparent 10px
   );
 }

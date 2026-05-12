@@ -29,15 +29,15 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
     >
       <button
         onClick={onBack}
-        className="self-start flex items-center gap-1 font-bold text-[#aaa]"
-        style={{ fontSize: 14, marginBottom: 24 }}
+        className="self-start flex items-center gap-1 font-bold"
+        style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-muted)" }}
       >
         ← 뒤로
       </button>
-      <h2 className="font-black text-[#111]" style={{ fontSize: 26, marginBottom: 8 }}>
+      <h2 className="font-black" style={{ fontSize: 26, marginBottom: 8, color: "var(--pam-text)" }}>
         오늘의 기분은?
       </h2>
-      <p className="font-medium text-[#bbb]" style={{ fontSize: 14, marginBottom: 24 }}>
+      <p className="font-medium" style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-faint)" }}>
         딱 하나만 골라요 — 그게 더 찰진 밈이 나와요
       </p>
       <div className="flex flex-wrap justify-center" style={{ gap: 10, marginBottom: 28 }}>
@@ -47,9 +47,7 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
             onClick={() => onSelectTag(tag)}
             className={cn(
               "font-bold border-[1.5px] transition-all flex items-center gap-[5px]",
-              selectedTag === tag
-                ? "text-white border-transparent"
-                : "text-[#222] border-[#FFD6E7]",
+              selectedTag === tag ? "text-white border-transparent" : "",
             )}
             style={{
               padding: "8px 14px",
@@ -57,14 +55,20 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
               fontSize: 15,
               ...(selectedTag === tag
                 ? {
-                    background: "linear-gradient(135deg,#FF6B9D,#C44DFF)",
-                    boxShadow: "0 2px 10px rgba(255,107,157,0.3)",
+                    background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+                    boxShadow: "0 2px 10px var(--pam-shadow-pink-btn)",
+                    borderColor: "transparent",
+                    color: "white",
                   }
-                : { background: "#FFF0F5" }),
+                : {
+                    backgroundColor: "var(--pam-tag-bg)",
+                    borderColor: "var(--pam-tag-border)",
+                    color: "var(--pam-text-sub)",
+                  }),
             }}
           >
             <span>{TAG_EMOJI[tag]}</span>
-            <span style={{ color: selectedTag === tag ? "rgba(255,255,255,.65)" : "#FF6B9D" }}>#</span>
+            <span style={{ color: selectedTag === tag ? "rgba(255,255,255,.65)" : "var(--pam-tag-text)" }}>#</span>
             {tag}
           </button>
         ))}
@@ -76,7 +80,7 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
         style={{
           marginTop: "auto",
           padding: 18,
-          background: selectedTag ? "#111" : "#ccc",
+          background: selectedTag ? "var(--pam-text)" : "var(--pam-text-disabled)",
           borderRadius: 22,
           border: "none",
           fontSize: 17,

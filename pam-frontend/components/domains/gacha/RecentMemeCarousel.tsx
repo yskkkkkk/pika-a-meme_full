@@ -69,7 +69,8 @@ export function RecentMemeCarousel() {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="flex-shrink-0 animate-pulse bg-gray-200"
+              className="flex-shrink-0 animate-pulse"
+              style={{ backgroundColor: "var(--pam-surface)" }}
               style={{ ...cardStyle, aspectRatio: "1", borderRadius: 24 }}
             />
           ))}

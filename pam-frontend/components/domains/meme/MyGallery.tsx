@@ -37,9 +37,8 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       onClick={onToggle}
       role="switch"
       aria-checked={on}
-      className={`relative inline-flex items-center w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
-        on ? "bg-gray-700" : "bg-gray-300"
-      }`}
+      className="relative inline-flex items-center w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none"
+      style={{ backgroundColor: on ? "var(--pam-text-sub)" : "var(--pam-border)" }}
     >
       <span
         className={`inline-block w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
@@ -57,7 +56,6 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
       className={`group block hover:-translate-y-1 transition-all duration-300 ${dimmed ? "opacity-40" : ""}`}
       aria-label="내 밈 상세 보기"
     >
-      {/* 이미지 + 말풍선 */}
       <div className="relative">
         <MemeCanvasCard
           imageUrl={meme.imageUrl}
@@ -68,30 +66,37 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           imageAlt="내 밈"
           className="w-full"
         />
-        {/* 숨김 뱃지만 이미지 오버레이에 유지 */}
         {dimmed && (
           <div className="absolute top-2 right-2 z-20">
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-700 text-white text-xs font-black rounded-full shadow">
+            <span
+              className="flex items-center gap-1 px-2 py-0.5 text-white text-xs font-black rounded-full shadow"
+              style={{ backgroundColor: "var(--pam-text-sub)" }}
+            >
               <EyeOff className="w-3 h-3" /> 숨김
             </span>
           </div>
         )}
       </div>
 
-      {/* 하단 정보: [BASIC/SPECIAL] [#태그] [날짜] */}
+      {/* 하단 정보 */}
       <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
         {meme.heartType === "SPECIAL" ? (
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-white text-[10px] font-black rounded-full"
-            style={{ background: "linear-gradient(135deg,#C44DFF,#FF6B9D)" }}
+          <span
+            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
+            style={{
+              background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
+              color: "var(--pam-badge-special-text)",
+            }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             SPECIAL
           </span>
         ) : (
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-white text-[10px] font-black rounded-full"
-            style={{ background: "#FF6B9D" }}
+          <span
+            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
+            style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
           >
-            <Heart className="w-2.5 h-2.5 fill-white" /> BASIC
+            <Heart className="w-2.5 h-2.5" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
           </span>
         )}
         {meme.matchedTags.length > 0 && (
@@ -99,8 +104,13 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
             {meme.matchedTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full"
-                style={{ padding: "3px 8px 3px 6px", background: "#FFF0F5", color: "#FF6B9D", border: "1px solid #FFD6E7" }}
+                className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full neon-border-accent"
+                style={{
+                  padding: "3px 8px 3px 6px",
+                  backgroundColor: "var(--pam-tag-bg)",
+                  color: "var(--pam-tag-text)",
+                  border: "1px solid var(--pam-tag-border)",
+                }}
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
@@ -111,7 +121,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
             ))}
           </div>
         )}
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-400 font-bold">
+        <span className="ml-auto flex items-center gap-1 text-[10px] font-bold" style={{ color: "var(--pam-text-muted)" }}>
           <Clock className="w-3 h-3" />
           {timeAgo(meme.createdAt)}
         </span>
@@ -165,21 +175,17 @@ export function MyGallery() {
     setShowAll((v) => !v);
   }
 
-  function handleViewMode(mode: ViewMode) {
-    setViewMode(mode);
-  }
-
   const hasMore = allMemes.length === (page + 1) * PAGE_SIZE;
 
   return (
     <div className="space-y-4">
-      {/* 헤더: 총 개수 + 숨김 토글 */}
+      {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-black text-gray-400">
+        <span className="text-sm font-black" style={{ color: "var(--pam-text-muted)" }}>
           {allMemes.length > 0 && `총 ${allMemes.length}개`}
         </span>
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold text-gray-400">모든 결과물 보기</span>
+          <span className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>모든 결과물 보기</span>
           <Toggle on={showAll} onToggle={handleToggle} />
         </div>
       </div>
@@ -189,11 +195,17 @@ export function MyGallery() {
         {VIEW_OPTIONS.map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => handleViewMode(key)}
-            className="px-[15px] py-2 text-xs font-black rounded-full whitespace-nowrap transition-all"
+            onClick={() => setViewMode(key)}
+            className={`px-[15px] py-2 text-xs font-black rounded-full whitespace-nowrap transition-all ${
+              viewMode === key 
+                ? (key === "special" ? "bg-special-gradient neon-glow-accent" : "neon-glow-accent") 
+                : ""
+            }`}
             style={{
-              background: viewMode === key ? "#FF6B9D" : "#ece7f5",
-              color: viewMode === key ? "white" : "#bbb",
+              backgroundColor: viewMode === key 
+                ? (key === "special" ? undefined : "var(--pam-tab-active-bg)") 
+                : "var(--pam-tab-inactive-bg)",
+              color: viewMode === key ? "var(--pam-tab-active-text)" : "var(--pam-tab-inactive-text)",
               border: "none",
             }}
           >
@@ -203,7 +215,7 @@ export function MyGallery() {
       </div>
 
       {!isFetching && !isError && displayMemes.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 gap-4 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-20 gap-4" style={{ color: "var(--pam-text-muted)" }}>
           <div className="text-6xl">🖼️</div>
           <p className="text-lg font-bold">
             {allMemes.length === 0 ? "아직 뽑은 밈이 없어요" : "해당하는 밈이 없어요"}
@@ -218,19 +230,20 @@ export function MyGallery() {
         ))}
         {isFetching &&
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="aspect-square rounded-2xl animate-pulse" style={{ backgroundColor: "var(--pam-surface)" }} />
           ))}
       </div>
 
       {isError && (
-        <p className="text-center text-sm text-red-400 font-medium">갤러리를 불러오는 데 실패했습니다.</p>
+        <p className="text-center text-sm font-medium" style={{ color: "#f87171" }}>갤러리를 불러오는 데 실패했습니다.</p>
       )}
 
       {!isFetching && hasMore && (
         <div className="flex justify-center">
           <button
             onClick={() => setPage((p) => p + 1)}
-            className="px-8 py-3 bg-black text-white font-black rounded-full hover:bg-gray-800 active:scale-95 transition-all text-sm"
+            className="px-8 py-3 font-black rounded-full active:scale-95 transition-all text-sm"
+            style={{ backgroundColor: "var(--pam-text)", color: "var(--pam-bg)" }}
           >
             더 보기
           </button>
