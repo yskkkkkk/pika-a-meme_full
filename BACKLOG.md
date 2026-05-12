@@ -38,7 +38,7 @@
 | TASK-260429-19 | [밈/이미지] | [x] | Cloudflare R2 스토리지 어댑터 구현 (이미지 업로드, presigned URL 발급) | - | - | 260429 / 260430 |
 | TASK-260429-20 | [밈/이미지] | [x] | 밈 생성 및 조회 REST API 구현 (POST /api/memes, GET /api/memes) | TASK-260429-18, TASK-260429-09 | - | 260429 / 260501 |
 | TASK-260429-21 | [하트/스테미나] | [x] | Heart REST API 구현 (GET /api/hearts — 현재 하트 현황 조회) | TASK-260429-07 | - | 260429 / 260501 |
-| TASK-260429-22 | [하트/스테미나] | [ ] | SPECIAL 하트 지급 트리거 정의 및 구현 (조건 달성 이벤트 → grantSpecialHeart) | TASK-260429-07 | - | 260429 / - |
+| TASK-260429-22 | [하트/스테미나] | [/] | SPECIAL 하트 지급 트리거 정의 및 구현 (조건 달성 이벤트 → grantSpecialHeart) | TASK-260429-07 | 최초 로그인 웰컴 보상(1개) 구현 완료(TASK-260512-04). 미션 완료 트리거(useMissions 백엔드 API 연동) 미구현 | 260429 / - |
 | TASK-260429-23 | [프론트엔드] | [x] | 프론트엔드 프로젝트 초기 설정 (Next.js 14 App Router, Tailwind, API 클라이언트) | - | - | 260429 / 260430 |
 | TASK-260429-24 | [프론트엔드] | [x] | Canvas 에디터 컴포넌트 구현 (동물 사진 + 텍스트/스티커 합성, canvas_state 직렬화) | TASK-260429-23 | v2 재설계에서 CSS 말풍선 방식으로 전환, Canvas 에디터 제거. TASK-260504-08로 대체 | 260429 / 260501 |
 | TASK-260429-25 | [프론트엔드] | [x] | 하트 상태 바 컴포넌트 구현 (잔여 하트 표시, BASIC 충전 타이머 카운트다운) | TASK-260429-23 | - | 260429 / 260501 |
@@ -91,6 +91,10 @@
 | TASK-260511-06 | [인프라/공통] | [ ] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | Cloudflare Proxy 우회 검증 후 활성화. RATE_LIMIT_USE_FORWARDED_HEADERS=true 환경변수 전환 필요 | 260511 / - |
 | TASK-260511-07 | [회원/인증] | [ ] | JWT Refresh Token 회전 구현 (Access Token 15분 + Refresh Token rotation + jti denylist) | TASK-260511-01 | - | 260511 / - |
 | TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
+| TASK-260512-01 | [하트/스테미나] | [x] | BASIC 가챠 하트 소모 버그 수정 (로그인 유저가 게스트 localStorage 하트도 중복 차감하던 문제) | TASK-260429-07 | 로그인 유저는 서버 하트 잔액 확인 후 API(composeMeme)에서만 차감. 가챠 후 hearts 쿼리 무효화도 추가 | 260512 / 260512 |
+| TASK-260512-02 | [프론트엔드] | [x] | 로그아웃 시 홈(/) 리다이렉트 구현 | TASK-260429-29 | LoginSlideMenu 로그아웃 버튼에 router.replace("/") 추가 | 260512 / 260512 |
+| TASK-260512-03 | [프론트엔드] | [x] | 미로그인 상태 스페셜 미션(⚡) 버튼 클릭 시 로그인 메뉴 오픈 | TASK-260504-07 | HeartDisplay ⚡ 버튼에 isLoggedIn 분기 추가. 미로그인 → onMenuOpen(), 로그인 → 미션 시트 | 260512 / 260512 |
+| TASK-260512-04 | [회원/인증] | [x] | 최초 로그인 웰컴 알럿 + SPECIAL 하트 1개 지급 | TASK-260429-22 | HeartInitializeListener에서 신규 가입 시 SPECIAL 1개 추가 지급. OAuth2SuccessHandler에서 신규 유저 시 ?welcome=1 파라미터로 리다이렉트. 프론트엔드 콜백에서 감지 → 홈에서 웰컴 알럿 표시 | 260512 / 260512 |
 
 ---
 
