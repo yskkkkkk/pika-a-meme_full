@@ -23,7 +23,7 @@ export default function Home() {
 
   const { isLoggedIn } = useAuth();
   const guest = useGuestHeart();
-  const { data: serverHearts } = useHeart(isLoggedIn);
+  const { data: serverHearts, isLoading: heartsLoading } = useHeart(isLoggedIn);
   const queryClient = useQueryClient();
 
   // 최초 로그인 웰컴 알럿
@@ -43,6 +43,7 @@ export default function Home() {
     // 로그인 유저: 서버 하트 잔액 확인 (API가 차감 처리)
     // 게스트: localStorage 하트 확인 및 소모
     if (isLoggedIn) {
+      if (heartsLoading) return;
       if ((serverHearts?.basic.count ?? 0) <= 0) {
         alert("하트가 부족합니다! 미션을 완료하거나 잠시 후 다시 시도하세요.");
         return;
@@ -64,7 +65,7 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
-      queryClient.invalidateQueries({ queryKey: ["hearts"] });
+      queryClient.refetchQueries({ queryKey: ["hearts"] });
     } catch {
       alert("오류가 발생했습니다.");
       setAppState("HOME");
@@ -91,7 +92,7 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
-      queryClient.invalidateQueries({ queryKey: ["hearts"] });
+      queryClient.refetchQueries({ queryKey: ["hearts"] });
     } catch {
       alert("오류가 발생했습니다.");
       setAppState("HOME");
@@ -102,9 +103,10 @@ export default function Home() {
     <div className="flex flex-col flex-1 relative">
       {appState === "SPINNING" && <SpinningScreen />}
 
-      {appState !== "SPINNING" && (
+      {/* SPINNING 중에도 unmount 않고 숨김 — React Query observer 유지로 가챠 후 즉시 갱신 */}
+      <div className={appState === "SPINNING" ? "hidden" : "contents"}>
         <HeartDisplay onMenuOpen={() => setIsMenuOpen(true)} />
-      )}
+      </div>
 
       {appState === "HOME" && (
         <HomeScreen onBasicDraw={handleBasicDraw} onSpecialDraw={handleSpecialDrawClick} />
