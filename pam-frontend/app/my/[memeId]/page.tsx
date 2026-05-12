@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2, Star } from "lucide-react";
+import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -231,21 +231,30 @@ export default function MyMemeDetailPage() {
               {/* 뱃지들 */}
               <div className="flex flex-wrap gap-2">
                 {meme.heartType === "SPECIAL" ? (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-400 text-white text-xs font-black rounded-full shadow-sm">
-                    <Star className="w-3.5 h-3.5 fill-white" /> SPECIAL
+                  <span className="flex items-center gap-1.5 px-3 py-1 text-white text-xs font-black rounded-full shadow-sm"
+                    style={{ background: "linear-gradient(135deg,#C44DFF,#FF6B9D)" }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    SPECIAL
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-pink-500 text-white text-xs font-black rounded-full shadow-sm">
+                  <span className="flex items-center gap-1.5 px-3 py-1 text-white text-xs font-black rounded-full shadow-sm"
+                    style={{ background: "#FF6B9D" }}
+                  >
                     <Heart className="w-3.5 h-3.5 fill-white" /> BASIC
                   </span>
                 )}
                 {meme.matchedTags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2.5 py-1 text-xs font-black rounded-full"
-                    style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
+                    className="inline-flex items-center gap-[3px] text-xs font-bold rounded-full"
+                    style={{ padding: "4px 10px 4px 8px", background: "#FFF0F5", color: "#FF6B9D", border: "1px solid #FFD6E7" }}
                   >
-                    #{tag}
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                      <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                    {tag}
                   </span>
                 ))}
               </div>

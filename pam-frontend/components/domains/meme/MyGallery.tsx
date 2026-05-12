@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { EyeOff, Star, Heart, Clock } from "lucide-react";
+import { EyeOff, Heart, Clock } from "lucide-react";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
 interface MemeItem {
@@ -81,11 +81,16 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
       {/* 하단 정보: [BASIC/SPECIAL] [#태그] [날짜] */}
       <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
         {meme.heartType === "SPECIAL" ? (
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-400 text-white text-[10px] font-black rounded-full">
-            <Star className="w-2.5 h-2.5 fill-white" /> SPECIAL
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-white text-[10px] font-black rounded-full"
+            style={{ background: "linear-gradient(135deg,#C44DFF,#FF6B9D)" }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            SPECIAL
           </span>
         ) : (
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-pink-500 text-white text-[10px] font-black rounded-full">
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-white text-[10px] font-black rounded-full"
+            style={{ background: "#FF6B9D" }}
+          >
             <Heart className="w-2.5 h-2.5 fill-white" /> BASIC
           </span>
         )}
@@ -94,10 +99,14 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
             {meme.matchedTags.map((tag) => (
               <span
                 key={tag}
-                className="px-1.5 py-0.5 text-[10px] font-black rounded-full"
-                style={{ background: "linear-gradient(135deg,#FF6B9D22,#C44DFF22)", color: "#C44DFF" }}
+                className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full"
+                style={{ padding: "3px 8px 3px 6px", background: "#FFF0F5", color: "#FF6B9D", border: "1px solid #FFD6E7" }}
               >
-                #{tag}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                {tag}
               </span>
             ))}
           </div>
@@ -176,16 +185,17 @@ export function MyGallery() {
       </div>
 
       {/* 필터/정렬 탭 */}
-      <div className="flex gap-2 border-b border-gray-100 pb-2">
+      <div className="flex flex-nowrap gap-[5px]">
         {VIEW_OPTIONS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => handleViewMode(key)}
-            className={`px-3 py-1.5 text-xs font-black transition-all border-b-2 -mb-2.5 ${
-              viewMode === key
-                ? "border-black text-black"
-                : "border-transparent text-gray-400 hover:text-gray-600"
-            }`}
+            className="px-[15px] py-2 text-xs font-black rounded-full whitespace-nowrap transition-all"
+            style={{
+              background: viewMode === key ? "#FF6B9D" : "#ece7f5",
+              color: viewMode === key ? "white" : "#bbb",
+              border: "none",
+            }}
           >
             {label}
           </button>
