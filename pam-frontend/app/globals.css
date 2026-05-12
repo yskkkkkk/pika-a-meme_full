@@ -149,38 +149,39 @@
   --pam-special-border: #564052;
 
   /* Accent (네온 라임 — 다크 전용 포인트) */
-  --pam-accent: #b0ff3c;
+  --pam-accent: #dfff11;
+  --pam-accent-glow: rgba(223, 255, 17, 0.5);
   --pam-accent-text: #1c0f1a;
 
   /* Tabs */
-  --pam-tab-active-bg: #b0ff3c;
+  --pam-tab-active-bg: var(--pam-accent);
   --pam-tab-active-text: #1c0f1a;
   --pam-tab-inactive-bg: #40303c;
   --pam-tab-inactive-text: #a4899d;
 
   /* Tags */
-  --pam-tag-bg: #291b27;
-  --pam-tag-border: #564052;
-  --pam-tag-text: #b0ff3c;
+  --pam-tag-bg: rgba(223, 255, 17, 0.08);
+  --pam-tag-border: rgba(223, 255, 17, 0.3);
+  --pam-tag-text: var(--pam-accent);
 
   /* 배지 */
-  --pam-badge-basic-bg: #b0ff3c;
+  --pam-badge-basic-bg: var(--pam-accent);
   --pam-badge-basic-text: #1c0f1a;
-  --pam-badge-special-from: #7c3aed;
-  --pam-badge-special-to: #b0ff3c;
+  --pam-badge-special-from: var(--pam-accent);
+  --pam-badge-special-to: #ffabf3;
   --pam-badge-special-text: #1c0f1a;
 
   /* SPECIAL 가챠 버튼 (라임 → 연분홍) */
-  --pam-btn-special-from: #b0ff3c;
+  --pam-btn-special-from: var(--pam-accent);
   --pam-btn-special-to: #ffc8d4;
-  --pam-btn-special-shadow: rgba(176, 255, 60, 0.4);
+  --pam-btn-special-shadow: rgba(223, 255, 17, 0.4);
 
   /* Spinning screen */
   --pam-spin-bg: #160a15;
   --pam-spin-overlay: rgba(255, 171, 243, 0.07);
   --pam-spin-dot-1: #ffabf3;
   --pam-spin-dot-2: #ff00ff;
-  --pam-spin-dot-3: #b0ff3c;
+  --pam-spin-dot-3: var(--pam-accent);
 
   /* Misc */
   --pam-icon-overlay: rgba(255, 171, 243, 0.15);
@@ -215,12 +216,28 @@ body {
   font-style: italic;
 }
 [data-theme="dark"] .pam-brand-em {
-  color: #b0ff3c;
+  color: var(--pam-accent);
   text-shadow:
-    0 0 6px rgba(176, 255, 60, 1),
-    0 0 16px rgba(176, 255, 60, 0.8),
-    0 0 32px rgba(176, 255, 60, 0.5),
-    0 0 60px rgba(176, 255, 60, 0.25);
+    0 0 8px var(--pam-accent-glow),
+    0 0 16px var(--pam-accent-glow),
+    0 0 32px rgba(223, 255, 17, 0.3);
+}
+
+/* ── Neon Glow Utilities ── */
+[data-theme="dark"] .neon-glow-accent {
+  box-shadow: 
+    0 0 10px var(--pam-accent-glow),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .neon-border-accent {
+  border-color: var(--pam-accent);
+  box-shadow: 0 0 8px var(--pam-accent-glow);
+}
+
+/* ── Gradient Utilities ── */
+.bg-special-gradient {
+  background: linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to)) !important;
 }
 
 /* ── Loading screen animations ── */

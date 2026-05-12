@@ -46,7 +46,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
 
         <button
           onClick={onSpecialDraw}
-          className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
+          className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform neon-glow-accent"
           style={{
             background: "linear-gradient(135deg, var(--pam-btn-special-from), var(--pam-btn-special-to))",
             borderRadius: 20,

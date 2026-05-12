@@ -82,7 +82,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
       <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
         {meme.heartType === "SPECIAL" ? (
           <span
-            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full"
+            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
             style={{
               background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
               color: "var(--pam-badge-special-text)",
@@ -93,7 +93,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           </span>
         ) : (
           <span
-            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full"
+            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
             style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
           >
             <Heart className="w-2.5 h-2.5" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
@@ -104,7 +104,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
             {meme.matchedTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full"
+                className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full neon-border-accent"
                 style={{
                   padding: "3px 8px 3px 6px",
                   backgroundColor: "var(--pam-tag-bg)",
@@ -196,9 +196,15 @@ export function MyGallery() {
           <button
             key={key}
             onClick={() => setViewMode(key)}
-            className="px-[15px] py-2 text-xs font-black rounded-full whitespace-nowrap transition-all"
+            className={`px-[15px] py-2 text-xs font-black rounded-full whitespace-nowrap transition-all ${
+              viewMode === key 
+                ? (key === "special" ? "bg-special-gradient neon-glow-accent" : "neon-glow-accent") 
+                : ""
+            }`}
             style={{
-              backgroundColor: viewMode === key ? "var(--pam-tab-active-bg)" : "var(--pam-tab-inactive-bg)",
+              backgroundColor: viewMode === key 
+                ? (key === "special" ? undefined : "var(--pam-tab-active-bg)") 
+                : "var(--pam-tab-inactive-bg)",
               color: viewMode === key ? "var(--pam-tab-active-text)" : "var(--pam-tab-inactive-text)",
               border: "none",
             }}
