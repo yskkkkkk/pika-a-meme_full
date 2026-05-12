@@ -91,10 +91,11 @@
 | TASK-260511-06 | [인프라/공통] | [ ] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | Cloudflare Proxy 우회 검증 후 활성화. RATE_LIMIT_USE_FORWARDED_HEADERS=true 환경변수 전환 필요 | 260511 / - |
 | TASK-260511-07 | [회원/인증] | [ ] | JWT Refresh Token 회전 구현 (Access Token 15분 + Refresh Token rotation + jti denylist) | TASK-260511-01 | - | 260511 / - |
 | TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
-| TASK-260512-01 | [하트/스테미나] | [x] | BASIC 가챠 하트 소모 버그 수정 (로그인 유저가 게스트 localStorage 하트도 중복 차감하던 문제) | TASK-260429-07 | 로그인 유저는 서버 하트 잔액 확인 후 API(composeMeme)에서만 차감. 가챠 후 hearts 쿼리 즉시 갱신(refetchQueries). HeartDisplay를 SPINNING 중에도 unmount 없이 유지(display:none)하여 observer 연속성 보장 | 260512 / 260512 |
+| TASK-260512-01 | [하트/스테미나] | [x] | 하트 소모 버그 전면 수정 (로그인/비회원 모두) | TASK-260429-07 | (1) MemeComposeService에 HeartService.consumeHeart 호출 누락 → 추가. (2) 비회원 consumeHeart에서 setCurrentHearts 직접 호출로 즉시 UI 반영. (3) useMemeApi mock 폴백을 네트워크 오류 한정으로 축소 — success=false 응답은 throw. (4) HeartDisplay SPINNING 중 display:none 유지로 observer 연속성 보장, refetchQueries로 즉시 갱신 | 260512 / 260512 |
 | TASK-260512-02 | [프론트엔드] | [x] | 로그아웃 시 홈(/) 리다이렉트 구현 | TASK-260429-29 | LoginSlideMenu 로그아웃 버튼에 router.replace("/") 추가 | 260512 / 260512 |
 | TASK-260512-03 | [프론트엔드] | [x] | 미로그인 상태 스페셜 미션(⚡) 버튼 클릭 시 로그인 메뉴 오픈 | TASK-260504-07 | HeartDisplay ⚡ 버튼에 isLoggedIn 분기 추가. 미로그인 → onMenuOpen(), 로그인 → 미션 시트 | 260512 / 260512 |
 | TASK-260512-04 | [회원/인증] | [x] | 최초 로그인 웰컴 알럿 + SPECIAL 하트 1개 지급 | TASK-260429-22 | HeartInitializeListener에서 신규 가입 시 SPECIAL 1개 추가 지급. OAuth2SuccessHandler에서 신규 유저 시 ?welcome=1 파라미터로 리다이렉트. 프론트엔드 콜백에서 감지 → 홈에서 웰컴 알럿 표시 | 260512 / 260512 |
+| TASK-260512-05 | [프론트엔드] | [x] | 로그인 직후 하트 표시 깜빡임(0→5→실제값) 수정 | TASK-260512-01 | (1) useHeart에 placeholderData: prev 추가 — 리페치 중 이전 값 유지. (2) MemeComposeService 하트 차감 순서 안전하게 재정렬(조합→차감→저장). (3) HeartDisplay 초기 로딩 중(serverHearts=null) 숫자 0 대신 '—' 표시(heartsReady 플래그) | 260512 / 260512 |
 
 ---
 

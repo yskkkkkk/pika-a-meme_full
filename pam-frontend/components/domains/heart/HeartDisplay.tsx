@@ -17,6 +17,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
   const { missions, isLoading } = useMissions();
   const [missionOpen, setMissionOpen] = useState(false);
 
+  const heartsReady = !isLoggedIn || serverHearts != null;
   const basicCount = isLoggedIn ? (serverHearts?.basic.count ?? 0) : guest.hearts;
   const basicMax = isLoggedIn ? (serverHearts?.basic.max ?? 5) : guest.maxHearts;
   const specialCount = isLoggedIn ? (serverHearts?.special.count ?? 0) : 0;
@@ -59,14 +60,14 @@ export function HeartDisplay({ onMenuOpen }: Props) {
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
-                  width: `${(basicCount / basicMax) * 100}%`,
+                  width: heartsReady ? `${(basicCount / basicMax) * 100}%` : "0%",
                   background: "linear-gradient(90deg, #FF6B9D, #ff8fb3)",
                 }}
               />
             </div>
           </div>
           <div className="font-black text-[#111] leading-none flex-shrink-0" style={{ fontSize: 22 }}>
-            {basicCount}
+            {heartsReady ? basicCount : <span className="text-[#ccc]">—</span>}
             <span className="font-semibold text-[#ccc]" style={{ fontSize: 13 }}>/{basicMax}</span>
           </div>
         </div>
@@ -92,7 +93,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
             </div>
           )}
           <span style={{ fontSize: 22, filter: "drop-shadow(0 2px 4px rgba(196,77,255,0.4))" }}>⚡</span>
-          <span className="font-black text-[#7c3aed]" style={{ fontSize: 22 }}>{specialCount}</span>
+          <span className="font-black text-[#7c3aed]" style={{ fontSize: 22 }}>{heartsReady ? specialCount : <span className="text-[#ccc]">—</span>}</span>
         </button>
 
         {/* Menu button */}
