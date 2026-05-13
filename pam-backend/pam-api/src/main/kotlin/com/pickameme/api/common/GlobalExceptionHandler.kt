@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -88,6 +89,12 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(e.statusCode)
             .body(ApiResponse(success = false, error = ErrorDetail(code, e.reason ?: e.message ?: "error")))
     }
+
+    // 404 — 정적 리소스 없음 (favicon.ico 등 브라우저 자동 요청)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResource(e: NoResourceFoundException): ApiResponse<Nothing> =
+        ApiResponse.fail(ErrorCode.MEME_SOURCE_NOT_FOUND)
 
     // 500 — 예상치 못한 예외
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
