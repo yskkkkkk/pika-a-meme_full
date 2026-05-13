@@ -102,6 +102,9 @@ class MemeController(
         @RequestParam("heartType") heartType: HeartType,
         @RequestParam(value = "tags", required = false) tags: List<String>?
     ): ApiResponse<MemeComposeResult> {
+        if (heartType == HeartType.SPECIAL && userId == null) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "스페셜 가챠는 로그인이 필요합니다.")
+        }
         val result = memeComposeService.compose(heartType, tags ?: emptyList(), userId)
         return ApiResponse.ok(result)
     }
