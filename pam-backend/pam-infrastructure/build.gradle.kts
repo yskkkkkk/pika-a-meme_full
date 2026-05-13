@@ -17,6 +17,7 @@ dependencies {
     // Redis + Redisson (분산 락, Spring Data Redis 대체)
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.redisson:redisson-spring-boot-starter:3.27.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     // jOOQ (codegen 은 TASK-260429-06 에서 별도 설정 예정)
     implementation("org.springframework.boot:spring-boot-starter-jooq")
