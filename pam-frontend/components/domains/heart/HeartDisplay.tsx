@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useHeart } from "@/hooks/useHeart";
 import { useMissions, type Mission } from "@/hooks/useMissions";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -11,32 +12,76 @@ interface Props {
 
 export function HeartDisplay({ onMenuOpen }: Props) {
   const { isLoggedIn } = useAuth();
+  const { data: serverHearts } = useHeart(isLoggedIn);
   const { missions, isLoading } = useMissions();
   const { theme, toggleTheme } = useTheme();
   const [missionOpen, setMissionOpen] = useState(false);
 
-  const hasUnfinishedMissions =
-    missions.some((m) => m.status === "active" || m.status === "progress");
+  const heartsReady = !isLoggedIn || serverHearts != null;
+  const basicCount = serverHearts?.basic.count ?? 0;
+  const basicMax = serverHearts?.basic.max ?? 5;
+  const specialCount = serverHearts?.special.count ?? 0;
+  const hasUnfinishedMissions = missions.some((m) => m.status === "active" || m.status === "progress");
 
   return (
     <>
-      {/* Top bar — 미션버튼(로그인) + 테마 + 메뉴 */}
       <div
-        className="flex items-center justify-end z-10 relative"
+        className="flex items-center z-10 relative"
         style={{ padding: "10px 12px 8px", gap: 6 }}
       >
+        {/* 회원: 풀 에너지바 */}
+        {isLoggedIn && (
+          <div
+            className="flex items-center flex-1 min-w-0"
+            style={{
+              gap: 6, borderRadius: 20, padding: "8px 12px",
+              backgroundColor: "var(--pam-surface-card)",
+              border: "1px solid var(--pam-border)",
+              boxShadow: "0 2px 12px var(--pam-shadow-pink)",
+            }}
+          >
+            <div
+              className="flex items-center justify-center flex-shrink-0"
+              style={{
+                width: 34, height: 34, borderRadius: 10, fontSize: 16,
+                background: "linear-gradient(135deg, var(--pam-pink), #ff3b6b)",
+                boxShadow: "0 3px 10px var(--pam-shadow-pink-strong)",
+              }}
+            >
+              ❤️
+            </div>
+            <div className="flex flex-col flex-1 min-w-0" style={{ gap: 3 }}>
+              <div className="font-bold" style={{ fontSize: 9, letterSpacing: "0.1em", color: "var(--pam-text-faint)" }}>
+                BASIC
+              </div>
+              <div className="overflow-hidden rounded-full w-full" style={{ height: 6, backgroundColor: "var(--pam-progress-bg)" }}>
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: heartsReady ? `${(basicCount / basicMax) * 100}%` : "0%",
+                    background: "linear-gradient(90deg, var(--pam-pink), var(--pam-pink-light))",
+                  }}
+                />
+              </div>
+            </div>
+            <div className="font-black leading-none flex-shrink-0" style={{ fontSize: 19, color: "var(--pam-text)" }}>
+              {heartsReady ? basicCount : <span style={{ color: "var(--pam-text-disabled)" }}>—</span>}
+              <span className="font-semibold" style={{ fontSize: 12, color: "var(--pam-text-disabled)" }}>/{basicMax}</span>
+            </div>
+          </div>
+        )}
+
+        {/* 회원: ⚡ 미션 버튼 */}
         {isLoggedIn && (
           <button
             onClick={() => setMissionOpen(true)}
-            className="relative flex items-center justify-center active:scale-95 transition-transform"
+            className="relative flex items-center active:scale-95 transition-transform"
             style={{
-              width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-              fontSize: 18,
+              gap: 5, borderRadius: 14, padding: "8px 12px",
               background: `linear-gradient(135deg, var(--pam-special-from), var(--pam-special-to))`,
               border: "1px solid var(--pam-special-border)",
-              boxShadow: "0 2px 8px var(--pam-shadow-special)",
+              boxShadow: "0 2px 12px var(--pam-shadow-special)",
             }}
-            aria-label="미션 보기"
           >
             {hasUnfinishedMissions && (
               <div
@@ -44,10 +89,14 @@ export function HeartDisplay({ onMenuOpen }: Props) {
                 style={{ top: -3, right: -3, width: 11, height: 11, backgroundColor: "var(--pam-pink)", borderColor: "var(--pam-bg)" }}
               />
             )}
-            ⚡
+            <span style={{ fontSize: 19, filter: "drop-shadow(0 2px 4px var(--pam-shadow-purple-btn))" }}>⚡</span>
+            <span className="font-black" style={{ fontSize: 19, color: "var(--pam-special-text)" }}>
+              {heartsReady ? specialCount : <span style={{ color: "var(--pam-text-disabled)" }}>—</span>}
+            </span>
           </button>
         )}
 
+        {/* 공통: 테마 토글 */}
         <button
           onClick={toggleTheme}
           className="flex items-center justify-center"
@@ -63,6 +112,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           {theme === "dark" ? "☀️" : "🌙"}
         </button>
 
+        {/* 공통: 메뉴 */}
         <button
           onClick={onMenuOpen}
           className="flex items-center justify-center"
@@ -99,14 +149,10 @@ export function HeartDisplay({ onMenuOpen }: Props) {
         }}
       >
         <div className="w-10 h-[5px] rounded-full mx-auto mt-4" style={{ backgroundColor: "var(--pam-menu-handle)" }} />
-
         <div className="flex items-center" style={{ gap: 12, padding: "16px 24px 14px", borderBottom: "1px solid var(--pam-border)" }}>
           <div
             className="flex items-center justify-center flex-shrink-0"
-            style={{
-              width: 40, height: 40, borderRadius: 12, fontSize: 20,
-              background: `linear-gradient(135deg, var(--pam-special-from), var(--pam-special-to))`,
-            }}
+            style={{ width: 40, height: 40, borderRadius: 12, fontSize: 20, background: `linear-gradient(135deg, var(--pam-special-from), var(--pam-special-to))` }}
           >
             ⚡
           </div>
@@ -122,7 +168,6 @@ export function HeartDisplay({ onMenuOpen }: Props) {
             ✕
           </button>
         </div>
-
         <div className="flex flex-col" style={{ padding: "8px 16px", gap: 4 }}>
           {isLoading && (
             <div className="text-center font-medium py-8" style={{ fontSize: 14, color: "var(--pam-text-disabled)" }}>
@@ -143,10 +188,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
               className="flex items-center gap-3 rounded-[16px]"
               style={{
                 padding: "14px 16px",
-                backgroundColor:
-                  m.status === "done" ? "var(--pam-surface)"
-                  : m.status === "locked" ? "var(--pam-surface)"
-                  : "var(--pam-surface-card)",
+                backgroundColor: m.status === "done" || m.status === "locked" ? "var(--pam-surface)" : "var(--pam-surface-card)",
                 opacity: m.status === "locked" ? 0.6 : 1,
               }}
             >

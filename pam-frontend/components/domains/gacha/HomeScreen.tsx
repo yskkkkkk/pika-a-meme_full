@@ -6,9 +6,10 @@ interface Props {
   onBasicDraw: () => void;
   onSpecialDraw: () => void;
   username?: string | null;
+  guestHeartCount?: number;
 }
 
-export function HomeScreen({ onBasicDraw, onSpecialDraw, username }: Props) {
+export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCount }: Props) {
   return (
     <div
       className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in duration-300"
@@ -37,12 +38,22 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username }: Props) {
             <div className="font-black" style={{ fontSize: 18 }}>BASIC 가챠</div>
             <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>일반 하트 1개 소모</div>
           </div>
-          <div
-            className="flex items-center justify-center flex-shrink-0"
-            style={{ width: 40, height: 40, background: "var(--pam-icon-overlay)", borderRadius: "50%", fontSize: 18 }}
-          >
-            ❤️
-          </div>
+          {guestHeartCount !== undefined ? (
+            <div
+              className="flex items-center gap-1.5 flex-shrink-0"
+              style={{ padding: "7px 13px", borderRadius: 9999, background: "var(--pam-icon-overlay)" }}
+            >
+              <span style={{ fontSize: 15 }}>❤️</span>
+              <span className="font-black text-white" style={{ fontSize: 20 }}>{guestHeartCount}</span>
+            </div>
+          ) : (
+            <div
+              className="flex items-center justify-center flex-shrink-0"
+              style={{ width: 40, height: 40, background: "var(--pam-icon-overlay)", borderRadius: "50%", fontSize: 18 }}
+            >
+              ❤️
+            </div>
+          )}
         </button>
 
         <button

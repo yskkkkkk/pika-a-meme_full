@@ -130,7 +130,12 @@ export default function Home() {
       </div>
 
       {appState === "HOME" && (
-        <HomeScreen onBasicDraw={handleBasicDraw} onSpecialDraw={handleSpecialDrawClick} username={username} />
+        <HomeScreen
+          onBasicDraw={handleBasicDraw}
+          onSpecialDraw={handleSpecialDrawClick}
+          username={username}
+          guestHeartCount={isLoggedIn ? undefined : guest.hearts}
+        />
       )}
 
       {appState === "TAG_SELECT" && (
