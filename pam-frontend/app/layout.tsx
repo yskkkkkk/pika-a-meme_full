@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -34,7 +40,13 @@ export default function RootLayout({
           <div className="flex justify-center min-h-[100dvh]">
             <div
               className="w-full max-w-[500px] shadow-2xl relative flex flex-col overflow-hidden"
-              style={{ backgroundColor: "var(--pam-bg)" }}
+              style={{
+                backgroundColor: "var(--pam-bg)",
+                paddingTop: "env(safe-area-inset-top)",
+                paddingBottom: "env(safe-area-inset-bottom)",
+                paddingLeft: "env(safe-area-inset-left)",
+                paddingRight: "env(safe-area-inset-right)",
+              }}
             >
               <main className="flex-1 flex flex-col relative">
                 {children}
