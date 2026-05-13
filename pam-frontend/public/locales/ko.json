@@ -1,0 +1,143 @@
+{
+  "brand": {
+    "serviceName": "피카밈",
+    "homeTitle": "PICK-A-MEME",
+    "meme": "미미카드",
+    "myMemes": "미미카드 도감",
+    "drawMeme": "미미카드 뽑기",
+    "collection": "앨범"
+  },
+  "common": {
+    "back": "뒤로",
+    "confirm": "확인",
+    "loading": "불러오는 중...",
+    "lightMode": "라이트 모드",
+    "darkMode": "다크 모드",
+    "createdSuffix": "생성"
+  },
+  "actions": {
+    "redraw": "다시 뽑기",
+    "save": "저장하기",
+    "saving": "저장 중...",
+    "loadMore": "더 보기",
+    "share": "공유하기",
+    "sharing": "공유 중..."
+  },
+  "home": {
+    "subtitle": "오늘의 미미카드를 뽑아보세요",
+    "subtitleUser": "{name}님의 미미카드를 뽑아보세요",
+    "basicDraw": "BASIC 가챠",
+    "specialDraw": "SPECIAL 가챠",
+    "consumeBasic": "일반 하트 1개 소모",
+    "consumeSpecial": "스페셜 하트 1개 소모"
+  },
+  "auth": {
+    "loginToSave": "로그인하면 미미카드를 저장할 수 있어요!",
+    "quickStart": "1초만에 시작하기",
+    "continueWithKakao": "카카오로 계속하기",
+    "continueWithGoogle": "구글로 계속하기",
+    "logout": "로그아웃",
+    "processingLogin": "로그인 처리 중...",
+    "welcomeMessage": "🎉 환영합니다! 가입 축하 선물로 스페셜 하트 ⚡ 1개를 드렸어요!"
+  },
+  "benefits": {
+    "realtimeRefill": "실시간 충전",
+    "realtimeRefillDesc": "일반 하트는 5분마다 자동으로 충전됩니다. 끊임없이 미미카드를 생산하세요!",
+    "specialCard": "스페셜 카드",
+    "specialCardDesc": "스페셜 하트로 더욱더 완성도 높은 카드를 생산하세요.",
+    "myGalleryDesc": "나만의 갤러리",
+    "myGalleryFeatureDesc": "로그인 후 완성 된 카드는 보관되어 언제든 다시 꺼내볼 수 있습니다."
+  },
+  "gallery": {
+    "myGallery": "내 갤러리",
+    "publicTitle": "미미카드 갤러리",
+    "publicSubtitle": "모두가 만든 미미카드 모음",
+    "totalCount": "총 {count}개",
+    "viewAllResults": "모든 결과물 보기",
+    "sortLatest": "최신순",
+    "sortMatched": "태그 매칭",
+    "sortSpecial": "SPECIAL",
+    "noMemes": "아직 뽑은 미미카드가 없어요",
+    "noPublicMemes": "아직 만들어진 미미카드가 없어요",
+    "noMatchingMemes": "해당하는 미미카드가 없어요",
+    "drawFirstMeme": "첫 번째 미미카드를 뽑아보세요!",
+    "makeFirstMeme": "첫 번째 미미카드를 만들어보세요!",
+    "fetchFailed": "갤러리를 불러오는 데 실패했습니다.",
+    "showAgain": "갤러리에 다시 표시됩니다",
+    "hidden": "갤러리에서 숨겼어요",
+    "hiddenBadge": "숨김",
+    "detailAria": "내 미미카드 상세 보기",
+    "myMemeAlt": "내 미미카드",
+    "queryFailed": "조회 실패"
+  },
+  "detail": {
+    "backToGallery": "갤러리로 돌아가기",
+    "title": "내 미미카드 상세",
+    "description": "말풍선까지 완성된 형태로 보기",
+    "hideFromGallery": "갤러리에서 숨기기",
+    "showInGallery": "갤러리에 다시 표시하기",
+    "imageAlt": "상세 이미지",
+    "loadFailed": "미미카드를 불러오지 못했어요",
+    "visibilityChangeFailed": "변경 실패"
+  },
+  "gacha": {
+    "selectTagTitle": "오늘의 기분은?",
+    "selectTagDesc": "딱 하나만 골라요!",
+    "drawWithTag": "#{tag} 로 뽑기!",
+    "selectTagPrompt": "태그를 선택해 주세요",
+    "zapMessage": "찌릿! 새로운 미미카드가 도착했어요",
+    "luckyMessage": "운이 좋을 것 같나요? 미미카드를 뽑아보세요!",
+    "drawFailed": "뽑기에 실패했습니다."
+  },
+  "result": {
+    "viewGallery": "내 갤러리 보기 →",
+    "resultAlt": "미미카드 결과"
+  },
+  "errors": {
+    "insufficientHearts": "하트가 부족합니다! 미션을 완료하거나 잠시 후 다시 시도하세요.",
+    "insufficientHeartsGuest": "하트가 부족합니다! 잠시 후 다시 시도하거나 로그인하세요.",
+    "errorOccurred": "오류가 발생했습니다.",
+    "saveFailed": "저장에 실패했습니다. 다시 시도해주세요.",
+    "shareFailed": "공유에 실패했습니다",
+    "heartFetchFailed": "하트 조회 실패"
+  },
+  "toast": {
+    "imageSaved": "이미지가 저장되었어요",
+    "linkCopied": "링크가 복사되었어요"
+  },
+  "heart": {
+    "getSpecialHeart": "스페셜 하트 획득",
+    "missionRewardDesc": "미션 완료 시 지급돼요",
+    "noActiveMissions": "진행 가능한 미션이 없어요"
+  },
+  "missions": {
+    "firstLogin": { "name": "최초 로그인", "desc": "로그인하면 즉시 완료돼요" },
+    "shareStory": { "name": "스토리 공유하기", "desc": "완성된 카드를 스토리에 공유해요" },
+    "inviteFriend": { "name": "친구 초대하기", "desc": "친구에게 링크를 보내보세요" },
+    "visit7Days": { "name": "7일 연속 방문", "desc": "매일 방문해서 연속 기록을 쌓아요" },
+    "fillGallery10": { "name": "갤러리 10개 채우기", "desc": "미미카드 10개를 만들면 오픈돼요" }
+  },
+  "loading": {
+    "title": "두구두구두구",
+    "step1": "카드 뽑는 중",
+    "step2": "문구 뽑는 중",
+    "step3": "이미지에 붙이는 중",
+    "step4": "마무리 중"
+  },
+  "canvas": {
+    "brandBar": "미미카드 뽑기"
+  },
+  "tags": {
+    "피곤": "피곤",
+    "직장인": "직장인",
+    "기쁨": "기쁨",
+    "주말": "주말",
+    "귀여움": "귀여움",
+    "분노": "분노",
+    "놀람": "놀람",
+    "눈치": "눈치",
+    "광기": "광기",
+    "질문": "질문",
+    "의지": "의지"
+  }
+}

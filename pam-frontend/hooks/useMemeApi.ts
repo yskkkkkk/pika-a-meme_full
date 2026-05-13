@@ -8,7 +8,8 @@ export type MemeResult = MockMemeResponse; // reuse same shape
  */
 export async function composeMeme(
   heartType: 'BASIC' | 'SPECIAL',
-  tags?: string[]
+  tags?: string[],
+  drawFailedMessage = 'Failed to draw.'
 ): Promise<MemeResult> {
   const query = new URLSearchParams({ heartType });
   if (tags && tags.length) query.append('tags', tags.join(','));
@@ -21,7 +22,7 @@ export async function composeMeme(
 
   // 서버가 응답했지만 실패 (하트 부족, 서버 에러 등) → 에러 throw
   if (apiResult !== undefined) {
-    throw new Error(apiResult?.error?.message ?? "뽑기에 실패했습니다.");
+    throw new Error(apiResult?.error?.message ?? drawFailedMessage);
   }
 
   // 서버 미연결 (네트워크 오류, 로컬 개발 환경) → mock 폴백
