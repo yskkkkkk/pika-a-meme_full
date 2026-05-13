@@ -14,16 +14,16 @@ export interface ServerHeartState {
   special: HeartStatus;
 }
 
-async function fetchHearts(): Promise<ServerHeartState> {
+async function fetchHearts(errorMessage: string): Promise<ServerHeartState> {
   const res = await apiFetch<ServerHeartState>("/api/hearts");
-  if (!res || !res.success || !res.data) throw new Error(res?.error?.message ?? "하트 조회 실패");
+  if (!res || !res.success || !res.data) throw new Error(res?.error?.message ?? errorMessage);
   return res.data;
 }
 
-export function useHeart(enabled: boolean = true) {
+export function useHeart(enabled: boolean = true, errorMessage = "Failed to fetch hearts") {
   return useQuery({
     queryKey: ["hearts"],
-    queryFn: fetchHearts,
+    queryFn: () => fetchHearts(errorMessage),
     refetchInterval: 60_000,
     retry: false,
     enabled: enabled,

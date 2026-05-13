@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "pick-a-meme | 피카밈",
+  title: "pick-a-meme",
   description: "B급 감성 동물 사진과 킹받는 문구의 조화",
   icons: {
     icon: "/favicon.svg",

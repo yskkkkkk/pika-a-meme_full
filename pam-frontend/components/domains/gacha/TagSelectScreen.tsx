@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/hooks/useLanguage";
+import { TranslationMessages } from "@/lib/i18n";
 
 const AVAILABLE_TAGS = [
   "피곤", "직장인", "기쁨", "주말", "귀여움",
@@ -22,6 +24,7 @@ interface Props {
 }
 
 export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }: Props) {
+  const { t } = useLanguage();
   return (
     <div
       className="flex-1 flex flex-col w-full animate-in slide-in-from-bottom-8 duration-300"
@@ -32,13 +35,13 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
         className="self-start flex items-center gap-1 font-bold"
         style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-muted)" }}
       >
-        ← 뒤로
+        ← {t.common.back}
       </button>
       <h2 className="font-black" style={{ fontSize: 26, marginBottom: 8, color: "var(--pam-text)" }}>
-        오늘의 기분은?
+        {t.gacha.selectTagTitle}
       </h2>
       <p className="font-medium" style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-faint)" }}>
-        딱 하나만 골라요!
+        {t.gacha.selectTagDesc}
       </p>
       <div className="flex flex-wrap justify-center" style={{ gap: 8, marginBottom: 28 }}>
         {AVAILABLE_TAGS.map((tag) => (
@@ -69,7 +72,7 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
           >
             <span>{TAG_EMOJI[tag]}</span>
             <span style={{ color: selectedTag === tag ? "rgba(255,255,255,.65)" : "var(--pam-tag-text)" }}>#</span>
-            {tag}
+            {t.tags[tag as keyof TranslationMessages["tags"]] || tag}
           </button>
         ))}
       </div>
@@ -87,7 +90,9 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
           cursor: selectedTag ? "pointer" : "not-allowed",
         }}
       >
-        {selectedTag ? `#${selectedTag} 로 뽑기!` : "태그를 선택해 주세요"}
+        {selectedTag 
+          ? t.format.drawWithTag(t.tags[selectedTag as keyof TranslationMessages["tags"]] || selectedTag) 
+          : t.gacha.selectTagPrompt}
       </button>
     </div>
   );

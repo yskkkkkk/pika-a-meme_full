@@ -7,6 +7,7 @@ import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2 } fro
 import html2canvas from "html2canvas";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
 interface MemeDetail {
@@ -36,8 +37,8 @@ async function captureCard(el: HTMLElement): Promise<Blob> {
   );
 }
 
-function formatDateTime(iso: string): string {
-  return new Intl.DateTimeFormat("ko-KR", {
+function formatDateTime(iso: string, language: string): string {
+  return new Intl.DateTimeFormat(language === "ko" ? "ko-KR" : "en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -51,6 +52,7 @@ export default function MyMemeDetailPage() {
   const router = useRouter();
   const params = useParams<{ memeId: string }>();
   const memeId = params.memeId;
+  const { language, t } = useLanguage();
   const queryClient = useQueryClient();
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -66,7 +68,7 @@ export default function MyMemeDetailPage() {
     queryKey: ["my-meme", memeId],
     queryFn: async () => {
       const res = await apiFetch<MemeDetail>(`/api/memes/my-history/${memeId}`);
-      if (!res || !res.success || !res.data) throw new Error(res?.error?.message ?? "조회 실패");
+      if (!res || !res.success || !res.data) throw new Error(res?.error?.message ?? t.errors.errorOccurred);
       return res.data;
     },
     enabled: isLoaded && isLoggedIn && Boolean(memeId),
@@ -80,7 +82,7 @@ export default function MyMemeDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: nextEnabled }),
       });
-      if (!res?.success) throw new Error("변경 실패");
+      if (!res?.success) throw new Error(t.detail.visibilityChangeFailed);
       return nextEnabled;
     },
     onSuccess: (nextEnabled) => {
@@ -88,7 +90,7 @@ export default function MyMemeDetailPage() {
         old ? { ...old, enabled: nextEnabled } : old
       );
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
-      showToast(nextEnabled ? "갤러리에 다시 표시됩니다" : "갤러리에서 숨겼어요");
+      showToast(nextEnabled ? t.gallery.showAgain : t.gallery.hidden);
     },
   });
 
@@ -108,9 +110,9 @@ export default function MyMemeDetailPage() {
       a.download = `pika-meme-${meme.id.slice(0, 8)}.jpg`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("이미지가 저장되었어요");
+      showToast(t.toast.imageSaved);
     } catch {
-      showToast("저장에 실패했습니다");
+      showToast(t.errors.saveFailed);
     } finally {
       setIsSaving(false);
     }
@@ -129,10 +131,10 @@ export default function MyMemeDetailPage() {
         await navigator.share({ title: "PICK-A-MEME", text: meme.phraseText, url: window.location.href });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        showToast("링크가 복사되었어요");
+        showToast(t.toast.linkCopied);
       }
     } catch (e: unknown) {
-      if (e instanceof Error && e.name !== "AbortError") showToast("공유에 실패했습니다");
+      if (e instanceof Error && e.name !== "AbortError") showToast(t.errors.shareFailed);
     } finally {
       setIsSharing(false);
     }
@@ -150,13 +152,13 @@ export default function MyMemeDetailPage() {
           onClick={() => router.back()}
           className="flex items-center justify-center rounded-full active:scale-95 transition-transform"
           style={{ width: 36, height: 36, backgroundColor: "var(--pam-surface)" }}
-          aria-label="뒤로가기"
+          aria-label={t.common.back}
         >
           <ArrowLeft className="w-4 h-4" style={{ color: "var(--pam-text-sub)" }} />
         </button>
         <div>
-          <h1 className="font-black" style={{ fontSize: 18, color: "var(--pam-text)" }}>내 미미카드 상세</h1>
-          <p className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>말풍선까지 완성된 형태로 보기</p>
+          <h1 className="font-black" style={{ fontSize: 18, color: "var(--pam-text)" }}>{t.detail.title}</h1>
+          <p className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>{t.detail.description}</p>
         </div>
       </div>
 
@@ -168,13 +170,13 @@ export default function MyMemeDetailPage() {
         {isError && (
           <div className="flex flex-col items-center justify-center py-24 gap-4" style={{ color: "var(--pam-text-muted)" }}>
             <ImageIcon className="w-12 h-12" style={{ color: "var(--pam-text-disabled)" }} />
-            <p className="text-lg font-bold">미미카드를 불러오지 못했어요</p>
+            <p className="text-lg font-bold">{t.detail.loadFailed}</p>
             <button
               onClick={() => router.push("/my")}
               className="px-6 py-3 font-black rounded-full active:scale-95 transition-transform text-sm"
               style={{ backgroundColor: "var(--pam-text)", color: "var(--pam-bg)" }}
             >
-              갤러리로 돌아가기
+              {t.detail.backToGallery}
             </button>
           </div>
         )}
@@ -188,7 +190,7 @@ export default function MyMemeDetailPage() {
                 subjectPosition={meme.subjectPosition}
                 phrase={meme.phraseText}
                 seed={meme.id}
-                imageAlt="상세 이미지"
+                imageAlt={t.detail.imageAlt}
                 className="w-full"
               />
               {meme.matchedTags.length > 0 && (
@@ -215,7 +217,7 @@ export default function MyMemeDetailPage() {
                 style={{ backgroundColor: "var(--pam-text)", color: "var(--pam-bg)" }}
               >
                 <Download className="w-4 h-4" />
-                {isSaving ? "저장 중..." : "저장하기"}
+                {isSaving ? t.actions.saving : t.actions.save}
               </button>
               <button
                 onClick={handleShare}
@@ -224,7 +226,7 @@ export default function MyMemeDetailPage() {
                 style={{ background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))", color: "white" }}
               >
                 <Share2 className="w-4 h-4" />
-                {isSharing ? "공유 중..." : "공유하기"}
+                {isSharing ? t.actions.sharing : t.actions.share}
               </button>
             </div>
 
@@ -276,7 +278,7 @@ export default function MyMemeDetailPage() {
 
               <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>
                 <Clock className="w-3.5 h-3.5" />
-                <span>{formatDateTime(meme.createdAt)} 생성</span>
+                <span>{formatDateTime(meme.createdAt, language)} {t.common.createdSuffix}</span>
               </div>
             </div>
 
@@ -291,9 +293,9 @@ export default function MyMemeDetailPage() {
               }}
             >
               {meme.enabled ? (
-                <><EyeOff className="w-4 h-4" /> 갤러리에서 숨기기</>
+                <><EyeOff className="w-4 h-4" /> {t.detail.hideFromGallery}</>
               ) : (
-                <><Eye className="w-4 h-4" /> 갤러리에 다시 표시하기</>
+                <><Eye className="w-4 h-4" /> {t.detail.showInGallery}</>
               )}
             </button>
           </div>

@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 
-const LOADING_STEPS = [
-  { text: "카드 뽑는 중", dots: 3 },
-  { text: "문구 뽑는 중", dots: 3 },
-  { text: "이미지에 붙이는 중", dots: 5 },
-  { text: "마무리 중", dots: 2 },
-];
+import { useLanguage } from "@/hooks/useLanguage";
+
 const LOADING_ANIMALS = ["🐱", "🐶", "🐻", "🐼", "🦊"];
 
 export function SpinningScreen() {
+  const { t } = useLanguage();
+  const steps = [
+    { text: t.loading.step1, dots: 3 },
+    { text: t.loading.step2, dots: 3 },
+    { text: t.loading.step3, dots: 5 },
+    { text: t.loading.step4, dots: 2 },
+  ];
   const [stepIdx, setStepIdx] = useState(0);
   const [dotCount, setDotCount] = useState(0);
   const [stepVisible, setStepVisible] = useState(true);
@@ -20,7 +23,7 @@ export function SpinningScreen() {
     const t = setInterval(() => {
       setStepVisible(false);
       setTimeout(() => {
-        setStepIdx((i) => (i + 1) % LOADING_STEPS.length);
+        setStepIdx((i) => (i + 1) % steps.length);
         setDotCount(0);
         setStepVisible(true);
       }, 220);
@@ -29,10 +32,10 @@ export function SpinningScreen() {
   }, []);
 
   useEffect(() => {
-    if (dotCount >= LOADING_STEPS[stepIdx].dots) return;
-    const t = setTimeout(() => setDotCount((d) => d + 1), 320);
-    return () => clearTimeout(t);
-  }, [dotCount, stepIdx]);
+    if (dotCount >= steps[stepIdx].dots) return;
+    const t_timer = setTimeout(() => setDotCount((d) => d + 1), 320);
+    return () => clearTimeout(t_timer);
+  }, [dotCount, stepIdx, steps]);
 
   useEffect(() => {
     const t = setInterval(() => setAnimalIdx((i) => (i + 1) % LOADING_ANIMALS.length), 1600);
@@ -60,13 +63,13 @@ export function SpinningScreen() {
         </div>
       </div>
       <div className="font-black text-white" style={{ fontSize: 18, letterSpacing: "0.05em", marginBottom: 8 }}>
-        두구두구두구
+        {t.loading.title}
       </div>
       <div
         className="text-white/40 transition-opacity duration-200"
         style={{ fontSize: 13, minHeight: 20, opacity: stepVisible ? 1 : 0 }}
       >
-        {LOADING_STEPS[stepIdx].text}
+        {steps[stepIdx].text}
         <span style={{ color: "var(--pam-spin-dot-1)" }}>{".".repeat(dotCount)}</span>
       </div>
       <div className="flex mt-4" style={{ gap: 6 }}>
