@@ -12,6 +12,7 @@ import { HomeScreen } from "@/components/domains/gacha/HomeScreen";
 import { SpinningScreen } from "@/components/domains/gacha/SpinningScreen";
 import { TagSelectScreen } from "@/components/domains/gacha/TagSelectScreen";
 import { ResultScreen } from "@/components/domains/gacha/ResultScreen";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
 
@@ -20,6 +21,7 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
+  const { t } = useLanguage();
 
   const { isLoggedIn, username } = useAuth();
   const guest = useGuestHeart();
@@ -42,10 +44,10 @@ export default function Home() {
     localStorage.removeItem("pam_show_welcome");
     queryClient.invalidateQueries({ queryKey: ["hearts"] });
     // 약간의 딜레이 후 표시 (하트 UI가 렌더된 후)
-    const t = setTimeout(() => {
-      alert("🎉 환영합니다! 가입 축하 선물로 스페셜 하트 ⚡ 1개를 드렸어요!");
+    const t_timer = setTimeout(() => {
+      alert(t.welcomeMessage);
     }, 500);
-    return () => clearTimeout(t);
+    return () => clearTimeout(t_timer);
   }, [isLoggedIn, queryClient]);
 
   const handleBasicDraw = async () => {
@@ -54,12 +56,12 @@ export default function Home() {
     if (isLoggedIn) {
       if (heartsLoading) return;
       if ((serverHearts?.basic.count ?? 0) <= 0) {
-        alert("하트가 부족합니다! 미션을 완료하거나 잠시 후 다시 시도하세요.");
+        alert(t.insufficientHearts);
         return;
       }
     } else {
       if (guest.hearts <= 0) {
-        alert("하트가 부족합니다! 잠시 후 다시 시도하거나 로그인하세요.");
+        alert(t.insufficientHeartsGuest);
         return;
       }
       if (!guest.consumeHeart()) return;
@@ -84,7 +86,7 @@ export default function Home() {
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
-      alert(e instanceof Error ? e.message : "오류가 발생했습니다.");
+      alert(e instanceof Error ? e.message : t.errorOccurred);
       setAppState("HOME");
     }
   };
@@ -117,7 +119,7 @@ export default function Home() {
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
-      alert(e instanceof Error ? e.message : "오류가 발생했습니다.");
+      alert(e instanceof Error ? e.message : t.errorOccurred);
       setAppState("HOME");
     }
   };

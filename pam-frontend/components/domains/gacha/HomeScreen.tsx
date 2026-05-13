@@ -1,6 +1,7 @@
 "use client";
 
 import { RecentMemeCarousel } from "@/components/domains/gacha/RecentMemeCarousel";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Props {
   onBasicDraw: () => void;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCount }: Props) {
+  const { t } = useLanguage();
   return (
     <div
       className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in duration-300"
@@ -20,10 +22,10 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           className="font-black text-center leading-none"
           style={{ fontSize: 40, letterSpacing: "-0.03em", color: "var(--pam-text)" }}
         >
-          PICK-A-<em className="pam-brand-em">MEME</em>
+          {t.homeTitle}
         </h1>
         <p className="text-center" style={{ fontSize: 13, color: "var(--pam-text-faint)" }}>
-          {username ? `${username}님의 미미카드를 뽑아보세요` : "오늘의 미미카드를 뽑아보세요"}
+          {username ? t.homeSubtitleUser(username) : t.homeSubtitle}
         </p>
       </div>
 
@@ -35,8 +37,8 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           style={{ background: "var(--pam-text)", borderRadius: 20, padding: "16px 20px", border: "none" }}
         >
           <div className="text-left">
-            <div className="font-black" style={{ fontSize: 18 }}>BASIC 가챠</div>
-            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>일반 하트 1개 소모</div>
+            <div className="font-black" style={{ fontSize: 18 }}>{t.basicDraw}</div>
+            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{t.consumeBasic}</div>
           </div>
           {guestHeartCount !== undefined ? (
             <div
@@ -68,8 +70,8 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           }}
         >
           <div className="text-left">
-            <div className="font-black" style={{ fontSize: 18 }}>SPECIAL 가챠</div>
-            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>스페셜 하트 1개 소모</div>
+            <div className="font-black" style={{ fontSize: 18 }}>{t.specialDraw}</div>
+            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{t.consumeSpecial}</div>
           </div>
           <div
             className="flex items-center justify-center flex-shrink-0"

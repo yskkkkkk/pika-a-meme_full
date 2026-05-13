@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import { MemeResult } from "@/hooks/useMemeApi";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
@@ -18,7 +19,7 @@ async function captureCard(el: HTMLElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-      else reject(new Error("캡처 실패"));
+      else reject(new Error("Capture failed"));
     }, "image/png");
   });
 }
@@ -48,6 +49,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const { isLoggedIn } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleSave = async () => {
@@ -57,7 +59,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
       const blob = await captureCard(cardRef.current);
       await saveMeme(blob);
     } catch {
-      alert("저장에 실패했습니다. 다시 시도해주세요.");
+      alert(t.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -73,7 +75,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
         imageUrl={result.imagePresignedUrl}
         subjectPosition={result.subjectPosition}
         phrase={result.phrase}
-        imageAlt="미미카드 결과"
+        imageAlt={t.resultAlt}
         className="w-full overflow-hidden relative flex-shrink-0"
       />
 
@@ -90,7 +92,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
             fontSize: 15,
           }}
         >
-          다시 뽑기
+          {t.redraw}
         </button>
         <button
           onClick={handleSave}
@@ -116,7 +118,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
               strokeLinejoin="round"
             />
           </svg>
-          {saving ? "저장 중..." : "저장하기"}
+          {saving ? t.saving : t.save}
         </button>
       </div>
 
@@ -126,7 +128,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
           className="font-bold active:scale-95 transition-transform"
           style={{ fontSize: 13, color: "var(--pam-text-muted)" }}
         >
-          내 갤러리 보기 →
+          {t.viewGallery}
         </button>
       )}
     </div>

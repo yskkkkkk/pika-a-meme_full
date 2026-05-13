@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { EyeOff, Heart, Clock } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
 interface MemeItem {
@@ -21,14 +22,22 @@ interface MemeItem {
 
 type ViewMode = "all" | "matched" | "special";
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, language: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "방금 전";
-  if (m < 60) return `${m}분 전`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 전`;
-  return `${Math.floor(h / 24)}일 전`;
+  if (language === "ko") {
+    if (m < 1) return "방금 전";
+    if (m < 60) return `${m}분 전`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}시간 전`;
+    return `${Math.floor(h / 24)}일 전`;
+  } else {
+    if (m < 1) return "Just now";
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
 }
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -54,7 +63,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
     <Link
       href={`/my/${meme.id}`}
       className={`group block hover:-translate-y-1 transition-all duration-300 ${dimmed ? "opacity-40" : ""}`}
-      aria-label="내 미미카드 상세 보기"
+      aria-label={language === "ko" ? "내 미미카드 상세 보기" : "View Meme Details"}
     >
       <div className="relative">
         <MemeCanvasCard
@@ -63,7 +72,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           phrase={meme.phraseText}
           seed={meme.id}
           showBrandBar={false}
-          imageAlt="내 미미카드"
+          imageAlt={language === "ko" ? "내 미미카드" : "My Meme"}
           className="w-full"
         />
         {dimmed && (
@@ -72,7 +81,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
               className="flex items-center gap-1 px-2 py-0.5 text-white text-xs font-black rounded-full shadow"
               style={{ backgroundColor: "var(--pam-text-sub)" }}
             >
-              <EyeOff className="w-3 h-3" /> 숨김
+              <EyeOff className="w-3 h-3" /> {language === "ko" ? "숨김" : "Hidden"}
             </span>
           </div>
         )}
@@ -123,7 +132,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
         {/* 2행: 시간 */}
         <span className="flex items-center justify-end gap-1 text-[10px] font-bold" style={{ color: "var(--pam-text-muted)" }}>
           <Clock className="w-3 h-3" />
-          {timeAgo(meme.createdAt)}
+          {timeAgo(meme.createdAt, language)}
         </span>
       </div>
     </Link>
@@ -140,6 +149,7 @@ export function MyGallery() {
   const [page, setPage] = useState(0);
   const [allMemes, setAllMemes] = useState<MemeItem[]>([]);
   const [showAll, setShowAll] = useState(false);
+  const { language, t } = useLanguage();
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const PAGE_SIZE = 20;
 
@@ -182,17 +192,21 @@ export function MyGallery() {
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-black" style={{ color: "var(--pam-text-muted)" }}>
-          {allMemes.length > 0 && `총 ${allMemes.length}개`}
+          {allMemes.length > 0 && t.totalCount(allMemes.length)}
         </span>
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>모든 결과물 보기</span>
+          <span className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>{t.viewAllResults}</span>
           <Toggle on={showAll} onToggle={handleToggle} />
         </div>
       </div>
 
       {/* 필터/정렬 탭 */}
       <div className="flex flex-nowrap gap-[5px]">
-        {VIEW_OPTIONS.map(({ key, label }) => (
+        {[
+          { key: "all" as ViewMode, label: t.sortLatest },
+          { key: "matched" as ViewMode, label: t.sortMatched },
+          { key: "special" as ViewMode, label: t.sortSpecial },
+        ].map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setViewMode(key)}
@@ -218,9 +232,9 @@ export function MyGallery() {
         <div className="flex flex-col items-center justify-center py-20 gap-4" style={{ color: "var(--pam-text-muted)" }}>
           <div className="text-6xl">🖼️</div>
           <p className="text-lg font-bold">
-            {allMemes.length === 0 ? "아직 뽑은 미미카드가 없어요" : "해당하는 미미카드가 없어요"}
+            {allMemes.length === 0 ? t.noMemes : t.noMatchingMemes}
           </p>
-          {allMemes.length === 0 && <p className="text-sm">첫 번째 미미카드를 뽑아보세요!</p>}
+          {allMemes.length === 0 && <p className="text-sm">{t.drawFirstMeme}</p>}
         </div>
       )}
 
@@ -235,7 +249,7 @@ export function MyGallery() {
       </div>
 
       {isError && (
-        <p className="text-center text-sm font-medium" style={{ color: "#f87171" }}>갤러리를 불러오는 데 실패했습니다.</p>
+        <p className="text-center text-sm font-medium" style={{ color: "#f87171" }}>{t.fetchGalleryFailed}</p>
       )}
 
       {!isFetching && hasMore && (
@@ -245,7 +259,7 @@ export function MyGallery() {
             className="px-8 py-3 font-black rounded-full active:scale-95 transition-all text-sm"
             style={{ backgroundColor: "var(--pam-text)", color: "var(--pam-bg)" }}
           >
-            더 보기
+            {t.loadMore}
           </button>
         </div>
       )}

@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHeart } from "@/hooks/useHeart";
 import { useMissions, type Mission } from "@/hooks/useMissions";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Props {
   onMenuOpen: () => void;
@@ -15,6 +16,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
   const { data: serverHearts } = useHeart(isLoggedIn);
   const { missions, isLoading } = useMissions();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const [missionOpen, setMissionOpen] = useState(false);
 
   const heartsReady = !isLoggedIn || serverHearts != null;
@@ -107,7 +109,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
             border: "1px solid var(--pam-border)",
             boxShadow: "0 2px 8px var(--pam-shadow-pink)",
           }}
-          aria-label={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+          aria-label={theme === "dark" ? t.lightMode : t.darkMode}
         >
           {theme === "dark" ? "☀️" : "🌙"}
         </button>
@@ -157,8 +159,8 @@ export function HeartDisplay({ onMenuOpen }: Props) {
             ⚡
           </div>
           <div>
-            <div className="font-black" style={{ fontSize: 16, color: "var(--pam-text)" }}>스페셜 하트 획득</div>
-            <div style={{ fontSize: 13, marginTop: 2, color: "var(--pam-text-muted)" }}>미션 완료 시 지급돼요</div>
+            <div className="font-black" style={{ fontSize: 16, color: "var(--pam-text)" }}>{t.getSpecialHeart}</div>
+            <div style={{ fontSize: 13, marginTop: 2, color: "var(--pam-text-muted)" }}>{t.missionRewardDesc}</div>
           </div>
           <button
             onClick={() => setMissionOpen(false)}
@@ -171,14 +173,14 @@ export function HeartDisplay({ onMenuOpen }: Props) {
         <div className="flex flex-col" style={{ padding: "8px 16px", gap: 4 }}>
           {isLoading && (
             <div className="text-center font-medium py-8" style={{ fontSize: 14, color: "var(--pam-text-disabled)" }}>
-              불러오는 중...
+              {t.loading}
             </div>
           )}
           {!isLoading && missions.length === 0 && (
             <div className="flex flex-col items-center py-10" style={{ gap: 8 }}>
               <div style={{ fontSize: 36 }}>⚡</div>
               <div className="font-bold text-center" style={{ fontSize: 14, color: "var(--pam-text-faint)" }}>
-                진행 가능한 미션이 없어요
+                {t.noActiveMissions}
               </div>
             </div>
           )}

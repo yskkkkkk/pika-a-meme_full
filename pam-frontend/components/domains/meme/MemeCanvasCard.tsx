@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, CSSProperties, forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type TailDir = "up" | "down" | "left" | "right";
 
@@ -203,8 +204,9 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
   seed,
   showBrandBar = true,
   className,
-  imageAlt = "미미카드 이미지",
+  imageAlt,
 }, externalRef) {
+  const { t } = useLanguage();
   const [scale, setScale] = useState(1);
   const bubble = useMemeBubbleStyle(seed);
   const roRef = useRef<ResizeObserver | null>(null);
@@ -229,7 +231,7 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
     >
       <img
         src={imageUrl}
-        alt={imageAlt}
+        alt={imageAlt || t.meme}
         className="w-full h-full object-cover"
       />
 
@@ -255,8 +257,8 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
             PICK-A-<em style={{ color: "rgba(255,255,255,0.85)", fontStyle: "italic" }}>MEME</em>
           </div>
           <div className="flex flex-col items-end" style={{ gap: 2 }}>
-            <div className="font-bold text-white/70" style={{ fontSize: 9 }}>나도 뽑으러 가기</div>
-            <div className="font-black text-white" style={{ fontSize: 10 }}>pick-a-meme.app</div>
+            <div className="font-bold text-white/70" style={{ fontSize: 9 }}>{t.drawMeme}</div>
+            <div className="font-black text-white" style={{ fontSize: 10 }}>pick-a-me.me</div>
           </div>
         </div>
       )}
