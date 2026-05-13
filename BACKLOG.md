@@ -48,7 +48,7 @@
 | TASK-260429-29 | [프론트엔드] | [x] | 소셜 로그인 프론트엔드 구현 (OAuth2 콜백 처리, JWT 저장, 로그인 상태 전역 관리) | TASK-260429-28, TASK-260429-23 | - | 260429 / 260501 |
 | TASK-260429-30 | [프론트엔드] | [x] | 비로그인 하트 관리 훅 구현 (useGuestHeart — localStorage 기반, 5분 lazy 충전 타이머) | TASK-260429-23 | - | 260429 / 260430 |
 | TASK-260429-31 | [프론트엔드] | [x] | 로그인 유도 모달 컴포넌트 구현 (혜택 안내, SSO 버튼, "그냥 계속 뽑기" 분기) | TASK-260429-29, TASK-260429-30 | LoginSlideMenu 컴포넌트로 구현 완료. TASK-260504-10(서비스 소개 화면)과 연계되어 해당 태스크에서 고도화 예정 | 260429 / 260505 |
-| TASK-260429-32 | [프론트엔드] | [ ] | 워터마크 분기 렌더링 구현 (비로그인: 사선 중앙 / 로그인: 우하단 미니 브랜드) | TASK-260429-24 | ResultScreen 브랜딩 바는 구현됨. 로그인/비로그인 분기 워터마크는 정책 확정 후 진행 | 260429 / - |
+| TASK-260429-32 | [프론트엔드] | [x] | ~~워터마크 분기 렌더링 구현 (비로그인: 사선 중앙 / 로그인: 우하단 미니 브랜드)~~ | TASK-260429-24 | **정책 변경으로 제거 (260513).** 비로그인 워터마크 강화 대신 이미지 저장 자체를 차단하는 방향으로 전환 (TASK-260513-04 참고). ResultScreen 브랜딩 바는 유지 | 260429 / - |
 | TASK-260429-33 | [프론트엔드] | [ ] | 비로그인 캡처 방지 처리 (long-press 차단, contextmenu 차단, CSS overlay) | TASK-260429-23 | 정책 결정 필요 (완전 차단 불가, UX 저하 감수 범위 논의 필요) | 260429 / - |
 | TASK-260430-01 | [문서/기타] | [x] | 브랜치 전략 및 에이전트 워크플로우 가이드라인 추가 | [!] 외부 요청 | - | 260430 / 260430 |
 | TASK-260430-02 | [프론트엔드] | [x] | 동물 사진 가챠(Gacha) 시스템 및 로딩 애니메이션 구현 | TASK-260429-26 | - | 260430 / 260501 |
@@ -100,6 +100,11 @@
 | TASK-260512-07 | [프론트엔드] | [ ] | 영어 버전(i18n) 구현 — 한/영 언어 토글 | TASK-260512-06 | ThemeContext 옆에 LocaleContext(ko/en) 추가. 모든 UI 한국어 문자열을 번역 키로 추출 후 locale별 사전 적용. LoginSlideMenu에 언어 전환 버튼 배치. localStorage 영속. SSR flash 방지(layout.tsx 인라인 스크립트 확장). 번역 대상: 홈/태그선택/결과/스피닝/HeartDisplay/LoginSlideMenu/갤러리/상세페이지 전체 | 260512 / - |
 | TASK-260513-01 | [인프라/공통] | [x] | Redis @Cacheable 캐싱 도입 — recent-matched 밈 조회 10분 TTL | [!] 외부 요청 | RedisCacheManager 빈 등록(GenericJackson2JsonRedisSerializer + activateDefaultTyping). @EnableCaching 활성화. JpaUserMemeRepositoryAdapter.findRecentTagMatched에 @Cacheable("recent-matched-memes") 단일 어노테이션으로 Redis 자동 연동. jackson-datatype-jsr310 의존성 추가. docs/caching-strategy.md 정책 문서화 | 260513 / 260513 |
 | TASK-260513-02 | [하트/스테미나] | [x] | 스페셜 하트 로직 전면 점검 및 버그 수정 | [!] 외부 요청 | (1) MemeController: SPECIAL + 비인증 조합 시 401 반환 가드 추가 — 기존에는 userId=null이면 하트 차감 없이 통과. (2) page.tsx: executeSpecialDraw 진입 전 잔액 0 체크 추가 (BASIC 패턴과 동일하게). (3) HeartService: beforeCount를 chargeIfNeeded 이후에 캡처해 chargedAmount가 항상 0이 되던 버그 수정 → preChargeCount로 교체, 충전 이력 정상 저장. (4) HeartService: 미사용 변수 charged 제거 (컴파일 경고 해소) | 260513 / 260513 |
+| TASK-260513-03 | [밈/이미지] | [ ] | 저장하기 기능 버그 수정 | [!] 외부 요청 | ResultScreen html2canvas 캡처 → 기기 저장 기능이 동작하지 않음. 원인 분석 및 수정 필요 (TASK-260505-01 구현 후 회귀로 추정) | 260513 / - |
+| TASK-260513-04 | [프론트엔드] | [ ] | 비로그인 이미지 저장 차단 및 저장 버튼 제거 (TASK-260429-33 고도화) | [!] 외부 요청, TASK-260429-33 | 비로그인 사용자: (1) 저장하기 버튼 미노출. (2) 이미지 long-press 저장 차단 (touchstart preventDefault). (3) 브라우저 우클릭 contextmenu 차단. (4) CSS pointer-events / user-select 차단 overlay. TASK-260429-32(워터마크 분기) 대체 전략 | 260513 / - |
+| TASK-260513-05 | [하트/스테미나] | [ ] | 스페셜 하트 지급 트리거 구현 — 미션 목록 백엔드 API 및 완료 감지 | TASK-260429-22 | useMissions 훅은 프론트에 구현돼 있으나 백엔드 미연동 상태. (1) GET /api/missions 엔드포인트 구현 (미션 목록 + 달성 여부). (2) 미션 트리거 정의 및 완료 이벤트 발행. (3) 완료 시 grantSpecialHeart 호출 연동. 미션 종류: 첫 가챠 완료, N회 가챠, 로그인 연속 N일 등 별도 정책 확정 필요 | 260513 / - |
+| TASK-260513-06 | [프론트엔드] | [ ] | i18n 적용 후 CSS 레이아웃 깨짐 수정 | [!] 외부 요청, TASK-260512-07 | 영어 버전 적용(TASK-260512-07) 이후 일부 컴포넌트 CSS 레이아웃 깨짐 확인. 영향 범위 파악 후 수정 | 260513 / - |
+| TASK-260513-07 | [인프라/공통] | [ ] | 백엔드 서버 OCI(Oracle Cloud) 이관 준비 | [!] 외부 요청 | 현재 Railway Docker 운영 중. OCI로 이관을 위한 사전 준비: (1) OCI 인스턴스 스펙/구성 검토 (Compute + Always Free 활용 여부). (2) Docker Compose 또는 OCI Container Instance 배포 방식 결정. (3) 도메인/Cloudflare 연결 변경 계획. (4) DB(Neon)/Redis(Upstash)/R2 연결은 외부 서비스 유지 가정. CI/CD GitHub Actions 수정 범위 포함 | 260513 / - |
 
 ---
 
