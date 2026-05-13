@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGuestHeart } from "@/hooks/useGuestHeart";
+import { useGuestHeart } from "@/components/GuestHeartProvider";
 import { useHeart, ServerHeartState } from "@/hooks/useHeart";
 import { useAuth } from "@/hooks/useAuth";
 import { composeMeme, MemeResult } from "@/hooks/useMemeApi";

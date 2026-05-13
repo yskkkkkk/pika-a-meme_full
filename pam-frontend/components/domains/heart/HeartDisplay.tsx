@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHeart } from "@/hooks/useHeart";
-import { useGuestHeart } from "@/hooks/useGuestHeart";
+import { useGuestHeart } from "@/components/GuestHeartProvider";
 import { useMissions, type Mission } from "@/hooks/useMissions";
 import { useTheme } from "@/hooks/useTheme";
 
