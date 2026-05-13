@@ -13,10 +13,10 @@ interface Props {
 
 export function HeartDisplay({ onMenuOpen }: Props) {
   const { isLoggedIn } = useAuth();
-  const { data: serverHearts } = useHeart(isLoggedIn);
   const { missions, isLoading } = useMissions();
   const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
+  const { data: serverHearts } = useHeart(isLoggedIn, t.errors.heartFetchFailed);
   const [missionOpen, setMissionOpen] = useState(false);
 
   const heartsReady = !isLoggedIn || serverHearts != null;
@@ -109,7 +109,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
             border: "1px solid var(--pam-border)",
             boxShadow: "0 2px 8px var(--pam-shadow-pink)",
           }}
-          aria-label={theme === "dark" ? t.lightMode : t.darkMode}
+          aria-label={theme === "dark" ? t.common.lightMode : t.common.darkMode}
         >
           {theme === "dark" ? "☀️" : "🌙"}
         </button>
@@ -159,8 +159,8 @@ export function HeartDisplay({ onMenuOpen }: Props) {
             ⚡
           </div>
           <div>
-            <div className="font-black" style={{ fontSize: 16, color: "var(--pam-text)" }}>{t.getSpecialHeart}</div>
-            <div style={{ fontSize: 13, marginTop: 2, color: "var(--pam-text-muted)" }}>{t.missionRewardDesc}</div>
+            <div className="font-black" style={{ fontSize: 16, color: "var(--pam-text)" }}>{t.heart.getSpecialHeart}</div>
+            <div style={{ fontSize: 13, marginTop: 2, color: "var(--pam-text-muted)" }}>{t.heart.missionRewardDesc}</div>
           </div>
           <button
             onClick={() => setMissionOpen(false)}
@@ -173,14 +173,14 @@ export function HeartDisplay({ onMenuOpen }: Props) {
         <div className="flex flex-col" style={{ padding: "8px 16px", gap: 4 }}>
           {isLoading && (
             <div className="text-center font-medium py-8" style={{ fontSize: 14, color: "var(--pam-text-disabled)" }}>
-              {t.loading}
+              {t.common.loading}
             </div>
           )}
           {!isLoading && missions.length === 0 && (
             <div className="flex flex-col items-center py-10" style={{ gap: 8 }}>
               <div style={{ fontSize: 36 }}>⚡</div>
               <div className="font-bold text-center" style={{ fontSize: 14, color: "var(--pam-text-faint)" }}>
-                {t.noActiveMissions}
+                {t.heart.noActiveMissions}
               </div>
             </div>
           )}

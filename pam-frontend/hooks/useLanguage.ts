@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { Language, translations } from "@/lib/i18n";
+import { Language, Translator } from "@/lib/i18n";
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: typeof translations.ko;
+  t: Translator;
 }
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);

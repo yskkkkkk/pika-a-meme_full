@@ -231,7 +231,7 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
     >
       <img
         src={imageUrl}
-        alt={imageAlt || t.meme}
+        alt={imageAlt || t.brand.meme}
         className="w-full h-full object-cover"
       />
 
@@ -257,7 +257,7 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
             PICK-A-<em style={{ color: "rgba(255,255,255,0.85)", fontStyle: "italic" }}>MEME</em>
           </div>
           <div className="flex flex-col items-end" style={{ gap: 2 }}>
-            <div className="font-bold text-white/70" style={{ fontSize: 9 }}>{t.drawMeme}</div>
+            <div className="font-bold text-white/70" style={{ fontSize: 9 }}>{t.canvas.brandBar}</div>
             <div className="font-black text-white" style={{ fontSize: 10 }}>pick-a-me.me</div>
           </div>
         </div>

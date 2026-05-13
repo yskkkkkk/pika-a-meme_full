@@ -22,10 +22,10 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           className="font-black text-center leading-none"
           style={{ fontSize: 40, letterSpacing: "-0.03em", color: "var(--pam-text)" }}
         >
-          {t.homeTitle}
+          {t.brand.homeTitle}
         </h1>
         <p className="text-center" style={{ fontSize: 13, color: "var(--pam-text-faint)" }}>
-          {username ? t.homeSubtitleUser(username) : t.homeSubtitle}
+          {username ? t.format.homeSubtitleUser(username) : t.home.subtitle}
         </p>
       </div>
 
@@ -37,8 +37,8 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           style={{ background: "var(--pam-text)", borderRadius: 20, padding: "16px 20px", border: "none" }}
         >
           <div className="text-left">
-            <div className="font-black" style={{ fontSize: 18 }}>{t.basicDraw}</div>
-            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{t.consumeBasic}</div>
+            <div className="font-black" style={{ fontSize: 18 }}>{t.home.basicDraw}</div>
+            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{t.home.consumeBasic}</div>
           </div>
           {guestHeartCount !== undefined ? (
             <div
@@ -70,8 +70,8 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           }}
         >
           <div className="text-left">
-            <div className="font-black" style={{ fontSize: 18 }}>{t.specialDraw}</div>
-            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{t.consumeSpecial}</div>
+            <div className="font-black" style={{ fontSize: 18 }}>{t.home.specialDraw}</div>
+            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{t.home.consumeSpecial}</div>
           </div>
           <div
             className="flex items-center justify-center flex-shrink-0"

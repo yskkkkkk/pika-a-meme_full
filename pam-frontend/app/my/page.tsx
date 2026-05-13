@@ -36,13 +36,13 @@ export default function MyPage() {
           <ArrowLeft className="w-4 h-4" style={{ color: "var(--pam-text-sub)" }} />
         </button>
         <h1 className="font-black flex-1" style={{ fontSize: 18, color: "var(--pam-text)" }}>
-          {t.myGallery}
+          {t.gallery.myGallery}
         </h1>
         <button
           onClick={toggleTheme}
           className="flex items-center justify-center rounded-full active:scale-95 transition-transform"
           style={{ width: 36, height: 36, backgroundColor: "var(--pam-surface)", fontSize: 16 }}
-          aria-label={theme === "dark" ? t.lightMode : t.darkMode}
+          aria-label={theme === "dark" ? t.common.lightMode : t.common.darkMode}
         >
           {theme === "dark" ? "☀️" : "🌙"}
         </button>

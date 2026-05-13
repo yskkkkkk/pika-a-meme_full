@@ -59,11 +59,13 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 }
 
 function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
+  const { language, t } = useLanguage();
+
   return (
     <Link
       href={`/my/${meme.id}`}
       className={`group block hover:-translate-y-1 transition-all duration-300 ${dimmed ? "opacity-40" : ""}`}
-      aria-label={language === "ko" ? "내 미미카드 상세 보기" : "View Meme Details"}
+      aria-label={t.gallery.detailAria}
     >
       <div className="relative">
         <MemeCanvasCard
@@ -72,7 +74,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           phrase={meme.phraseText}
           seed={meme.id}
           showBrandBar={false}
-          imageAlt={language === "ko" ? "내 미미카드" : "My Meme"}
+          imageAlt={t.gallery.myMemeAlt}
           className="w-full"
         />
         {dimmed && (
@@ -81,7 +83,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
               className="flex items-center gap-1 px-2 py-0.5 text-white text-xs font-black rounded-full shadow"
               style={{ backgroundColor: "var(--pam-text-sub)" }}
             >
-              <EyeOff className="w-3 h-3" /> {language === "ko" ? "숨김" : "Hidden"}
+              <EyeOff className="w-3 h-3" /> {t.gallery.hiddenBadge}
             </span>
           </div>
         )}
@@ -139,12 +141,6 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
   );
 }
 
-const VIEW_OPTIONS: { key: ViewMode; label: string }[] = [
-  { key: "all", label: "최신순" },
-  { key: "matched", label: "태그 매칭" },
-  { key: "special", label: "SPECIAL" },
-];
-
 export function MyGallery() {
   const [page, setPage] = useState(0);
   const [allMemes, setAllMemes] = useState<MemeItem[]>([]);
@@ -158,7 +154,7 @@ export function MyGallery() {
     queryFn: async () => {
       const url = `/api/memes/my-history?page=${page}&size=${PAGE_SIZE}${showAll ? "&includeHidden=true" : ""}`;
       const res = await apiFetch<MemeItem[]>(url);
-      if (!res || !res.success) throw new Error(res?.error?.message ?? "조회 실패");
+      if (!res || !res.success) throw new Error(res?.error?.message ?? t.gallery.queryFailed);
       const data = res.data ?? [];
       if (data.length > 0) {
         setAllMemes((prev) => (page === 0 ? data : [...prev, ...data]));
@@ -192,10 +188,10 @@ export function MyGallery() {
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-black" style={{ color: "var(--pam-text-muted)" }}>
-          {allMemes.length > 0 && t.totalCount(allMemes.length)}
+          {allMemes.length > 0 && t.format.totalCount(allMemes.length)}
         </span>
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>{t.viewAllResults}</span>
+          <span className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>{t.gallery.viewAllResults}</span>
           <Toggle on={showAll} onToggle={handleToggle} />
         </div>
       </div>
@@ -203,9 +199,9 @@ export function MyGallery() {
       {/* 필터/정렬 탭 */}
       <div className="flex flex-nowrap gap-[5px]">
         {[
-          { key: "all" as ViewMode, label: t.sortLatest },
-          { key: "matched" as ViewMode, label: t.sortMatched },
-          { key: "special" as ViewMode, label: t.sortSpecial },
+          { key: "all" as ViewMode, label: t.gallery.sortLatest },
+          { key: "matched" as ViewMode, label: t.gallery.sortMatched },
+          { key: "special" as ViewMode, label: t.gallery.sortSpecial },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -232,9 +228,9 @@ export function MyGallery() {
         <div className="flex flex-col items-center justify-center py-20 gap-4" style={{ color: "var(--pam-text-muted)" }}>
           <div className="text-6xl">🖼️</div>
           <p className="text-lg font-bold">
-            {allMemes.length === 0 ? t.noMemes : t.noMatchingMemes}
+            {allMemes.length === 0 ? t.gallery.noMemes : t.gallery.noMatchingMemes}
           </p>
-          {allMemes.length === 0 && <p className="text-sm">{t.drawFirstMeme}</p>}
+          {allMemes.length === 0 && <p className="text-sm">{t.gallery.drawFirstMeme}</p>}
         </div>
       )}
 
@@ -249,7 +245,7 @@ export function MyGallery() {
       </div>
 
       {isError && (
-        <p className="text-center text-sm font-medium" style={{ color: "#f87171" }}>{t.fetchGalleryFailed}</p>
+        <p className="text-center text-sm font-medium" style={{ color: "#f87171" }}>{t.gallery.fetchFailed}</p>
       )}
 
       {!isFetching && hasMore && (
@@ -259,7 +255,7 @@ export function MyGallery() {
             className="px-8 py-3 font-black rounded-full active:scale-95 transition-all text-sm"
             style={{ backgroundColor: "var(--pam-text)", color: "var(--pam-bg)" }}
           >
-            {t.loadMore}
+            {t.actions.loadMore}
           </button>
         </div>
       )}

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch, ApiResponse } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { ImageIcon, Star, Heart, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface MemeItem {
   id: string;
@@ -15,18 +15,26 @@ interface MemeItem {
   createdAt: string;
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, language: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "방금 전";
-  if (m < 60) return `${m}분 전`;
+  if (language === "ko") {
+    if (m < 1) return "방금 전";
+    if (m < 60) return `${m}분 전`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}시간 전`;
+    return `${Math.floor(h / 24)}일 전`;
+  }
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 전`;
-  return `${Math.floor(h / 24)}일 전`;
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
 function MemeCard({ meme }: { meme: MemeItem }) {
   const [imgError, setImgError] = useState(false);
+  const { language, t } = useLanguage();
 
   return (
     <div className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -38,7 +46,7 @@ function MemeCard({ meme }: { meme: MemeItem }) {
         ) : (
           <img
             src={meme.imageUrl}
-            alt="meme"
+            alt={t.brand.meme}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={() => setImgError(true)}
           />
@@ -57,7 +65,7 @@ function MemeCard({ meme }: { meme: MemeItem }) {
       </div>
       <div className="px-3 py-2 flex items-center gap-1.5 text-xs text-gray-400">
         <Clock className="w-3 h-3" />
-        <span>{timeAgo(meme.createdAt)}</span>
+        <span>{timeAgo(meme.createdAt, language)}</span>
       </div>
     </div>
   );
@@ -65,6 +73,7 @@ function MemeCard({ meme }: { meme: MemeItem }) {
 
 export function MemeGallery() {
   const [page, setPage] = useState(0);
+  const { t } = useLanguage();
   const [allMemes, setAllMemes] = useState<MemeItem[]>([]);
   const PAGE_SIZE = 20;
 
@@ -87,8 +96,8 @@ export function MemeGallery() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-400">
         <div className="text-6xl">🖼️</div>
-        <p className="text-lg font-bold">아직 만들어진 미미카드가 없어요</p>
-        <p className="text-sm">첫 번째 미미카드를 만들어보세요!</p>
+        <p className="text-lg font-bold">{t.gallery.noPublicMemes}</p>
+        <p className="text-sm">{t.gallery.makeFirstMeme}</p>
       </div>
     );
   }
@@ -106,7 +115,7 @@ export function MemeGallery() {
       </div>
 
       {isError && (
-        <p className="text-center text-sm text-red-400 font-medium">갤러리를 불러오는 데 실패했습니다.</p>
+        <p className="text-center text-sm text-red-400 font-medium">{t.gallery.fetchFailed}</p>
       )}
 
       {!isFetching && hasMore && (
@@ -115,7 +124,7 @@ export function MemeGallery() {
             onClick={() => setPage((p) => p + 1)}
             className="px-8 py-3 bg-black text-white font-black rounded-full hover:bg-gray-800 active:scale-95 transition-all text-sm"
           >
-            더 보기
+            {t.actions.loadMore}
           </button>
         </div>
       )}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, ReactNode } from "react";
-import { Language, translations } from "@/lib/i18n";
+import { useEffect, useMemo, useState, ReactNode } from "react";
+import { createTranslator, Language } from "@/lib/i18n";
 import { LanguageContext } from "@/hooks/useLanguage";
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -30,7 +30,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = language;
   }, [language]);
 
-  const t = translations[language];
+  const t = useMemo(() => createTranslator(language), [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

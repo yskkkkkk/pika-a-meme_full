@@ -3,9 +3,11 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 function CallbackHandler() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -19,7 +21,7 @@ function CallbackHandler() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center space-y-4">
         <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-gray-500 font-medium">로그인 처리 중...</p>
+        <p className="text-gray-500 font-medium">{t.auth.processingLogin}</p>
       </div>
     </div>
   );
