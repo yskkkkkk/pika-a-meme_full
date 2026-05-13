@@ -1,12 +1,14 @@
 package com.pickameme.application.meme
 
 import com.pickameme.application.heart.HeartService
+import com.pickameme.application.mission.MissionService
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.MemeComposition
 import com.pickameme.domain.meme.MemeImageRepository
 import com.pickameme.domain.meme.MemePhraseRepository
 import com.pickameme.domain.meme.UserMeme
 import com.pickameme.domain.meme.UserMemeRepository
+import com.pickameme.domain.mission.MissionTrigger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -17,7 +19,8 @@ class MemeComposeService(
     private val memeImageRepository: MemeImageRepository,
     private val memePhraseRepository: MemePhraseRepository,
     private val userMemeRepository: UserMemeRepository,
-    private val heartService: HeartService
+    private val heartService: HeartService,
+    private val missionService: MissionService
 ) {
 
     @Transactional
@@ -60,6 +63,8 @@ class MemeComposeService(
                     createdAt = LocalDateTime.now()
                 )
             )
+            val totalCount = userMemeRepository.countAllByUserId(userId)
+            missionService.trigger(userId, MissionTrigger.MemeSaved(totalCount, tags.firstOrNull()))
         }
 
         return MemeComposeResult(

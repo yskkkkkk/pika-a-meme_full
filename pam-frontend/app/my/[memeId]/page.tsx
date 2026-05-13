@@ -8,6 +8,7 @@ import html2canvas from "html2canvas";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
+import { recordShare } from "@/hooks/useMissions";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
 interface MemeDetail {
@@ -127,8 +128,10 @@ export default function MyMemeDetailPage() {
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "PICK-A-MEME", text: meme.phraseText });
+        recordShare("OTHER");
       } else if (navigator.share) {
         await navigator.share({ title: "PICK-A-MEME", text: meme.phraseText, url: window.location.href });
+        recordShare("OTHER");
       } else {
         await navigator.clipboard.writeText(window.location.href);
         showToast(t.toast.linkCopied);

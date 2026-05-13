@@ -13,6 +13,7 @@ import { SpinningScreen } from "@/components/domains/gacha/SpinningScreen";
 import { TagSelectScreen } from "@/components/domains/gacha/TagSelectScreen";
 import { ResultScreen } from "@/components/domains/gacha/ResultScreen";
 import { useLanguage } from "@/hooks/useLanguage";
+import { recordVisit } from "@/hooks/useMissions";
 
 type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
 
@@ -36,6 +37,12 @@ export default function Home() {
       setSelectedTag(null);
     }
   }, [isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 방문 미션 트리거 (로그인 유저 앱 진입 시 1회)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    recordVisit();
+  }, [isLoggedIn]);
 
   // 최초 로그인 웰컴 알럿
   useEffect(() => {

@@ -47,4 +47,7 @@ class JpaUserMemeRepositoryAdapter(
     @Transactional
     override fun updateEnabled(userId: UUID, id: UUID, enabled: Boolean) =
         jpaRepository.updateEnabled(userId, id, enabled)
+
+    override fun countAllByUserId(userId: UUID): Long =
+        jpaRepository.countAllByUserId(userId)
 }

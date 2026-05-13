@@ -1,7 +1,9 @@
 package com.pickameme.application.heart
 
+import com.pickameme.application.mission.MissionService
 import com.pickameme.domain.heart.Heart
 import com.pickameme.domain.heart.HeartRepository
+import com.pickameme.domain.mission.MissionTrigger
 import com.pickameme.domain.user.UserRegisteredEvent
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -10,7 +12,8 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class HeartInitializeListener(
-    private val heartRepository: HeartRepository
+    private val heartRepository: HeartRepository,
+    private val missionService: MissionService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -25,5 +28,7 @@ class HeartInitializeListener(
         specialHeart.grant(1)
         heartRepository.save(specialHeart)
         log.info("SPECIAL 하트 1개 지급 완료 (웰컴 보상): userId=${event.userId}")
+
+        missionService.trigger(event.userId, MissionTrigger.Register)
     }
 }
