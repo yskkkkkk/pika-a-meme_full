@@ -38,7 +38,7 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
         오늘의 기분은?
       </h2>
       <p className="font-medium" style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-faint)" }}>
-        딱 하나만 골라요 — 그게 더 찰진 밈이 나와요
+        딱 하나만 골라요!
       </p>
       <div className="flex flex-wrap justify-center" style={{ gap: 10, marginBottom: 28 }}>
         {AVAILABLE_TAGS.map((tag) => (
@@ -55,16 +55,16 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
               fontSize: 15,
               ...(selectedTag === tag
                 ? {
-                    background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
-                    boxShadow: "0 2px 10px var(--pam-shadow-pink-btn)",
-                    borderColor: "transparent",
-                    color: "white",
-                  }
+                  background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+                  boxShadow: "0 2px 10px var(--pam-shadow-pink-btn)",
+                  borderColor: "transparent",
+                  color: "white",
+                }
                 : {
-                    backgroundColor: "var(--pam-tag-bg)",
-                    borderColor: "var(--pam-tag-border)",
-                    color: "var(--pam-text-sub)",
-                  }),
+                  backgroundColor: "var(--pam-tag-bg)",
+                  borderColor: "var(--pam-tag-border)",
+                  color: "var(--pam-text-sub)",
+                }),
             }}
           >
             <span>{TAG_EMOJI[tag]}</span>

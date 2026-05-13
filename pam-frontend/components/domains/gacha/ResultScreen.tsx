@@ -73,7 +73,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
         imageUrl={result.imagePresignedUrl}
         subjectPosition={result.subjectPosition}
         phrase={result.phrase}
-        imageAlt="밈 결과"
+        imageAlt="미미카드 결과"
         className="w-full overflow-hidden relative flex-shrink-0"
       />
 
@@ -126,7 +126,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
           className="font-bold active:scale-95 transition-transform"
           style={{ fontSize: 13, color: "var(--pam-text-muted)" }}
         >
-          내 밈 갤러리 보기 →
+          내 갤러리 보기 →
         </button>
       )}
     </div>

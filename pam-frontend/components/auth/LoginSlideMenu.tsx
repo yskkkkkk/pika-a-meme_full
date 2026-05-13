@@ -55,7 +55,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
             PICK-A-<em className="pam-brand-em">MEME</em>
           </h2>
           <p className="font-medium leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>
-            나만의 B급 감성 밈을 만들고<br />
+            나만의 미미카드를 만들고<br />
             친구들과 공유해보세요!
           </p>
         </div>
@@ -75,7 +75,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               }}
             >
               <Images className="w-5 h-5" />
-              내 밈 갤러리
+              내 갤러리
             </button>
             <button
               onClick={async () => { await logout(); onClose(); router.replace("/"); }}
@@ -99,7 +99,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               >
                 1초만에 시작하기
               </span>
-              <p className="text-sm" style={{ color: "var(--pam-text-muted)" }}>로그인하면 밈을 저장할 수 있어요!</p>
+              <p className="text-sm" style={{ color: "var(--pam-text-muted)" }}>로그인하면 미미카드를 저장할 수 있어요!</p>
             </div>
             <button
               onClick={() => { loginWith("kakao"); onClose(); }}
@@ -134,7 +134,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
             </div>
             <div>
               <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>실시간 충전</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>일반 하트는 5분마다 자동으로 충전됩니다. 끊임없이 밈을 생산하세요!</p>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>일반 하트는 5분마다 자동으로 충전됩니다. 끊임없이 미미카드를 생산하세요!</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
@@ -145,8 +145,8 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               <Diamond className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>스페셜 밈</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>스페셜 하트로 더욱더 완성도 높은 밈을 생산하세요.</p>
+              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>스페셜 카드</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>스페셜 하트로 더욱더 완성도 높은 카드를 생산하세요.</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
@@ -157,8 +157,8 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               <Cloud className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>나만의 밈 갤러리</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>로그인 후 완성 된 밈은 보관되어 언제든 다시 꺼내볼 수 있습니다.</p>
+              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>나만의 갤러리</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>로그인 후 완성 된 카드는 보관되어 언제든 다시 꺼내볼 수 있습니다.</p>
             </div>
           </div>
         </div>

@@ -21,7 +21,7 @@ export function RecentMemeCarousel() {
     queryKey: ["recent-matched-memes"],
     queryFn: async () => {
       const res = await apiFetch<RecentMeme[]>("/api/memes/recent-matched?size=10");
-      if (!res?.success) throw new Error(res?.error?.message ?? "최근 밈 조회 실패");
+      if (!res?.success) throw new Error(res?.error?.message ?? "최근 미미카드 조회 실패");
       return res.data ?? [];
     },
     staleTime: 5 * 60 * 1000,
@@ -93,7 +93,7 @@ export function RecentMemeCarousel() {
               phrase={meme.phraseText}
               seed={meme.id}
               showBrandBar={false}
-              imageAlt="최근 완성 밈"
+              imageAlt="최근 완성 미미카드"
               className="w-full"
             />
           </div>

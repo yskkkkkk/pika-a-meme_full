@@ -9,8 +9,8 @@ export default function GalleryPage() {
           <Images className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-3xl font-black tracking-tighter">밈 갤러리</h1>
-          <p className="text-sm text-gray-400 font-medium">모두가 만든 B급 감성 밈 모음</p>
+          <h1 className="text-3xl font-black tracking-tighter">미미카드 갤러리</h1>
+          <p className="text-sm text-gray-400 font-medium">모두가 만든 미미카드 모음</p>
         </div>
       </div>
       <MemeGallery />

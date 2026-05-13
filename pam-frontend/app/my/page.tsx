@@ -34,7 +34,7 @@ export default function MyPage() {
           <ArrowLeft className="w-4 h-4" style={{ color: "var(--pam-text-sub)" }} />
         </button>
         <h1 className="font-black flex-1" style={{ fontSize: 18, color: "var(--pam-text)" }}>
-          내 밈 갤러리
+          내 갤러리
         </h1>
         <button
           onClick={toggleTheme}

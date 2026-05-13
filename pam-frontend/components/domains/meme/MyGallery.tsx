@@ -54,7 +54,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
     <Link
       href={`/my/${meme.id}`}
       className={`group block hover:-translate-y-1 transition-all duration-300 ${dimmed ? "opacity-40" : ""}`}
-      aria-label="내 밈 상세 보기"
+      aria-label="내 미미카드 상세 보기"
     >
       <div className="relative">
         <MemeCanvasCard
@@ -63,7 +63,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           phrase={meme.phraseText}
           seed={meme.id}
           showBrandBar={false}
-          imageAlt="내 밈"
+          imageAlt="내 미미카드"
           className="w-full"
         />
         {dimmed && (
@@ -218,9 +218,9 @@ export function MyGallery() {
         <div className="flex flex-col items-center justify-center py-20 gap-4" style={{ color: "var(--pam-text-muted)" }}>
           <div className="text-6xl">🖼️</div>
           <p className="text-lg font-bold">
-            {allMemes.length === 0 ? "아직 뽑은 밈이 없어요" : "해당하는 밈이 없어요"}
+            {allMemes.length === 0 ? "아직 뽑은 미미카드가 없어요" : "해당하는 미미카드가 없어요"}
           </p>
-          {allMemes.length === 0 && <p className="text-sm">첫 번째 밈을 뽑아보세요!</p>}
+          {allMemes.length === 0 && <p className="text-sm">첫 번째 미미카드를 뽑아보세요!</p>}
         </div>
       )}
 

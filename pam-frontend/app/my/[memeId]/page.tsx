@@ -155,7 +155,7 @@ export default function MyMemeDetailPage() {
           <ArrowLeft className="w-4 h-4" style={{ color: "var(--pam-text-sub)" }} />
         </button>
         <div>
-          <h1 className="font-black" style={{ fontSize: 18, color: "var(--pam-text)" }}>내 밈 상세</h1>
+          <h1 className="font-black" style={{ fontSize: 18, color: "var(--pam-text)" }}>내 미미카드 상세</h1>
           <p className="text-xs font-bold" style={{ color: "var(--pam-text-muted)" }}>말풍선까지 완성된 형태로 보기</p>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function MyMemeDetailPage() {
         {isError && (
           <div className="flex flex-col items-center justify-center py-24 gap-4" style={{ color: "var(--pam-text-muted)" }}>
             <ImageIcon className="w-12 h-12" style={{ color: "var(--pam-text-disabled)" }} />
-            <p className="text-lg font-bold">밈을 불러오지 못했어요</p>
+            <p className="text-lg font-bold">미미카드를 불러오지 못했어요</p>
             <button
               onClick={() => router.push("/my")}
               className="px-6 py-3 font-black rounded-full active:scale-95 transition-transform text-sm"
@@ -188,7 +188,7 @@ export default function MyMemeDetailPage() {
                 subjectPosition={meme.subjectPosition}
                 phrase={meme.phraseText}
                 seed={meme.id}
-                imageAlt="내 밈 상세 이미지"
+                imageAlt="상세 이미지"
                 className="w-full"
               />
               {meme.matchedTags.length > 0 && (
@@ -243,7 +243,7 @@ export default function MyMemeDetailPage() {
                       color: "var(--pam-badge-special-text)",
                     }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
                     SPECIAL
                   </span>
                 ) : (
@@ -266,8 +266,8 @@ export default function MyMemeDetailPage() {
                     }}
                   >
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                      <line x1="7" y1="7" x2="7.01" y2="7"/>
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                      <line x1="7" y1="7" x2="7.01" y2="7" />
                     </svg>
                     {tag}
                   </span>

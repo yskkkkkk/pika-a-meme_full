@@ -203,7 +203,7 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
   seed,
   showBrandBar = true,
   className,
-  imageAlt = "밈 이미지",
+  imageAlt = "미미카드 이미지",
 }, externalRef) {
   const [scale, setScale] = useState(1);
   const bubble = useMemeBubbleStyle(seed);

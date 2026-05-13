@@ -87,8 +87,8 @@ export function MemeGallery() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-400">
         <div className="text-6xl">🖼️</div>
-        <p className="text-lg font-bold">아직 만들어진 밈이 없어요</p>
-        <p className="text-sm">첫 번째 밈을 만들어보세요!</p>
+        <p className="text-lg font-bold">아직 만들어진 미미카드가 없어요</p>
+        <p className="text-sm">첫 번째 미미카드를 만들어보세요!</p>
       </div>
     );
   }

@@ -21,7 +21,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
           PICK-A-<em className="pam-brand-em">MEME</em>
         </h1>
         <p className="text-center" style={{ fontSize: 13, color: "var(--pam-text-faint)" }}>
-          오늘의 밈을 뽑아보세요
+          오늘의 미미카드를 뽑아보세요
         </p>
       </div>
 
