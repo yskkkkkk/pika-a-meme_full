@@ -98,6 +98,8 @@
 | TASK-260512-05 | [프론트엔드] | [x] | 로그인 직후 하트 표시 깜빡임(0→5→실제값) 수정 | TASK-260512-01 | (1) useHeart에 placeholderData: prev 추가 — 리페치 중 이전 값 유지. (2) MemeComposeService 하트 차감 순서 안전하게 재정렬(조합→차감→저장). (3) HeartDisplay 초기 로딩 중(serverHearts=null) 숫자 0 대신 '—' 표시(heartsReady 플래그) | 260512 / 260512 |
 | TASK-260512-06 | [프론트엔드] | [x] | 다크모드 구현 및 라이트/다크 토글 | - | CSS 커스텀 프로퍼티(:root / [data-theme=dark]) 기반 토큰 시스템(피카밈 브랜드 네온 팔레트). useTheme 훅 + ThemeProvider + localStorage 영속. flash 방지 인라인 스크립트. 전 컴포넌트(15개) 인라인 스타일 var(--pam-*) 교체. HeartDisplay 상단바 🌙/☀️ 버튼 + LoginSlideMenu 토글 배치. 향후 영어 버전 대응 가능 ThemeContext 구조 | 260512 / 260512 |
 | TASK-260512-07 | [프론트엔드] | [ ] | 영어 버전(i18n) 구현 — 한/영 언어 토글 | TASK-260512-06 | ThemeContext 옆에 LocaleContext(ko/en) 추가. 모든 UI 한국어 문자열을 번역 키로 추출 후 locale별 사전 적용. LoginSlideMenu에 언어 전환 버튼 배치. localStorage 영속. SSR flash 방지(layout.tsx 인라인 스크립트 확장). 번역 대상: 홈/태그선택/결과/스피닝/HeartDisplay/LoginSlideMenu/갤러리/상세페이지 전체 | 260512 / - |
+| TASK-260513-01 | [인프라/공통] | [x] | Redis @Cacheable 캐싱 도입 — recent-matched 밈 조회 10분 TTL | [!] 외부 요청 | RedisCacheManager 빈 등록(GenericJackson2JsonRedisSerializer + activateDefaultTyping). @EnableCaching 활성화. JpaUserMemeRepositoryAdapter.findRecentTagMatched에 @Cacheable("recent-matched-memes") 단일 어노테이션으로 Redis 자동 연동. jackson-datatype-jsr310 의존성 추가. docs/caching-strategy.md 정책 문서화 | 260513 / 260513 |
+| TASK-260513-02 | [하트/스테미나] | [x] | 스페셜 하트 로직 전면 점검 및 버그 수정 | [!] 외부 요청 | (1) MemeController: SPECIAL + 비인증 조합 시 401 반환 가드 추가 — 기존에는 userId=null이면 하트 차감 없이 통과. (2) page.tsx: executeSpecialDraw 진입 전 잔액 0 체크 추가 (BASIC 패턴과 동일하게). (3) HeartService: beforeCount를 chargeIfNeeded 이후에 캡처해 chargedAmount가 항상 0이 되던 버그 수정 → preChargeCount로 교체, 충전 이력 정상 저장. (4) HeartService: 미사용 변수 charged 제거 (컴파일 경고 해소) | 260513 / 260513 |
 
 ---
 
