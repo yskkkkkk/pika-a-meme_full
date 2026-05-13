@@ -4,6 +4,34 @@
 
 ---
 
+## Terraform 도입 검토 (2026-05-13)
+
+### 결론: 현 시점 미도입
+
+Cloudflare 설정이 늘어나면서 IaC(Infrastructure as Code) 도입을 검토했으나, 현 시점에서는 도입하지 않기로 결정.
+
+**미도입 이유:**
+
+1. **플랫폼 Provider 완성도 부족**
+   현재 인프라 스택(Vercel, Railway, Upstash)의 Terraform Provider는 커뮤니티 maintained 수준으로, 기능 누락과 버그가 있어 결국 콘솔 병행이 불가피함. State drift 관리 부담만 가중될 수 있음.
+
+2. **반복 프로비저닝 필요성 없음**
+   Terraform의 핵심 가치는 동일 스택을 dev/staging/prod로 찍어내거나, 팀이 인프라 변경을 코드 리뷰하는 구조에서 발휘됨. 현재는 싱글 환경이고 변경 빈도도 낮음.
+
+3. **긴급 대응 시 오히려 불편**
+   Cache Rule, Polish, TLS 같은 설정은 긴급 상황에서 콘솔에서 직접 바꾸는 경우가 생기고, 이때마다 state를 맞추는 비용이 발생함.
+
+**재검토 시점:**
+- 멀티 환경(dev/staging/prod)이 필요해질 때
+- 팀 규모가 2명 이상으로 늘어날 때
+- Cloudflare Workers, D1, Pages 등 리소스가 복잡해질 때
+
+**도입 시 우선 범위:** 전체 인프라보다 Cloudflare만 먼저 도입하는 것이 현실적. Provider 품질이 상대적으로 좋고, DNS 레코드·캐시 규칙 같이 실수 시 서비스 장애로 이어지는 설정을 코드로 추적하는 가치가 있음.
+
+---
+
+---
+
 ## 2026-05-13
 
 ### 1. R2 도메인 단일화
