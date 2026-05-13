@@ -26,6 +26,15 @@ export default function Home() {
   const { data: serverHearts, isLoading: heartsLoading } = useHeart(isLoggedIn);
   const queryClient = useQueryClient();
 
+  // 로그아웃 시 진행 중인 화면 초기화
+  useEffect(() => {
+    if (!isLoggedIn && appState !== "HOME") {
+      setAppState("HOME");
+      setMemeResult(null);
+      setSelectedTag(null);
+    }
+  }, [isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 최초 로그인 웰컴 알럿
   useEffect(() => {
     if (!isLoggedIn) return;
