@@ -121,7 +121,7 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
           ))}
         </div>
         {/* 2행: 시간 */}
-        <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: "var(--pam-text-muted)" }}>
+        <span className="flex items-center justify-end gap-1 text-[10px] font-bold" style={{ color: "var(--pam-text-muted)" }}>
           <Clock className="w-3 h-3" />
           {timeAgo(meme.createdAt)}
         </span>
