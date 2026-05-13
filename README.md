@@ -104,6 +104,10 @@ Cloudflare Edge 캐싱으로 이미지 서빙 응답 속도도 개선된다.
 | `memes` | 최종 저장된 밈 (image_key + canvas_state) |
 | `hearts` | SPECIAL 하트 (BASIC은 Upstash Redis) |
 | `users` | OAuth2 유저 |
+| `mission_definitions` | 미션 정의 (type, title, rewardAmount, isHidden, displayOrder) |
+| `mission_completions` | 미션 달성 이력 — userId + missionId + periodKey UNIQUE (중복 지급 방지) |
+| `mission_share_logs` | 공유 로그 (주간 공유 횟수 집계용) |
+| `mission_visit_streaks` | 연속 방문 현황 (currentStreak, lastVisitDate) |
 
 > `selected_tag IS NULL` = BASIC 뽑기, `IS NOT NULL` = SPECIAL 뽑기 (선택한 태그 값)
 

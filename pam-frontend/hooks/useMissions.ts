@@ -1,67 +1,52 @@
-import { useLanguage } from "./useLanguage";
+"use client";
 
-export type MissionStatus = "done" | "active" | "progress" | "locked";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+
+export type MissionStatus = "DONE" | "ACTIVE" | "PROGRESS";
+export type MissionType =
+  | "ONE_TIME"
+  | "DAILY"
+  | "WEEKLY_SHARE"
+  | "STREAK_3DAYS"
+  | "HIDDEN";
 
 export interface Mission {
   id: string;
+  type: MissionType;
+  title: string;
+  description: string;
+  rewardAmount: number;
+  isHidden: boolean;
   status: MissionStatus;
-  icon: string;
-  name: string;
-  desc: string;
-  reward: number;
   progress: { current: number; total: number } | null;
+  completedAt: string | null;
+  periodKey: string | null;
 }
 
-export function useMissions(): { missions: Mission[]; isLoading: boolean } {
-  const { t } = useLanguage();
+async function fetchMissions(): Promise<Mission[]> {
+  const res = await apiFetch<Mission[]>("/api/missions");
+  if (!res || !res.success || !res.data) return [];
+  return res.data;
+}
 
-  const missions: Mission[] = [
-    {
-      id: "first-login",
-      status: "active",
-      icon: "✅",
-      name: t.missions.firstLogin.name,
-      desc: t.missions.firstLogin.desc,
-      reward: 1,
-      progress: null,
-    },
-    {
-      id: "share-story",
-      status: "active",
-      icon: "📸",
-      name: t.missions.shareStory.name,
-      desc: t.missions.shareStory.desc,
-      reward: 1,
-      progress: null,
-    },
-    {
-      id: "invite-friend",
-      status: "active",
-      icon: "🔗",
-      name: t.missions.inviteFriend.name,
-      desc: t.missions.inviteFriend.desc,
-      reward: 1,
-      progress: null,
-    },
-    {
-      id: "visit-7-days",
-      status: "progress",
-      icon: "🗓️",
-      name: t.missions.visit7Days.name,
-      desc: t.missions.visit7Days.desc,
-      reward: 2,
-      progress: { current: 0, total: 7 },
-    },
-    {
-      id: "fill-gallery-10",
-      status: "locked",
-      icon: "🔒",
-      name: t.missions.fillGallery10.name,
-      desc: t.missions.fillGallery10.desc,
-      reward: 2,
-      progress: null,
-    },
-  ];
+export function useMissions(enabled: boolean = true) {
+  return useQuery({
+    queryKey: ["missions"],
+    queryFn: fetchMissions,
+    enabled,
+    staleTime: 30_000,
+  });
+}
 
-  return { missions, isLoading: false };
+export async function recordVisit(): Promise<void> {
+  await apiFetch("/api/missions/visit", { method: "POST" });
+}
+
+export async function recordShare(shareType: "INSTAGRAM" | "KAKAO" | "OTHER"): Promise<void> {
+  await apiFetch("/api/missions/share", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ shareType }),
+  });
 }

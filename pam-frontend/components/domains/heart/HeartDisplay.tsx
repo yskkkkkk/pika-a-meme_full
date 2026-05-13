@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHeart } from "@/hooks/useHeart";
-import { useMissions, type Mission } from "@/hooks/useMissions";
+import { useMissions, type Mission, type MissionType } from "@/hooks/useMissions";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -13,7 +13,7 @@ interface Props {
 
 export function HeartDisplay({ onMenuOpen }: Props) {
   const { isLoggedIn } = useAuth();
-  const { missions, isLoading } = useMissions();
+  const { data: missions = [], isPending: isLoading } = useMissions(isLoggedIn);
   const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
   const { data: serverHearts } = useHeart(isLoggedIn, t.errors.heartFetchFailed);
@@ -23,7 +23,17 @@ export function HeartDisplay({ onMenuOpen }: Props) {
   const basicCount = serverHearts?.basic.count ?? 0;
   const basicMax = serverHearts?.basic.max ?? 5;
   const specialCount = serverHearts?.special.count ?? 0;
-  const hasUnfinishedMissions = missions.some((m) => m.status === "active" || m.status === "progress");
+  const hasUnfinishedMissions = missions.some((m) => m.status === "ACTIVE" || m.status === "PROGRESS");
+
+  function missionIcon(type: MissionType): string {
+    switch (type) {
+      case "ONE_TIME": return "✅";
+      case "DAILY": return "🗓️";
+      case "WEEKLY_SHARE": return "📸";
+      case "STREAK_3DAYS": return "🔥";
+      case "HIDDEN": return "🎁";
+    }
+  }
 
   return (
     <>
@@ -186,12 +196,11 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           )}
           {missions.map((m: Mission) => (
             <div
-              key={m.id}
+              key={`${m.id}-${m.periodKey ?? "once"}`}
               className="flex items-center gap-3 rounded-[16px]"
               style={{
                 padding: "14px 16px",
-                backgroundColor: m.status === "done" || m.status === "locked" ? "var(--pam-surface)" : "var(--pam-surface-card)",
-                opacity: m.status === "locked" ? 0.6 : 1,
+                backgroundColor: m.status === "DONE" ? "var(--pam-surface)" : "var(--pam-surface-card)",
               }}
             >
               <div
@@ -199,17 +208,16 @@ export function HeartDisplay({ onMenuOpen }: Props) {
                 style={{
                   width: 42, height: 42, borderRadius: 13, fontSize: 20,
                   background:
-                    m.status === "done" ? "linear-gradient(135deg, #e8f8f0, #c8f0dc)"
-                    : m.status === "progress" ? `linear-gradient(135deg, var(--pam-special-from), var(--pam-special-to))`
-                    : m.status === "active" ? `linear-gradient(135deg, var(--pam-surface), var(--pam-border-pink))`
-                    : "var(--pam-surface)",
+                    m.status === "DONE" ? "linear-gradient(135deg, #e8f8f0, #c8f0dc)"
+                    : m.status === "PROGRESS" ? `linear-gradient(135deg, var(--pam-special-from), var(--pam-special-to))`
+                    : `linear-gradient(135deg, var(--pam-surface), var(--pam-border-pink))`,
                 }}
               >
-                {m.icon}
+                {missionIcon(m.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-bold" style={{ fontSize: 14, color: "var(--pam-text)" }}>{m.name}</div>
-                <div style={{ fontSize: 12, marginTop: 2, color: "var(--pam-text-muted)" }}>{m.desc}</div>
+                <div className="font-bold" style={{ fontSize: 14, color: "var(--pam-text)" }}>{m.title}</div>
+                <div style={{ fontSize: 12, marginTop: 2, color: "var(--pam-text-muted)" }}>{m.description}</div>
                 {m.progress && (
                   <div className="overflow-hidden rounded-full" style={{ height: 5, background: "var(--pam-progress-bg)", marginTop: 7 }}>
                     <div
@@ -222,7 +230,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
                   </div>
                 )}
               </div>
-              {m.status === "done" ? (
+              {m.status === "DONE" ? (
                 <div
                   className="flex items-center justify-center text-white font-black flex-shrink-0"
                   style={{ width: 24, height: 24, borderRadius: "50%", fontSize: 12, background: "linear-gradient(135deg, #34d399, #10b981)" }}
@@ -232,7 +240,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
               ) : (
                 <div className="flex items-center gap-[3px] rounded-full flex-shrink-0" style={{ padding: "5px 11px", backgroundColor: "var(--pam-surface)" }}>
                   <span style={{ fontSize: 13 }}>⚡</span>
-                  <strong className="font-black" style={{ fontSize: 13, color: "var(--pam-special-text)" }}>+{m.reward}</strong>
+                  <strong className="font-black" style={{ fontSize: 13, color: "var(--pam-special-text)" }}>+{m.rewardAmount}</strong>
                 </div>
               )}
             </div>
