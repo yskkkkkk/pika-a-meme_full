@@ -26,7 +26,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
   return (
     <>
       <div
-        className="flex items-center z-10 relative"
+        className="flex items-center justify-end z-10 relative"
         style={{ padding: "10px 12px 8px", gap: 6 }}
       >
         {/* 회원: 풀 에너지바 */}
