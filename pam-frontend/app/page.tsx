@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGuestHeart } from "@/hooks/useGuestHeart";
-import { useHeart } from "@/hooks/useHeart";
+import { useGuestHeart } from "@/components/GuestHeartProvider";
+import { useHeart, ServerHeartState } from "@/hooks/useHeart";
 import { useAuth } from "@/hooks/useAuth";
 import { composeMeme, MemeResult } from "@/hooks/useMemeApi";
 import { LoginSlideMenu } from "@/components/auth/LoginSlideMenu";
@@ -21,10 +21,19 @@ export default function Home() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
 
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, username } = useAuth();
   const guest = useGuestHeart();
   const { data: serverHearts, isLoading: heartsLoading } = useHeart(isLoggedIn);
   const queryClient = useQueryClient();
+
+  // 로그아웃 시 진행 중인 화면 초기화
+  useEffect(() => {
+    if (!isLoggedIn && appState !== "HOME") {
+      setAppState("HOME");
+      setMemeResult(null);
+      setSelectedTag(null);
+    }
+  }, [isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 최초 로그인 웰컴 알럿
   useEffect(() => {
@@ -56,6 +65,12 @@ export default function Home() {
       if (!guest.consumeHeart()) return;
     }
 
+    // 옵티미스틱 업데이트: API 완료 전에 즉시 하트 1 감소
+    if (isLoggedIn) {
+      queryClient.setQueryData<ServerHeartState>(["hearts"], (old) =>
+        old ? { ...old, basic: { ...old.basic, count: Math.max(0, old.basic.count - 1) } } : old
+      );
+    }
     setAppState("SPINNING");
     try {
       const [result] = await Promise.all([
@@ -65,8 +80,9 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
-      queryClient.refetchQueries({ queryKey: ["hearts"] });
+      queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
+      queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
       alert(e instanceof Error ? e.message : "오류가 발생했습니다.");
       setAppState("HOME");
     }
@@ -83,6 +99,10 @@ export default function Home() {
 
   const executeSpecialDraw = async () => {
     if (!selectedTag) return;
+    // 옵티미스틱 업데이트: 스페셜 하트 즉시 1 감소
+    queryClient.setQueryData<ServerHeartState>(["hearts"], (old) =>
+      old ? { ...old, special: { ...old.special, count: Math.max(0, old.special.count - 1) } } : old
+    );
     setAppState("SPINNING");
     try {
       const [result] = await Promise.all([
@@ -92,8 +112,9 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
-      queryClient.refetchQueries({ queryKey: ["hearts"] });
+      queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
+      queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
       alert(e instanceof Error ? e.message : "오류가 발생했습니다.");
       setAppState("HOME");
     }
@@ -109,7 +130,12 @@ export default function Home() {
       </div>
 
       {appState === "HOME" && (
-        <HomeScreen onBasicDraw={handleBasicDraw} onSpecialDraw={handleSpecialDrawClick} />
+        <HomeScreen
+          onBasicDraw={handleBasicDraw}
+          onSpecialDraw={handleSpecialDrawClick}
+          username={username}
+          guestHeartCount={isLoggedIn ? undefined : guest.hearts}
+        />
       )}
 
       {appState === "TAG_SELECT" && (

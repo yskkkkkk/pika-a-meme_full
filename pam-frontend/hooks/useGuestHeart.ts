@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 const HEART_STORAGE_KEY = "pam_guest_hearts";
-const MAX_HEARTS = 5;
+const MAX_HEARTS = 3;
 const CHARGE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 interface GuestHeartData {
@@ -11,7 +11,16 @@ interface GuestHeartData {
   lastChargeAt: number; // timestamp in ms
 }
 
-export function useGuestHeart() {
+export interface GuestHeartApi {
+  hearts: number;
+  msUntilNext: number | null;
+  consumeHeart: () => boolean;
+  maxHearts: number;
+  isFull: boolean;
+}
+
+// 실제 로직. GuestHeartProvider에서 한 번만 호출해 Context로 공유.
+export function useGuestHeartCore(): GuestHeartApi {
   const [heartData, setHeartData] = useState<GuestHeartData | null>(null);
   const [currentHearts, setCurrentHearts] = useState<number>(MAX_HEARTS);
   const [msUntilNext, setMsUntilNext] = useState<number | null>(null);
@@ -41,7 +50,7 @@ export function useGuestHeart() {
     const now = Date.now();
     const elapsed = now - heartData.lastChargeAt;
     const charged = Math.floor(elapsed / CHARGE_INTERVAL_MS);
-    
+
     const calculatedCount = Math.min(MAX_HEARTS, heartData.count + charged);
     setCurrentHearts(calculatedCount);
 
@@ -68,21 +77,18 @@ export function useGuestHeart() {
     let newLastChargeAt: number;
 
     if (currentHearts === MAX_HEARTS) {
-      // Starting the charging cycle from now
       newCount = MAX_HEARTS - 1;
       newLastChargeAt = now;
     } else {
-      // Preserve partial progress of the current interval
       const elapsed = now - heartData!.lastChargeAt;
       const charged = Math.floor(elapsed / CHARGE_INTERVAL_MS);
       newCount = (heartData!.count + charged) - 1;
-      // newLastChargeAt stays at the start of the current "interval block"
       newLastChargeAt = heartData!.lastChargeAt + (charged * CHARGE_INTERVAL_MS);
     }
 
     const newData = { count: newCount, lastChargeAt: newLastChargeAt };
     setHeartData(newData);
-    setCurrentHearts(newCount); // calculateState 재실행 대기 없이 즉시 UI 반영
+    setCurrentHearts(newCount);
     localStorage.setItem(HEART_STORAGE_KEY, JSON.stringify(newData));
     return true;
   };

@@ -40,19 +40,19 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
       <p className="font-medium" style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-faint)" }}>
         딱 하나만 골라요!
       </p>
-      <div className="flex flex-wrap justify-center" style={{ gap: 10, marginBottom: 28 }}>
+      <div className="flex flex-wrap justify-center" style={{ gap: 8, marginBottom: 28 }}>
         {AVAILABLE_TAGS.map((tag) => (
           <button
             key={tag}
             onClick={() => onSelectTag(tag)}
             className={cn(
-              "font-bold border-[1.5px] transition-all flex items-center gap-[5px]",
+              "font-bold border-[1.5px] transition-all flex items-center gap-1 whitespace-nowrap",
               selectedTag === tag ? "text-white border-transparent" : "",
             )}
             style={{
-              padding: "8px 14px",
+              padding: "7px 12px",
               borderRadius: 9999,
-              fontSize: 15,
+              fontSize: 14,
               ...(selectedTag === tag
                 ? {
                   background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",

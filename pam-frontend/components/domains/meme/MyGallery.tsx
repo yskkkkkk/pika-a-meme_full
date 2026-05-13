@@ -79,49 +79,49 @@ function MemeCard({ meme, dimmed }: { meme: MemeItem; dimmed?: boolean }) {
       </div>
 
       {/* 하단 정보 */}
-      <div className="px-1 pt-1.5 pb-1 flex items-center gap-2">
-        {meme.heartType === "SPECIAL" ? (
-          <span
-            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
-            style={{
-              background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
-              color: "var(--pam-badge-special-text)",
-            }}
-          >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            SPECIAL
-          </span>
-        ) : (
-          <span
-            className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
-            style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
-          >
-            <Heart className="w-2.5 h-2.5" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
-          </span>
-        )}
-        {meme.matchedTags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {meme.matchedTags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full neon-border-accent"
-                style={{
-                  padding: "3px 8px 3px 6px",
-                  backgroundColor: "var(--pam-tag-bg)",
-                  color: "var(--pam-tag-text)",
-                  border: "1px solid var(--pam-tag-border)",
-                }}
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                  <line x1="7" y1="7" x2="7.01" y2="7"/>
-                </svg>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        <span className="ml-auto flex items-center gap-1 text-[10px] font-bold" style={{ color: "var(--pam-text-muted)" }}>
+      <div className="px-1 pt-1.5 pb-1 flex flex-col gap-1">
+        {/* 1행: 배지 + 태그 */}
+        <div className="flex flex-wrap items-center gap-1">
+          {meme.heartType === "SPECIAL" ? (
+            <span
+              className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
+              style={{
+                background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
+                color: "var(--pam-badge-special-text)",
+              }}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              SPECIAL
+            </span>
+          ) : (
+            <span
+              className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black rounded-full neon-glow-accent"
+              style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
+            >
+              <Heart className="w-2.5 h-2.5" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
+            </span>
+          )}
+          {meme.matchedTags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-[3px] text-[10px] font-bold rounded-full neon-border-accent"
+              style={{
+                padding: "3px 8px 3px 6px",
+                backgroundColor: "var(--pam-tag-bg)",
+                color: "var(--pam-tag-text)",
+                border: "1px solid var(--pam-tag-border)",
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+              </svg>
+              {tag}
+            </span>
+          ))}
+        </div>
+        {/* 2행: 시간 */}
+        <span className="flex items-center justify-end gap-1 text-[10px] font-bold" style={{ color: "var(--pam-text-muted)" }}>
           <Clock className="w-3 h-3" />
           {timeAgo(meme.createdAt)}
         </span>
