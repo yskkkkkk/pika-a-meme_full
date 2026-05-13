@@ -59,7 +59,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
       const blob = await captureCard(cardRef.current);
       await saveMeme(blob);
     } catch {
-      alert(t.saveFailed);
+      alert(t.errors.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -75,7 +75,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
         imageUrl={result.imagePresignedUrl}
         subjectPosition={result.subjectPosition}
         phrase={result.phrase}
-        imageAlt={t.resultAlt}
+        imageAlt={t.result.resultAlt}
         className="w-full overflow-hidden relative flex-shrink-0"
       />
 
@@ -92,7 +92,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
             fontSize: 15,
           }}
         >
-          {t.redraw}
+          {t.actions.redraw}
         </button>
         <button
           onClick={handleSave}
@@ -118,7 +118,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
               strokeLinejoin="round"
             />
           </svg>
-          {saving ? t.saving : t.save}
+          {saving ? t.actions.saving : t.actions.save}
         </button>
       </div>
 
@@ -128,7 +128,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
           className="font-bold active:scale-95 transition-transform"
           style={{ fontSize: 13, color: "var(--pam-text-muted)" }}
         >
-          {t.viewGallery}
+          {t.result.viewGallery}
         </button>
       )}
     </div>

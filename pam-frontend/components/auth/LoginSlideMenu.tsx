@@ -40,7 +40,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
             }}
           >
             <span>{theme === "dark" ? "☀️" : "🌙"}</span>
-            <span>{theme === "dark" ? t.lightMode : t.darkMode}</span>
+            <span>{theme === "dark" ? t.common.lightMode : t.common.darkMode}</span>
           </button>
 
           {/* 언어 토글 */}
@@ -70,10 +70,10 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
       <div className="px-8 pb-12 flex flex-col flex-1">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-black tracking-tight mb-4" style={{ color: "var(--pam-text)" }}>
-            {t.homeTitle}
+            {t.brand.homeTitle}
           </h2>
           <p className="font-medium leading-relaxed whitespace-pre-line" style={{ color: "var(--pam-text-muted)" }}>
-            {t.loginToSave}
+            {t.auth.loginToSave}
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               }}
             >
               <Images className="w-5 h-5" />
-              {t.myGallery}
+              {t.gallery.myGallery}
             </button>
             <button
               onClick={async () => { await logout(); onClose(); router.replace("/"); }}
@@ -104,7 +104,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               }}
             >
               <LogOut className="w-5 h-5" />
-              {t.logout}
+              {t.auth.logout}
             </button>
           </div>
         ) : (
@@ -114,9 +114,9 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
                 className="inline-block px-3 py-1 text-xs font-bold rounded-full mb-2"
                 style={{ backgroundColor: "var(--pam-surface)", color: "var(--pam-purple-text)" }}
               >
-                {t.quickStart}
+                {t.auth.quickStart}
               </span>
-              <p className="text-sm" style={{ color: "var(--pam-text-muted)" }}>{t.loginToSave}</p>
+              <p className="text-sm" style={{ color: "var(--pam-text-muted)" }}>{t.auth.loginToSave}</p>
             </div>
             <button
               onClick={() => { loginWith("kakao"); onClose(); }}
@@ -124,7 +124,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               style={{ backgroundColor: "#FEE500", color: "#000000" }}
             >
               <span className="text-xl">💬</span>
-              {t.continueWithKakao}
+              {t.auth.continueWithKakao}
             </button>
             <button
               onClick={() => { loginWith("google"); onClose(); }}
@@ -136,7 +136,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               }}
             >
               <span className="text-xl">🔵</span>
-              {t.continueWithGoogle}
+              {t.auth.continueWithGoogle}
             </button>
           </div>
         )}
@@ -150,8 +150,8 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>{t.realtimeRefill}</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>{t.realtimeRefillDesc}</p>
+              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>{t.benefits.realtimeRefill}</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>{t.benefits.realtimeRefillDesc}</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
@@ -162,8 +162,8 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               <Diamond className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>{t.specialCard}</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>{t.specialCardDesc}</p>
+              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>{t.benefits.specialCard}</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>{t.benefits.specialCardDesc}</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
@@ -174,8 +174,8 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               <Cloud className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>{t.myGalleryDesc}</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>{t.myGalleryFeatureDesc}</p>
+              <h4 className="font-bold mb-1" style={{ color: "var(--pam-text)" }}>{t.benefits.myGalleryDesc}</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--pam-text-muted)" }}>{t.benefits.myGalleryFeatureDesc}</p>
             </div>
           </div>
         </div>

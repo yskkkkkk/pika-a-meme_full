@@ -23,7 +23,7 @@ export function RecentMemeCarousel() {
     queryKey: ["recent-matched-memes"],
     queryFn: async () => {
       const res = await apiFetch<RecentMeme[]>("/api/memes/recent-matched?size=10");
-      if (!res?.success) throw new Error(res?.error?.message ?? t.errorOccurred);
+      if (!res?.success) throw new Error(res?.error?.message ?? t.errors.errorOccurred);
       return res.data ?? [];
     },
     staleTime: 30 * 1000,
@@ -95,7 +95,7 @@ export function RecentMemeCarousel() {
               phrase={meme.phraseText}
               seed={meme.id}
               showBrandBar={false}
-              imageAlt={t.meme}
+              imageAlt={t.brand.meme}
               className="w-full"
             />
           </div>

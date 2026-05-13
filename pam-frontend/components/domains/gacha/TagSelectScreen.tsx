@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
-import { translations } from "@/lib/i18n";
+import { TranslationMessages } from "@/lib/i18n";
 
 const AVAILABLE_TAGS = [
   "피곤", "직장인", "기쁨", "주말", "귀여움",
@@ -35,13 +35,13 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
         className="self-start flex items-center gap-1 font-bold"
         style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-muted)" }}
       >
-        ← {t.back}
+        ← {t.common.back}
       </button>
       <h2 className="font-black" style={{ fontSize: 26, marginBottom: 8, color: "var(--pam-text)" }}>
-        {t.selectTagTitle}
+        {t.gacha.selectTagTitle}
       </h2>
       <p className="font-medium" style={{ fontSize: 14, marginBottom: 24, color: "var(--pam-text-faint)" }}>
-        {t.selectTagDesc}
+        {t.gacha.selectTagDesc}
       </p>
       <div className="flex flex-wrap justify-center" style={{ gap: 8, marginBottom: 28 }}>
         {AVAILABLE_TAGS.map((tag) => (
@@ -72,7 +72,7 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
           >
             <span>{TAG_EMOJI[tag]}</span>
             <span style={{ color: selectedTag === tag ? "rgba(255,255,255,.65)" : "var(--pam-tag-text)" }}>#</span>
-            {t.tags[tag as keyof typeof translations.ko.tags] || tag}
+            {t.tags[tag as keyof TranslationMessages["tags"]] || tag}
           </button>
         ))}
       </div>
@@ -91,8 +91,8 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
         }}
       >
         {selectedTag 
-          ? t.drawWithTag(t.tags[selectedTag as keyof typeof translations.ko.tags] || selectedTag) 
-          : t.selectTagPrompt}
+          ? t.format.drawWithTag(t.tags[selectedTag as keyof TranslationMessages["tags"]] || selectedTag) 
+          : t.gacha.selectTagPrompt}
       </button>
     </div>
   );

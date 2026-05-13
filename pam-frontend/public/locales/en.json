@@ -1,0 +1,143 @@
+{
+  "brand": {
+    "serviceName": "pick-a-meme",
+    "homeTitle": "PICK-A-MEME",
+    "meme": "Meme",
+    "myMemes": "My Memes",
+    "drawMeme": "Draw a Meme",
+    "collection": "Collection"
+  },
+  "common": {
+    "back": "Back",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "createdSuffix": "Created"
+  },
+  "actions": {
+    "redraw": "Draw Again",
+    "save": "Save",
+    "saving": "Saving...",
+    "loadMore": "Load More",
+    "share": "Share",
+    "sharing": "Sharing..."
+  },
+  "home": {
+    "subtitle": "Pick your meme of the day",
+    "subtitleUser": "Pick {name}'s meme of the day",
+    "basicDraw": "Get a Meme",
+    "specialDraw": "Lucky Draw",
+    "consumeBasic": "Costs 1 Basic Heart",
+    "consumeSpecial": "Costs 1 Special Heart"
+  },
+  "auth": {
+    "loginToSave": "Login to save and collect your memes!",
+    "quickStart": "Start in 1 second",
+    "continueWithKakao": "Continue with Kakao",
+    "continueWithGoogle": "Continue with Google",
+    "logout": "Logout",
+    "processingLogin": "Processing login...",
+    "welcomeMessage": "🎉 Welcome! You've received 1 Special Heart ⚡ as a gift!"
+  },
+  "benefits": {
+    "realtimeRefill": "Auto Refill",
+    "realtimeRefillDesc": "Basic hearts refill every 5 minutes. Keep creating memes!",
+    "specialCard": "Premium Quality",
+    "specialCardDesc": "Use Special Hearts for perfectly matched high-quality memes.",
+    "myGalleryDesc": "Your Collection",
+    "myGalleryFeatureDesc": "Saved memes are stored in your gallery to view anytime."
+  },
+  "gallery": {
+    "myGallery": "My Gallery",
+    "publicTitle": "Meme Gallery",
+    "publicSubtitle": "Memes made by everyone",
+    "totalCount": "{count} Items",
+    "viewAllResults": "Show Hidden Memes",
+    "sortLatest": "Recent",
+    "sortMatched": "Best Matches",
+    "sortSpecial": "Special",
+    "noMemes": "No memes collected yet",
+    "noPublicMemes": "No memes have been made yet",
+    "noMatchingMemes": "No matching memes found",
+    "drawFirstMeme": "Try drawing your first meme!",
+    "makeFirstMeme": "Make the first meme!",
+    "fetchFailed": "Failed to load gallery.",
+    "showAgain": "Now visible in gallery",
+    "hidden": "Hidden from gallery",
+    "hiddenBadge": "Hidden",
+    "detailAria": "View Meme Details",
+    "myMemeAlt": "My Meme",
+    "queryFailed": "Failed to fetch"
+  },
+  "detail": {
+    "backToGallery": "Back to gallery",
+    "title": "Meme Details",
+    "description": "View with speech bubble",
+    "hideFromGallery": "Hide from gallery",
+    "showInGallery": "Show in gallery",
+    "imageAlt": "Detailed image",
+    "loadFailed": "Failed to load meme",
+    "visibilityChangeFailed": "Failed to change visibility"
+  },
+  "gacha": {
+    "selectTagTitle": "What's your mood?",
+    "selectTagDesc": "Pick just one!",
+    "drawWithTag": "Draw with #{tag}!",
+    "selectTagPrompt": "Please select a tag",
+    "zapMessage": "Zap! Your new meme has arrived",
+    "luckyMessage": "Feeling lucky? Draw a meme!",
+    "drawFailed": "Failed to draw."
+  },
+  "result": {
+    "viewGallery": "View My Gallery →",
+    "resultAlt": "Meme Result"
+  },
+  "errors": {
+    "insufficientHearts": "Not enough hearts! Complete missions or wait a bit.",
+    "insufficientHeartsGuest": "Not enough hearts! Wait a bit or login.",
+    "errorOccurred": "An error occurred.",
+    "saveFailed": "Failed to save. Please try again.",
+    "shareFailed": "Share failed",
+    "heartFetchFailed": "Failed to fetch hearts"
+  },
+  "toast": {
+    "imageSaved": "Image saved",
+    "linkCopied": "Link copied"
+  },
+  "heart": {
+    "getSpecialHeart": "Get Special Hearts",
+    "missionRewardDesc": "Earn by completing missions",
+    "noActiveMissions": "No active missions"
+  },
+  "missions": {
+    "firstLogin": { "name": "First Login", "desc": "Completed immediately upon login" },
+    "shareStory": { "name": "Share Story", "desc": "Share your meme to your story" },
+    "inviteFriend": { "name": "Invite Friends", "desc": "Send a link to your friends" },
+    "visit7Days": { "name": "7-Day Streak", "desc": "Visit every day to keep the streak" },
+    "fillGallery10": { "name": "Fill Gallery (10)", "desc": "Unlocks after creating 10 memes" }
+  },
+  "loading": {
+    "title": "Drumroll please...",
+    "step1": "Drawing card",
+    "step2": "Picking phrase",
+    "step3": "Adding to image",
+    "step4": "Finishing up"
+  },
+  "canvas": {
+    "brandBar": "Draw a Meme"
+  },
+  "tags": {
+    "피곤": "Tired",
+    "직장인": "Worker",
+    "기쁨": "Joy",
+    "주말": "Weekend",
+    "귀여움": "Cute",
+    "분노": "Angry",
+    "놀람": "Surprised",
+    "눈치": "Tactical",
+    "광기": "Madness",
+    "질문": "Question",
+    "의지": "Willpower"
+  }
+}

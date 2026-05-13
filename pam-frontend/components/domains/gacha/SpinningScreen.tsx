@@ -9,10 +9,10 @@ const LOADING_ANIMALS = ["🐱", "🐶", "🐻", "🐼", "🦊"];
 export function SpinningScreen() {
   const { t } = useLanguage();
   const steps = [
-    { text: t.loadingStep1, dots: 3 },
-    { text: t.loadingStep2, dots: 3 },
-    { text: t.loadingStep3, dots: 5 },
-    { text: t.loadingStep4, dots: 2 },
+    { text: t.loading.step1, dots: 3 },
+    { text: t.loading.step2, dots: 3 },
+    { text: t.loading.step3, dots: 5 },
+    { text: t.loading.step4, dots: 2 },
   ];
   const [stepIdx, setStepIdx] = useState(0);
   const [dotCount, setDotCount] = useState(0);
@@ -63,7 +63,7 @@ export function SpinningScreen() {
         </div>
       </div>
       <div className="font-black text-white" style={{ fontSize: 18, letterSpacing: "0.05em", marginBottom: 8 }}>
-        {t.loadingTitle}
+        {t.loading.title}
       </div>
       <div
         className="text-white/40 transition-opacity duration-200"
