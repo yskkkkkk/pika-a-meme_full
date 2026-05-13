@@ -94,6 +94,11 @@ export default function Home() {
       setIsMenuOpen(true);
       return;
     }
+    if (heartsLoading) return;
+    if ((serverHearts?.special.count ?? 0) <= 0) {
+      alert("스페셜 하트가 부족합니다! ⚡ 미션을 완료해서 스페셜 하트를 획득하세요.");
+      return;
+    }
     setSelectedTag(null);
     setAppState("TAG_SELECT");
   };

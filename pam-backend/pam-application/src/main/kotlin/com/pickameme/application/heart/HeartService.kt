@@ -24,23 +24,20 @@ class HeartService(
     fun consumeHeart(userId: UUID, heartType: HeartType, memeId: UUID? = null) {
         lockManager.withLock("lock:heart:$userId") {
             val heart = findHeartOrThrow(userId, heartType)
+            val preChargeCount = heart.count
 
             if (heartType == HeartType.BASIC) {
                 heart.chargeIfNeeded(LocalDateTime.now())
             }
 
-            val beforeCount = heart.count
             heart.consume()
             heartRepository.save(heart)
 
-            val charged = beforeCount - 1 // 실제 차감량은 항상 1
-            heartHistoryRepository.save(
-                HeartHistory.consume(userId, heartType, memeId)
-            )
+            heartHistoryRepository.save(HeartHistory.consume(userId, heartType, memeId))
 
             // BASIC 이 lazy 충전된 경우 충전 이력 기록
             if (heartType == HeartType.BASIC) {
-                val chargedAmount = heart.count + 1 - beforeCount // 충전량 = 현재 - (차감 전)
+                val chargedAmount = heart.count + 1 - preChargeCount
                 if (chargedAmount > 0) {
                     heartHistoryRepository.save(HeartHistory.charge(userId, chargedAmount))
                 }
