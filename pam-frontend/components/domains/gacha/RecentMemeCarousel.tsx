@@ -24,7 +24,7 @@ export function RecentMemeCarousel() {
       if (!res?.success) throw new Error(res?.error?.message ?? "최근 미미카드 조회 실패");
       return res.data ?? [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 
   // 컨테이너가 항상 렌더되므로 deps [] 가능

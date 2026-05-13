@@ -80,6 +80,7 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-matched-memes"] });
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
@@ -112,6 +113,7 @@ export default function Home() {
       setMemeResult(result);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-matched-memes"] });
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
