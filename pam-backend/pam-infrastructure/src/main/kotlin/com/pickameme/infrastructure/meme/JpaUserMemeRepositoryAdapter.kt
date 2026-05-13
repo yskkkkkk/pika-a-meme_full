@@ -3,6 +3,7 @@ package com.pickameme.infrastructure.meme
 import com.pickameme.domain.meme.UserMeme
 import com.pickameme.domain.meme.UserMemeRepository
 import jakarta.transaction.Transactional
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -38,6 +39,7 @@ class JpaUserMemeRepositoryAdapter(
     override fun findByUserIdAndId(userId: UUID, id: UUID): UserMeme? =
         jpaRepository.findByUserIdAndId(userId, id)?.toDomain()
 
+    @Cacheable("recent-matched-memes")
     override fun findRecentTagMatched(limit: Int): List<UserMeme> =
         jpaRepository.findRecentTagMatched(limit)
             .map { it.toDomain() }
