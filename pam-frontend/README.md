@@ -64,6 +64,7 @@ components/
 | Surface | `#FFF0F5` | 배경 보조 |
 
 디자인 스펙 전체: [`DESIGN_HANDOFF.md`](./DESIGN_HANDOFF.md)
+다국어/영어 도입 가이드: [`I18N_ENGLISH_GUIDE.md`](./I18N_ENGLISH_GUIDE.md)
 
 ---
 
