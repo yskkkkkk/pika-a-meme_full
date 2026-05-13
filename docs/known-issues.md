@@ -1,0 +1,97 @@
+# Known Issues & Bug Log
+
+발견된 버그와 조치 이력을 기록한다.  
+상태: `FIXED` / `OPEN` / `WONTFIX`
+
+---
+
+## BUG-01 · 하트 소모가 실제로 차감되지 않음
+
+- **상태**: FIXED (260512)
+- **연관 태스크**: TASK-260512-01
+- **발견**: 밈 뽑기 후 하트가 줄지 않음. 로그인/비회원 모두 재현.
+
+**원인**  
+`MemeComposeService.compose()`에서 `HeartService.consumeHeart()` 호출 자체가 누락되어 있었다.  
+API가 성공 응답을 반환해도 하트가 실제로 차감되지 않았다.
+
+**조치**  
+- `MemeComposeService`에 `heartService.consumeHeart(userId, heartType)` 호출 추가  
+- 비회원: `consumeHeart()`에서 `setCurrentHearts()` 직접 호출 → 즉시 UI 반영  
+- `useMemeApi` mock 폴백을 네트워크 오류 한정으로 축소 — `success=false` 응답도 throw 처리  
+- HeartDisplay SPINNING 중 `display:none` 유지로 React Query observer 연속성 보장, `refetchQueries`로 즉시 서버값 갱신
+
+---
+
+## BUG-02 · 로그인 직후 하트 수치 깜빡임 (0 → 5 → 실제값)
+
+- **상태**: FIXED (260512)
+- **연관 태스크**: TASK-260512-05
+- **발견**: 로그인 직후 하트 바에 0이 잠깐 표시된 후 실제 값으로 전환되는 깜빡임 발생.
+
+**원인**  
+1. `useHeart` React Query 리페치 중 이전 데이터가 없어 `undefined` → 0으로 렌더링
+2. `MemeComposeService`에서 하트 차감 순서가 조합보다 앞에 있어 조합 실패 시에도 차감될 수 있는 구조
+
+**조치**  
+- `useHeart`에 `placeholderData: prev` 옵션 추가 → 리페치 중 이전 데이터 유지, 깜빡임 제거  
+- `MemeComposeService` 하트 차감 순서를 조합(이미지/문구 선택) 이후로 재정렬  
+- `HeartDisplay` 초기 로딩 중(`serverHearts === null`) 숫자 `0` 대신 `—` 표시 (`heartsReady` 플래그 도입)
+
+---
+
+## BUG-03 · 스페셜 하트 로직 4종 버그
+
+- **상태**: FIXED (260513)
+- **연관 태스크**: TASK-260513-02
+- **발견**: 스페셜 하트 관련 로직 전면 점검 중 복수 이슈 발견.
+
+**원인 및 조치 (4건)**
+
+| # | 발견 | 원인 | 조치 |
+|---|---|---|---|
+| ① | 비로그인 유저도 SPECIAL 뽑기 API 호출 가능 | `MemeController`에 인증 가드 없음 | `userId == null && heartType == SPECIAL` 시 401 반환 |
+| ② | 스페셜 하트 0개여도 뽑기 진입 가능 | `page.tsx`에 잔액 체크 없음 | `executeSpecialDraw` 진입 전 `special.count <= 0` 체크 추가 |
+| ③ | 충전 이력(HeartHistory.charge)이 항상 0으로 기록 | `HeartService`에서 `beforeCount`를 `chargeIfNeeded()` 이후에 캡처 → `chargedAmount` 항상 0 | `preChargeCount`로 rename 후 `chargeIfNeeded()` 호출 전에 캡처 |
+| ④ | 컴파일 경고 | `charged` 변수 미사용 | 변수 제거 |
+
+---
+
+## BUG-04 · favicon.ico 요청이 ERROR 로그로 기록됨
+
+- **상태**: FIXED (260513)
+- **연관 태스크**: fix/no-resource-exception-logging
+- **발견**: 서버 로그에 `NoResourceFoundException: No static resource favicon.ico` 가 ERROR 레벨 + 풀 스택 트레이스로 반복 출력.
+
+**원인**  
+브라우저가 백엔드 도메인(`api.pick-a-me.me`)에 자동으로 `GET /favicon.ico`를 요청하는데,  
+Spring Boot에 정적 리소스가 없어 `NoResourceFoundException`이 발생한다.  
+이 예외를 처리하는 핸들러가 없어 `GlobalExceptionHandler.handleUnexpected(Exception)`으로 떨어져 `log.error()`가 호출되었다.
+
+**조치**  
+`GlobalExceptionHandler`에 `NoResourceFoundException` 전용 핸들러 추가 → 로그 없이 404 반환.
+
+---
+
+## BUG-05 · OAuth2 로그인 시 `[authorization_request_not_found]` 에러
+
+- **상태**: FIXED (260513)
+- **연관 태스크**: fix/no-resource-exception-logging
+- **발견**: 카카오/구글 로그인 시 `api.pick-a-me.me/login?error` 로 리다이렉트되며 `[authorization_request_not_found]` 표시. 서버 재시작 직후 특히 빈번하게 발생.
+
+**원인**  
+`SecurityConfig`에 `SessionCreationPolicy.STATELESS`가 설정되어 HTTP 세션이 전혀 생성되지 않았다.  
+Spring Security OAuth2는 로그인 요청 시 `state` 파라미터(CSRF 방지용)를 세션에 저장하고,  
+OAuth 제공자 콜백에서 이를 꺼내 검증한다.  
+세션이 없으니 콜백 시 저장된 state를 찾지 못해 인증 흐름이 중단된다.
+
+```
+1. 유저 → "카카오 로그인" 클릭
+2. Spring Security → state를 세션에 저장 후 카카오로 리다이렉트  ← 세션 없음
+3. 카카오 → 콜백 URL로 리다이렉트
+4. Spring Security → 세션에서 state 조회 실패 → authorization_request_not_found
+```
+
+**조치**  
+`SessionCreationPolicy.STATELESS` → `IF_REQUIRED` 변경.  
+OAuth2 핸드셰이크 동안에만 임시 세션이 생성되며, JWT 발급 후 API 호출은 세션 없이 JWT 필터로 처리되므로 API 무상태성은 유지된다.
