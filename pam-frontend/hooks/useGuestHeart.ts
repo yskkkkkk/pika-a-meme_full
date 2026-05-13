@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 const HEART_STORAGE_KEY = "pam_guest_hearts";
-const MAX_HEARTS = 5;
+const MAX_HEARTS = 3;
 const CHARGE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 interface GuestHeartData {

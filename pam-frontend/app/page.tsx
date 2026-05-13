@@ -21,7 +21,7 @@ export default function Home() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
 
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, username } = useAuth();
   const guest = useGuestHeart();
   const { data: serverHearts, isLoading: heartsLoading } = useHeart(isLoggedIn);
   const queryClient = useQueryClient();
@@ -130,7 +130,7 @@ export default function Home() {
       </div>
 
       {appState === "HOME" && (
-        <HomeScreen onBasicDraw={handleBasicDraw} onSpecialDraw={handleSpecialDrawClick} />
+        <HomeScreen onBasicDraw={handleBasicDraw} onSpecialDraw={handleSpecialDrawClick} username={username} />
       )}
 
       {appState === "TAG_SELECT" && (

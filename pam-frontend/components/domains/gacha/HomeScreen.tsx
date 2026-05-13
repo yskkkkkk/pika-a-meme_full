@@ -5,9 +5,10 @@ import { RecentMemeCarousel } from "@/components/domains/gacha/RecentMemeCarouse
 interface Props {
   onBasicDraw: () => void;
   onSpecialDraw: () => void;
+  username?: string | null;
 }
 
-export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
+export function HomeScreen({ onBasicDraw, onSpecialDraw, username }: Props) {
   return (
     <div
       className="flex-1 flex flex-col items-center justify-center w-full animate-in fade-in zoom-in duration-300"
@@ -21,7 +22,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw }: Props) {
           PICK-A-<em className="pam-brand-em">MEME</em>
         </h1>
         <p className="text-center" style={{ fontSize: 13, color: "var(--pam-text-faint)" }}>
-          오늘의 미미카드를 뽑아보세요
+          {username ? `${username}님의 미미카드를 뽑아보세요` : "오늘의 미미카드를 뽑아보세요"}
         </p>
       </div>
 

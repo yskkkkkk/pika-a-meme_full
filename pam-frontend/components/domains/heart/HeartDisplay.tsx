@@ -76,9 +76,9 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           </div>
         </div>
 
-        {/* SPECIAL heart tap button */}
-        <button
-          onClick={() => isLoggedIn ? setMissionOpen(true) : onMenuOpen()}
+        {/* SPECIAL heart tap button — 로그인 유저만 노출 */}
+        {!isLoggedIn ? null : <button
+          onClick={() => setMissionOpen(true)}
           className="flex items-center relative active:scale-95 transition-transform"
           style={{
             gap: 5,
@@ -101,7 +101,7 @@ export function HeartDisplay({ onMenuOpen }: Props) {
           <span className="font-black" style={{ fontSize: 19, color: "var(--pam-special-text)" }}>
             {heartsReady ? specialCount : <span style={{ color: "var(--pam-text-disabled)" }}>—</span>}
           </span>
-        </button>
+        </button>}
 
         {/* Theme toggle button */}
         <button
