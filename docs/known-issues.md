@@ -152,6 +152,69 @@ OAuth2 핸드셰이크 동안에만 임시 세션이 생성되며, JWT 발급 �
 
 ---
 
+## BUG-07 · 로그아웃 후 새로고침 시 로그인 상태 복원
+
+- **상태**: FIXED (260514) — 2차 수정
+- **연관 태스크**: TASK-260513-05
+
+**증상**  
+로그아웃 버튼을 눌러도 브라우저를 새로고침하면 로그인 상태로 돌아왔다.
+
+---
+
+### 1차 수정 (260514) — 미완
+
+**원인으로 오해한 것**  
+로그아웃 후 React Query의 인메모리 캐시(`queryClient`)에 이전 로그인 정보가 남아 있어서  
+새로고침 없이 화면만 전환할 때 데이터가 유지된다고 판단.
+
+**조치**  
+`LoginSlideMenu`의 로그아웃 핸들러에 `queryClient.clear()`를 추가.
+
+**결과: 불완전**  
+React Query 캐시는 인메모리이므로 새로고침 시 자동으로 비워진다.  
+`queryClient.clear()`는 "새로고침 없이 화면 전환" 시나리오에서만 유효하며,  
+**새로고침 후 재진입 시 쿠키가 살아있으면 `/api/auth/me`가 인증을 그대로 통과**한다.  
+즉, 쿠키 자체가 삭제되지 않은 것이 진짜 원인이었다.
+
+---
+
+### 2차 수정 (260514) — 근본 해결
+
+**실제 원인**  
+로그인은 **OAuth2 302 리다이렉트**(네비게이션 컨텍스트)로 쿠키를 발급한다.  
+브라우저는 서버 리다이렉트 응답의 `Set-Cookie`를 항상 신뢰하고 저장한다.
+
+반면 로그아웃은 **JavaScript `fetch`**(XHR/크로스 오리진 컨텍스트)로  
+`Set-Cookie: pam_token=; Max-Age=0`을 응답받는 방식이었다.  
+브라우저는 크로스 오리진 fetch 응답의 `Set-Cookie`를 신뢰하지 않거나 무시할 수 있다.  
+결과적으로 쿠키가 실제로 삭제되지 않고, 새로고침 후 `/api/auth/me` 요청에 그대로 포함되었다.
+
+```
+[기존 흐름 — 쿠키 삭제 실패]
+프론트 → fetch POST /api/auth/logout
+서버 → 응답 헤더: Set-Cookie: pam_token=; Max-Age=0
+브라우저 → 크로스 오리진 fetch Set-Cookie 무시 → 쿠키 남음
+새로고침 → /api/auth/me 요청에 쿠키 포함 → 로그인 복원
+
+[수정 후 흐름 — 쿠키 삭제 성공]
+프론트 → window.location.href = API_BASE + /api/auth/logout  (네비게이션)
+브라우저 → 네비게이션 컨텍스트로 GET /api/auth/logout 요청
+서버 → Set-Cookie: pam_token=; Max-Age=0 + 302 → 프론트엔드로 리다이렉트
+브라우저 → 네비게이션 컨텍스트이므로 Set-Cookie 신뢰 → 쿠키 삭제
+새로고침 → /api/auth/me 요청에 쿠키 없음 → 비로그인 상태 정상
+```
+
+**조치**
+
+| 파일 | 변경 내용 |
+|---|---|
+| `AuthController.kt` | `POST /logout` → `GET /logout`으로 교체. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
+| `useAuth.ts` | `logout`을 `async apiFetch` → `window.location.href = apiBase + /api/auth/logout` 으로 교체 |
+| `LoginSlideMenu.tsx` | 로그아웃 핸들러에서 `async/await`, `queryClient.clear()`, `router.replace()`  제거. 페이지 전체 리로드로 상태 자동 초기화 |
+
+---
+
 ## BUG-06 · 미션 트리거 시 500 에러 (mission_completions.metadata jsonb 타입 불일치)
 
 - **상태**: FIXED (260514)
