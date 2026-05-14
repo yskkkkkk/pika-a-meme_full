@@ -181,36 +181,45 @@ React Query 캐시는 인메모리이므로 새로고침 시 자동으로 비워
 
 ### 2차 수정 (260514) — 근본 해결
 
-**실제 원인**  
-로그인은 **OAuth2 302 리다이렉트**(네비게이션 컨텍스트)로 쿠키를 발급한다.  
-브라우저는 서버 리다이렉트 응답의 `Set-Cookie`를 항상 신뢰하고 저장한다.
+**배경: 브라우저의 요청 컨텍스트와 Set-Cookie 처리 규칙**
 
-반면 로그아웃은 **JavaScript `fetch`**(XHR/크로스 오리진 컨텍스트)로  
-`Set-Cookie: pam_token=; Max-Age=0`을 응답받는 방식이었다.  
-브라우저는 크로스 오리진 fetch 응답의 `Set-Cookie`를 신뢰하지 않거나 무시할 수 있다.  
-결과적으로 쿠키가 실제로 삭제되지 않고, 새로고침 후 `/api/auth/me` 요청에 그대로 포함되었다.
+브라우저는 요청 방식에 따라 Set-Cookie 처리 여부를 다르게 적용한다.
+
+| 요청 방식 | 설명 | 크로스 오리진 Set-Cookie |
+|---|---|---|
+| 네비게이션 | 주소창 입력, 링크 클릭, `window.location.href`, 302 리다이렉트 따라가기 | **항상 처리** |
+| fetch / XHR | JS 코드에서 호출하는 백그라운드 요청 | **차단** |
+
+이 제약은 쿠키를 심을 때와 지울 때 모두 동일하게 적용된다.  
+크로스 오리진 fetch로는 `Max-Age=0`을 내려줘도 삭제되지 않는다.
+
+**실제 원인**  
+로그아웃이 크로스 오리진 `fetch()`로 구현되어 있었다.  
+서버가 `Set-Cookie: pam_token=; Max-Age=0`을 응답해도 브라우저가 무시했다.
+
+로그인이 성공했던 이유는 OAuth2 흐름이 302 리다이렉트의 연속, 즉 네비게이션이기 때문이다.  
+로그인 방식이 특별해서가 아니라, OAuth2 구조상 필연적으로 크로스 오리진 제약을 피해간 것이다.
 
 ```
-[기존 흐름 — 쿠키 삭제 실패]
-프론트 → fetch POST /api/auth/logout
-서버 → 응답 헤더: Set-Cookie: pam_token=; Max-Age=0
-브라우저 → 크로스 오리진 fetch Set-Cookie 무시 → 쿠키 남음
-새로고침 → /api/auth/me 요청에 쿠키 포함 → 로그인 복원
+[기존 — 실패]
+프론트 → fetch() /api/auth/logout        ← 크로스 오리진 fetch
+서버  → Set-Cookie: pam_token=; Max-Age=0
+브라우저 → 크로스 오리진 fetch Set-Cookie 차단 → 쿠키 유지
+새로고침 → /api/auth/me 쿠키 포함 → 로그인 상태 복원
 
-[수정 후 흐름 — 쿠키 삭제 성공]
-프론트 → window.location.href = API_BASE + /api/auth/logout  (네비게이션)
-브라우저 → 네비게이션 컨텍스트로 GET /api/auth/logout 요청
-서버 → Set-Cookie: pam_token=; Max-Age=0 + 302 → 프론트엔드로 리다이렉트
-브라우저 → 네비게이션 컨텍스트이므로 Set-Cookie 신뢰 → 쿠키 삭제
-새로고침 → /api/auth/me 요청에 쿠키 없음 → 비로그인 상태 정상
+[수정 후 — 성공]
+프론트 → window.location.href = API_BASE/api/auth/logout   ← 네비게이션
+서버  → Set-Cookie: pam_token=; Max-Age=0  +  302 → 프론트엔드
+브라우저 → 네비게이션이므로 크로스 오리진 제약 없이 Set-Cookie 처리 → 쿠키 삭제
+새로고침 → /api/auth/me 쿠키 없음 → 비로그인 정상
 ```
 
 **조치**
 
 | 파일 | 변경 내용 |
 |---|---|
-| `useAuth.ts` | `logout`을 `fetch()` 호출 → `window.location.href = apiBase + /api/auth/logout` 으로 교체. fetch가 아닌 네비게이션으로 요청해야 Set-Cookie가 적용됨 |
-| `AuthController.kt` | `window.location.href`는 GET 요청만 가능하므로 엔드포인트를 GET으로 변경. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
+| `useAuth.ts` | `fetch()` 호출 → `window.location.href = apiBase + /api/auth/logout`. 네비게이션으로 요청해야 크로스 오리진 Set-Cookie가 처리됨 |
+| `AuthController.kt` | `window.location.href`는 GET만 가능하므로 엔드포인트를 GET으로 변경. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
 | `LoginSlideMenu.tsx` | 로그아웃 핸들러에서 `async/await`, `queryClient.clear()`, `router.replace()` 제거. 페이지 전체 리로드로 상태 자동 초기화 |
 
 ---
