@@ -10,13 +10,16 @@
   "common": {
     "back": "Back",
     "confirm": "Confirm",
+    "cancel": "Cancel",
     "loading": "Loading...",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
     "createdSuffix": "Created"
   },
   "actions": {
+    "home": "Home",
     "redraw": "Draw Again",
+    "redrawConfirm": "Draw!",
     "save": "Save",
     "saving": "Saving...",
     "loadMore": "Load More",

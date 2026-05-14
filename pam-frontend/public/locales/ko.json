@@ -10,13 +10,16 @@
   "common": {
     "back": "뒤로",
     "confirm": "확인",
+    "cancel": "취소",
     "loading": "불러오는 중...",
     "lightMode": "라이트 모드",
     "darkMode": "다크 모드",
     "createdSuffix": "생성"
   },
   "actions": {
+    "home": "홈",
     "redraw": "다시 뽑기",
+    "redrawConfirm": "뽑기!",
     "save": "저장하기",
     "saving": "저장 중...",
     "loadMore": "더 보기",
