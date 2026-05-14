@@ -209,9 +209,9 @@ React Query 캐시는 인메모리이므로 새로고침 시 자동으로 비워
 
 | 파일 | 변경 내용 |
 |---|---|
-| `AuthController.kt` | `POST /logout` → `GET /logout`으로 교체. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
-| `useAuth.ts` | `logout`을 `async apiFetch` → `window.location.href = apiBase + /api/auth/logout` 으로 교체 |
-| `LoginSlideMenu.tsx` | 로그아웃 핸들러에서 `async/await`, `queryClient.clear()`, `router.replace()`  제거. 페이지 전체 리로드로 상태 자동 초기화 |
+| `useAuth.ts` | `logout`을 `fetch()` 호출 → `window.location.href = apiBase + /api/auth/logout` 으로 교체. fetch가 아닌 네비게이션으로 요청해야 Set-Cookie가 적용됨 |
+| `AuthController.kt` | `window.location.href`는 GET 요청만 가능하므로 엔드포인트를 GET으로 변경. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
+| `LoginSlideMenu.tsx` | 로그아웃 핸들러에서 `async/await`, `queryClient.clear()`, `router.replace()` 제거. 페이지 전체 리로드로 상태 자동 초기화 |
 
 ---
 
