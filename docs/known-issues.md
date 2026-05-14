@@ -154,7 +154,7 @@ OAuth2 핸드셰이크 동안에만 임시 세션이 생성되며, JWT 발급 �
 
 ## BUG-07 · 로그아웃 후 새로고침 시 로그인 상태 복원
 
-- **상태**: FIXED (260514) — 2차 수정
+- **상태**: FIXED (260514) — 3차 수정
 - **연관 태스크**: TASK-260513-05
 
 **증상**  
@@ -221,6 +221,45 @@ React Query 캐시는 인메모리이므로 새로고침 시 자동으로 비워
 | `useAuth.ts` | `fetch()` 호출 → `window.location.href = apiBase + /api/auth/logout`. 네비게이션으로 요청해야 크로스 오리진 Set-Cookie가 처리됨 |
 | `AuthController.kt` | `window.location.href`는 GET만 가능하므로 엔드포인트를 GET으로 변경. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
 | `LoginSlideMenu.tsx` | 로그아웃 핸들러에서 `async/await`, `queryClient.clear()`, `router.replace()` 제거. 페이지 전체 리로드로 상태 자동 초기화 |
+
+---
+
+### 3차 수정 (260514) — 운영 한정 재발
+
+**증상**  
+로컬에서는 2차 수정 후 정상 동작. 운영 배포 후에도 새로고침 시 로그인 상태 복원.
+
+**원인: 쿠키 도메인 불일치**  
+2차 수정과 동시에 `cookie.domain` 속성을 추가해 로그인 쿠키에 `domain=.pick-a-me.me`를 붙이도록 변경했다.  
+그런데 **배포 전에 발급된 기존 쿠키**는 domain 속성이 없는 채로 브라우저에 저장되어 있었다.
+
+브라우저는 **domain 속성이 다른 쿠키를 별개의 쿠키**로 취급한다.  
+로그아웃이 `domain=.pick-a-me.me`로 만료를 요청해도 `domain 없는 기존 쿠키`는 건드리지 않는다.
+
+```
+[브라우저 쿠키 저장 상태]
+pam_token=xxx  (domain 없음)        ← 배포 전 발급, 여전히 살아있음
+pam_token=xxx  (domain=.pick-a-me.me) ← 배포 후 신규 발급 시
+
+[로그아웃 만료 요청 (2차 수정)]
+Set-Cookie: pam_token=; domain=.pick-a-me.me; Max-Age=0
+→ domain 없는 쿠키는 별개로 인식 → 삭제 안 됨
+```
+
+로컬에서는 `cookie.domain`이 빈 값이라 domain 속성 자체가 없어 이 불일치가 발생하지 않았다.
+
+**조치**  
+`AuthController.kt` 로그아웃 핸들러에서 만료 쿠키를 **domain 없는 버전 + domain 있는 버전** 두 개 모두 응답헤더에 추가.
+
+```kotlin
+// domain 없는 쿠키 (배포 전 발급분) + domain 있는 쿠키 (배포 후 발급분) 둘 다 만료
+response.addHeader("Set-Cookie", base.build().toString())
+if (cookieDomain.isNotBlank()) {
+    response.addHeader("Set-Cookie", base.domain(cookieDomain).build().toString())
+}
+```
+
+시간이 지나 domain 없는 구형 쿠키가 모두 소멸하면 두 번째 줄은 불필요해진다.
 
 ---
 
