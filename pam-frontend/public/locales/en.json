@@ -96,6 +96,9 @@
   "errors": {
     "insufficientHearts": "Not enough hearts! Complete missions or wait a bit.",
     "insufficientHeartsGuest": "Not enough hearts! Wait a bit or login.",
+    "insufficientSpecialHearts": "Not enough Special Hearts! ⚡ Complete missions to earn some.",
+    "networkTimeout": "Connection unstable. Please try again.",
+    "drawFailed": "Draw failed. No hearts were deducted.",
     "errorOccurred": "An error occurred.",
     "saveFailed": "Failed to save. Please try again.",
     "shareFailed": "Share failed",

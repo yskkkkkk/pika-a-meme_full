@@ -105,6 +105,8 @@
 | TASK-260513-05 | [하트/스테미나] | [x] | 스페셜 하트 미션 시스템 전체 구현 | TASK-260429-22 | V15 마이그레이션(4개 테이블 + 시드). 도메인/인프라/애플리케이션/API 레이어 신규. MissionService.trigger() 단일 진입점. 7개 공개 미션 + 11개 히든 테마 미션. 연속방문 streak, 주간공유 3회마다 지급, 갤러리 10/30개(미노출 포함). 히든 미션은 달성 시만 목록 노출. HeartInitializeListener/MemeComposeService 트리거 연결. useMissions 실제 API 연동. docs/mission-system.md 작성 | 260513 / 260513 |
 | TASK-260513-06 | [프론트엔드] | [ ] | i18n 적용 후 CSS 레이아웃 깨짐 수정 | [!] 외부 요청, TASK-260512-07 | 영어 버전 적용(TASK-260512-07) 이후 일부 컴포넌트 CSS 레이아웃 깨짐 확인. 영향 범위 파악 후 수정 | 260513 / - |
 | TASK-260513-07 | [인프라/공통] | [ ] | 백엔드 서버 OCI(Oracle Cloud) 이관 준비 | [!] 외부 요청 | 현재 Railway Docker 운영 중. OCI로 이관을 위한 사전 준비: (1) OCI 인스턴스 스펙/구성 검토. (2) Docker Compose 또는 OCI Container Instance 배포 방식 결정. (3) 도메인/Cloudflare 연결 변경 계획. CI/CD GitHub Actions 수정 범위 포함 | 260513 / - |
+| TASK-260514-01 | [인프라/공통] | [x] | mission_completions.metadata jsonb 타입 불일치 운영 버그 수정 | [!] 외부 요청 | StringMapConverter(Map→varchar)를 @JdbcTypeCode(SqlTypes.JSON)으로 교체. 미션 트리거 시 500 에러 발생. docs/known-issues.md BUG-06 참고 | 260514 / 260514 |
+| TASK-260514-02 | [인프라/공통] | [x] | HTTP 요청 타임아웃 전체 설정 및 사용자 알럿 고도화 | [!] 외부 요청 | (1) apiFetch AbortController 15초 타임아웃. (2) application.yml Tomcat 연결타임아웃·HikariCP max-pool-size 명시. (3) alert() 전부 인앱 토스트로 교체. (4) 에러 분류(타임아웃/하트부족/서버에러) 별 메시지 분기 | 260514 / 260514 |
 
 ---
 

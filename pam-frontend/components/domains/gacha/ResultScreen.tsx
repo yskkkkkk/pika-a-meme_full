@@ -6,7 +6,8 @@ import html2canvas from "html2canvas";
 import { MemeResult } from "@/hooks/useMemeApi";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
-
+import { useToast } from "@/hooks/useToast";
+import { Toast } from "@/components/ui/Toast";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 
 async function captureCard(el: HTMLElement): Promise<Blob> {
@@ -50,6 +51,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
   const [saving, setSaving] = useState(false);
   const { isLoggedIn } = useAuth();
   const { t } = useLanguage();
+  const { toastMsg, showToast } = useToast();
   const router = useRouter();
 
   const handleSave = async () => {
@@ -59,7 +61,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
       const blob = await captureCard(cardRef.current);
       await saveMeme(blob);
     } catch {
-      alert(t.errors.saveFailed);
+      showToast(t.errors.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -131,6 +133,7 @@ export function ResultScreen({ result, onRedraw }: Props) {
           {t.result.viewGallery}
         </button>
       )}
+      <Toast message={toastMsg} />
     </div>
   );
 }

@@ -96,6 +96,9 @@
   "errors": {
     "insufficientHearts": "하트가 부족합니다! 미션을 완료하거나 잠시 후 다시 시도하세요.",
     "insufficientHeartsGuest": "하트가 부족합니다! 잠시 후 다시 시도하거나 로그인하세요.",
+    "insufficientSpecialHearts": "스페셜 하트가 부족합니다! ⚡ 미션을 완료해서 획득하세요.",
+    "networkTimeout": "연결이 불안정합니다. 잠시 후 다시 시도해 주세요.",
+    "drawFailed": "뽑기에 실패했습니다. 하트는 차감되지 않았어요.",
     "errorOccurred": "오류가 발생했습니다.",
     "saveFailed": "저장에 실패했습니다. 다시 시도해주세요.",
     "shareFailed": "공유에 실패했습니다",

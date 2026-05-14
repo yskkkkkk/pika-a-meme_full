@@ -149,3 +149,26 @@ OAuth 제공자 콜백에서 이를 꺼내 검증한다.
 **조치**  
 `SessionCreationPolicy.STATELESS` → `IF_REQUIRED` 변경.  
 OAuth2 핸드셰이크 동안에만 임시 세션이 생성되며, JWT 발급 후 API 호출은 세션 없이 JWT 필터로 처리되므로 API 무상태성은 유지된다.
+
+---
+
+## BUG-06 · 미션 트리거 시 500 에러 (mission_completions.metadata jsonb 타입 불일치)
+
+- **상태**: FIXED (260514)
+- **연관 태스크**: TASK-260514-01
+- **발견**: 뽑기 직후 미션 트리거(`MissionService.trigger()`) 호출 시 500 에러. 사용자에게 "서버 오류가 발생했습니다." 알럿 노출.
+
+**원인**  
+`MissionCompletionJpaEntity`의 `metadata` 컬럼이 DB에서 `jsonb` 타입이지만,  
+`@Convert(converter = StringMapConverter::class)`가 `Map<String, String>` → `String(varchar)`로 직렬화했다.  
+PostgreSQL은 `character varying`을 `jsonb` 컬럼에 암묵적 캐스팅 없이 거부한다.
+
+```
+ERROR: column "metadata" is of type jsonb but expression is of type character varying
+Hint: You will need to rewrite or cast the expression.
+```
+
+**조치**  
+`@Convert(converter = StringMapConverter::class)` → `@JdbcTypeCode(SqlTypes.JSON)` 교체.  
+Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬럼에 정상 삽입.  
+미사용 `StringMapConverter` 클래스 삭제.
