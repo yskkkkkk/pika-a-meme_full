@@ -51,6 +51,7 @@ function getTailDir(pos: string): TailDir {
     case "bottom":
     case "bottom_left":
     case "bottom_right":
+    case "full_horizontal":
       return "down";
     case "left":
     case "full_vertical":
