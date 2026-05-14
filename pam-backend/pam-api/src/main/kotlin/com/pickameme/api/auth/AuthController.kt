@@ -17,6 +17,7 @@ import java.util.UUID
 class AuthController(
     private val userRepository: UserRepository,
     @Value("\${cookie.secure:true}") private val cookieSecure: Boolean,
+    @Value("\${cookie.domain:}") private val cookieDomain: String,
     @Value("\${oauth2.redirect-uri:http://localhost:3000/oauth2/callback}") private val oauth2RedirectUri: String
 ) {
 
@@ -29,13 +30,14 @@ class AuthController(
 
     @GetMapping("/logout")
     fun logout(response: HttpServletResponse) {
-        val expiredCookie = ResponseCookie.from("pam_token", "")
+        val builder = ResponseCookie.from("pam_token", "")
             .httpOnly(true)
             .secure(cookieSecure)
             .sameSite("Lax")
             .path("/")
             .maxAge(0)
-            .build()
+
+        val expiredCookie = if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
         response.addHeader("Set-Cookie", expiredCookie.toString())
         val frontendBase = try {
             val uri = java.net.URI.create(oauth2RedirectUri)

@@ -14,6 +14,7 @@ class OAuth2SuccessHandler(
     private val jwtProvider: JwtProvider,
     @Value("\${oauth2.redirect-uri}") private val redirectUri: String,
     @Value("\${cookie.secure:true}") private val cookieSecure: Boolean,
+    @Value("\${cookie.domain:}") private val cookieDomain: String,
     @Value("\${jwt.expiration-ms}") private val expirationMs: Long
 ) : SimpleUrlAuthenticationSuccessHandler() {
 
@@ -25,13 +26,14 @@ class OAuth2SuccessHandler(
         val principal = authentication.principal as PrincipalDetails
         val token = jwtProvider.generate(principal.user.id)
 
-        val cookie = ResponseCookie.from("pam_token", token)
+        val builder = ResponseCookie.from("pam_token", token)
             .httpOnly(true)
             .secure(cookieSecure)
             .sameSite("Lax")
             .path("/")
             .maxAge(expirationMs / 1000)
-            .build()
+
+        val cookie = if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
 
         response.addHeader("Set-Cookie", cookie.toString())
         val target = if (principal.isNewUser) "$redirectUri?welcome=1" else redirectUri

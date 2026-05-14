@@ -1,0 +1,17 @@
+cookie:
+  secure: false
+  domain: ""
+
+cors:
+  allowed-origins: http://localhost:3000
+
+oauth2:
+  redirect-uri: http://localhost:3000/oauth2/callback
+
+app:
+  rate-limit:
+    use-forwarded-headers: false
+
+spring:
+  jpa:
+    show-sql: true
