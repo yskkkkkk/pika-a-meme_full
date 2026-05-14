@@ -26,6 +26,47 @@ async function captureCard(el: HTMLElement): Promise<Blob> {
   });
 }
 
+// SVG 아이콘 컴포넌트
+function IconHome() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
+      <path d="M9 21V12h6v9" />
+    </svg>
+  );
+}
+
+function IconRefresh() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="1 4 1 10 7 10" />
+      <path d="M3.51 15a9 9 0 1 0 .49-4.5" />
+    </svg>
+  );
+}
+
+function IconDownload() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+function IconShare() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </svg>
+  );
+}
+
 interface Props {
   result: MemeResult;
   onRedraw: () => void;
@@ -43,6 +84,7 @@ export function ResultScreen({ result, onRedraw, onHome }: Props) {
   const router = useRouter();
 
   const handleSave = async () => {
+    if (!isLoggedIn) return; // 비회원 강제 차단
     if (!cardRef.current || saving) return;
     setSaving(true);
     try {
@@ -85,10 +127,6 @@ export function ResultScreen({ result, onRedraw, onHome }: Props) {
     }
   };
 
-  const handleRedrawClick = () => setConfirmingRedraw(true);
-  const handleRedrawConfirm = () => { setConfirmingRedraw(false); onRedraw(); };
-  const handleRedrawCancel = () => setConfirmingRedraw(false);
-
   return (
     <div
       className="flex-1 flex flex-col items-center w-full animate-in zoom-in-95 duration-500"
@@ -105,112 +143,108 @@ export function ResultScreen({ result, onRedraw, onHome }: Props) {
 
       {/* 2×2 버튼 그리드 */}
       <div className="grid grid-cols-2 w-full" style={{ gap: 8 }}>
-        {/* 상단 행: 홈 / 다시뽑기(또는 확인) */}
-        <button
-          onClick={onHome}
-          className="font-black active:scale-95 transition-transform"
-          style={{
-            padding: 15,
-            backgroundColor: "var(--pam-btn-secondary-bg)",
-            color: "var(--pam-btn-secondary-text)",
-            borderRadius: 16,
-            border: "none",
-            fontSize: 15,
-          }}
-        >
-          {t.actions.home}
-        </button>
 
+        {/* 상단 좌: 홈 or 취소 */}
         {confirmingRedraw ? (
-          <div className="grid grid-cols-2 col-span-1" style={{ gap: 6 }}>
-            <button
-              onClick={handleRedrawCancel}
-              className="font-black active:scale-95 transition-transform"
-              style={{
-                padding: 15,
-                backgroundColor: "var(--pam-surface)",
-                color: "var(--pam-text-muted)",
-                borderRadius: 16,
-                border: "1px solid var(--pam-border)",
-                fontSize: 13,
-              }}
-            >
-              {t.common.cancel}
-            </button>
-            <button
-              onClick={handleRedrawConfirm}
-              className="font-black active:scale-95 transition-transform text-white"
-              style={{
-                padding: 15,
-                background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
-                borderRadius: 16,
-                border: "none",
-                fontSize: 13,
-                boxShadow: "0 4px 14px var(--pam-shadow-pink-btn)",
-              }}
-            >
-              {t.actions.redrawConfirm}
-            </button>
-          </div>
-        ) : (
           <button
-            onClick={handleRedrawClick}
-            className="font-black active:scale-95 transition-transform"
+            onClick={() => setConfirmingRedraw(false)}
+            className="font-black active:scale-95 transition-all flex items-center justify-center"
             style={{
-              padding: 15,
-              backgroundColor: "var(--pam-btn-secondary-bg)",
-              color: "var(--pam-btn-secondary-text)",
-              borderRadius: 16,
-              border: "none",
-              fontSize: 15,
+              gap: 6, padding: 15, borderRadius: 16, fontSize: 14, border: "1.5px solid var(--pam-border)",
+              backgroundColor: "var(--pam-surface)", color: "var(--pam-text-muted)",
             }}
           >
+            {t.common.cancel}
+          </button>
+        ) : (
+          <button
+            onClick={onHome}
+            className="font-black active:scale-95 transition-all flex items-center justify-center"
+            style={{
+              gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
+              backgroundColor: "var(--pam-btn-home-bg)",
+              border: "1.5px solid var(--pam-btn-home-border)",
+              color: "var(--pam-btn-home-text)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+            }}
+          >
+            <IconHome />
+            {t.actions.home}
+          </button>
+        )}
+
+        {/* 상단 우: 다시뽑기 or 뽑기! */}
+        {confirmingRedraw ? (
+          <button
+            onClick={() => { setConfirmingRedraw(false); onRedraw(); }}
+            className="font-black active:scale-95 transition-all text-white flex items-center justify-center"
+            style={{
+              gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
+              background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+              border: "none",
+              boxShadow: "0 4px 16px var(--pam-shadow-pink-btn)",
+            }}
+          >
+            <IconRefresh />
+            {t.actions.redrawConfirm}
+          </button>
+        ) : (
+          <button
+            onClick={() => setConfirmingRedraw(true)}
+            className="font-black active:scale-95 transition-all flex items-center justify-center"
+            style={{
+              gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
+              backgroundColor: "var(--pam-btn-redraw-bg)",
+              border: "1.5px solid var(--pam-btn-redraw-border)",
+              color: "var(--pam-btn-redraw-text)",
+              boxShadow: "0 1px 8px var(--pam-shadow-pink-btn)",
+            }}
+          >
+            <IconRefresh />
             {t.actions.redraw}
           </button>
         )}
 
-        {/* 하단 행: 저장 / 공유 */}
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="font-black active:scale-95 transition-transform flex items-center justify-center"
-          style={{
-            gap: 5,
-            padding: 15,
-            backgroundColor: "var(--pam-text)",
-            color: "var(--pam-bg)",
-            borderRadius: 16,
-            border: "none",
-            fontSize: 15,
-            opacity: saving ? 0.5 : 1,
-            cursor: saving ? "not-allowed" : "pointer",
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
-            <path d="M6.5 1v7M4 5.5l2.5 2.5L9 5.5M2 10.5h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {saving ? t.actions.saving : t.actions.save}
-        </button>
+        {/* 하단 좌: 저장 (로그인 유저만) */}
+        {isLoggedIn ? (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="font-black active:scale-95 transition-all flex items-center justify-center"
+            style={{
+              gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
+              backgroundColor: "var(--pam-text)",
+              color: "var(--pam-bg)",
+              border: "none",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+              opacity: saving ? 0.5 : 1,
+              cursor: saving ? "not-allowed" : "pointer",
+            }}
+          >
+            <IconDownload />
+            {saving ? t.actions.saving : t.actions.save}
+          </button>
+        ) : (
+          /* 비로그인: 빈 자리 (공유하기 2열로 확장되도록 col-span-2 대신 빈 div) */
+          <div />
+        )}
 
+        {/* 하단 우: 공유하기 */}
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="font-black active:scale-95 transition-transform text-white flex items-center justify-center"
+          className={`font-black active:scale-95 transition-all text-white flex items-center justify-center${!isLoggedIn ? " col-span-2" : ""}`}
           style={{
-            gap: 5,
-            padding: 15,
-            background: sharing ? "var(--pam-text-disabled)" : "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
-            borderRadius: 16,
+            gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
+            background: sharing
+              ? "var(--pam-text-disabled)"
+              : "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
             border: "none",
-            fontSize: 15,
-            boxShadow: sharing ? "none" : "0 4px 14px var(--pam-shadow-pink-btn)",
+            boxShadow: sharing ? "none" : "0 4px 16px var(--pam-shadow-pink-btn)",
             cursor: sharing ? "not-allowed" : "pointer",
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-          </svg>
+          <IconShare />
           {sharing ? t.actions.sharing : t.actions.share}
         </button>
       </div>

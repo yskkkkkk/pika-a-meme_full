@@ -153,6 +153,10 @@ export default function Home() {
 
   const handleRedraw = () => {
     if (lastDrawHeartType === "SPECIAL") {
+      if ((serverHearts?.special.count ?? 0) <= 0) {
+        showToast(t.errors.insufficientSpecialHearts);
+        return;
+      }
       setSelectedTag(null);
       setAppState("TAG_SELECT");
     } else {
