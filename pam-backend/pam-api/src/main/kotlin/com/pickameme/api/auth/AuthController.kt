@@ -30,15 +30,18 @@ class AuthController(
 
     @GetMapping("/logout")
     fun logout(response: HttpServletResponse) {
-        val builder = ResponseCookie.from("pam_token", "")
+        val base = ResponseCookie.from("pam_token", "")
             .httpOnly(true)
             .secure(cookieSecure)
             .sameSite("Lax")
             .path("/")
             .maxAge(0)
 
-        val expiredCookie = if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
-        response.addHeader("Set-Cookie", expiredCookie.toString())
+        // domain 없는 쿠키 (배포 전 발급분) + domain 있는 쿠키 (배포 후 발급분) 둘 다 만료
+        response.addHeader("Set-Cookie", base.build().toString())
+        if (cookieDomain.isNotBlank()) {
+            response.addHeader("Set-Cookie", base.domain(cookieDomain).build().toString())
+        }
         val frontendBase = try {
             val uri = java.net.URI.create(oauth2RedirectUri)
             "${uri.scheme}://${uri.host}${if (uri.port != -1) ":${uri.port}" else ""}"
