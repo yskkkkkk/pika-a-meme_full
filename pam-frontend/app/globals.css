@@ -99,6 +99,12 @@
   --pam-btn-secondary-bg: #f5f0fa;
   --pam-btn-secondary-text: #333333;
   --pam-menu-handle: #e8e0f0;
+  --pam-btn-redraw-bg: rgba(255, 107, 157, 0.08);
+  --pam-btn-redraw-border: rgba(255, 107, 157, 0.35);
+  --pam-btn-redraw-text: #e84d8a;
+  --pam-btn-home-bg: #f5f0fa;
+  --pam-btn-home-border: #ece4f5;
+  --pam-btn-home-text: #7c3aed;
 }
 
 /* ═══════════════════════════════════════════
@@ -189,6 +195,12 @@
   --pam-btn-secondary-bg: #291b27;
   --pam-btn-secondary-text: #dcbed4;
   --pam-menu-handle: #564052;
+  --pam-btn-redraw-bg: rgba(255, 171, 243, 0.12);
+  --pam-btn-redraw-border: rgba(255, 171, 243, 0.4);
+  --pam-btn-redraw-text: #ffabf3;
+  --pam-btn-home-bg: #291b27;
+  --pam-btn-home-border: #564052;
+  --pam-btn-home-text: #dcbed4;
 }
 
 /* ═══════════════════════════════════════════

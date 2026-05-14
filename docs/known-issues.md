@@ -152,6 +152,78 @@ OAuth2 핸드셰이크 동안에만 임시 세션이 생성되며, JWT 발급 �
 
 ---
 
+## BUG-07 · 로그아웃 후 새로고침 시 로그인 상태 복원
+
+- **상태**: FIXED (260514) — 2차 수정
+- **연관 태스크**: TASK-260513-05
+
+**증상**  
+로그아웃 버튼을 눌러도 브라우저를 새로고침하면 로그인 상태로 돌아왔다.
+
+---
+
+### 1차 수정 (260514) — 미완
+
+**원인으로 오해한 것**  
+로그아웃 후 React Query의 인메모리 캐시(`queryClient`)에 이전 로그인 정보가 남아 있어서  
+새로고침 없이 화면만 전환할 때 데이터가 유지된다고 판단.
+
+**조치**  
+`LoginSlideMenu`의 로그아웃 핸들러에 `queryClient.clear()`를 추가.
+
+**결과: 불완전**  
+React Query 캐시는 인메모리이므로 새로고침 시 자동으로 비워진다.  
+`queryClient.clear()`는 "새로고침 없이 화면 전환" 시나리오에서만 유효하며,  
+**새로고침 후 재진입 시 쿠키가 살아있으면 `/api/auth/me`가 인증을 그대로 통과**한다.  
+즉, 쿠키 자체가 삭제되지 않은 것이 진짜 원인이었다.
+
+---
+
+### 2차 수정 (260514) — 근본 해결
+
+**배경: 브라우저의 요청 컨텍스트와 Set-Cookie 처리 규칙**
+
+브라우저는 요청 방식에 따라 Set-Cookie 처리 여부를 다르게 적용한다.
+
+| 요청 방식 | 설명 | 크로스 오리진 Set-Cookie |
+|---|---|---|
+| 네비게이션 | 주소창 입력, 링크 클릭, `window.location.href`, 302 리다이렉트 따라가기 | **항상 처리** |
+| fetch / XHR | JS 코드에서 호출하는 백그라운드 요청 | **차단** |
+
+이 제약은 쿠키를 심을 때와 지울 때 모두 동일하게 적용된다.  
+크로스 오리진 fetch로는 `Max-Age=0`을 내려줘도 삭제되지 않는다.
+
+**실제 원인**  
+로그아웃이 크로스 오리진 `fetch()`로 구현되어 있었다.  
+서버가 `Set-Cookie: pam_token=; Max-Age=0`을 응답해도 브라우저가 무시했다.
+
+로그인이 성공했던 이유는 OAuth2 흐름이 302 리다이렉트의 연속, 즉 네비게이션이기 때문이다.  
+로그인 방식이 특별해서가 아니라, OAuth2 구조상 필연적으로 크로스 오리진 제약을 피해간 것이다.
+
+```
+[기존 — 실패]
+프론트 → fetch() /api/auth/logout        ← 크로스 오리진 fetch
+서버  → Set-Cookie: pam_token=; Max-Age=0
+브라우저 → 크로스 오리진 fetch Set-Cookie 차단 → 쿠키 유지
+새로고침 → /api/auth/me 쿠키 포함 → 로그인 상태 복원
+
+[수정 후 — 성공]
+프론트 → window.location.href = API_BASE/api/auth/logout   ← 네비게이션
+서버  → Set-Cookie: pam_token=; Max-Age=0  +  302 → 프론트엔드
+브라우저 → 네비게이션이므로 크로스 오리진 제약 없이 Set-Cookie 처리 → 쿠키 삭제
+새로고침 → /api/auth/me 쿠키 없음 → 비로그인 정상
+```
+
+**조치**
+
+| 파일 | 변경 내용 |
+|---|---|
+| `useAuth.ts` | `fetch()` 호출 → `window.location.href = apiBase + /api/auth/logout`. 네비게이션으로 요청해야 크로스 오리진 Set-Cookie가 처리됨 |
+| `AuthController.kt` | `window.location.href`는 GET만 가능하므로 엔드포인트를 GET으로 변경. 쿠키 만료 후 `response.sendRedirect(frontendBase)` |
+| `LoginSlideMenu.tsx` | 로그아웃 핸들러에서 `async/await`, `queryClient.clear()`, `router.replace()` 제거. 페이지 전체 리로드로 상태 자동 초기화 |
+
+---
+
 ## BUG-06 · 미션 트리거 시 500 에러 (mission_completions.metadata jsonb 타입 불일치)
 
 - **상태**: FIXED (260514)

@@ -30,6 +30,8 @@ export default function Home() {
   const [appState, setAppState] = useState<AppState>("HOME");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [lastUsedTag, setLastUsedTag] = useState<string | null>(null);
+  const [lastDrawHeartType, setLastDrawHeartType] = useState<"BASIC" | "SPECIAL">("BASIC");
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
   const { t } = useLanguage();
   const { toastMsg, showToast } = useToast();
@@ -97,6 +99,7 @@ export default function Home() {
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
       setMemeResult(result);
+      setLastDrawHeartType("BASIC");
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
       queryClient.invalidateQueries({ queryKey: ["recent-matched-memes"] });
@@ -135,6 +138,8 @@ export default function Home() {
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
       setMemeResult(result);
+      setLastDrawHeartType("SPECIAL");
+      setLastUsedTag(selectedTag);
       setAppState("RESULT");
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
       queryClient.invalidateQueries({ queryKey: ["recent-matched-memes"] });
@@ -143,6 +148,19 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
       showToast(classifyDrawError(e, t));
       setAppState("HOME");
+    }
+  };
+
+  const handleRedraw = () => {
+    if (lastDrawHeartType === "SPECIAL") {
+      if ((serverHearts?.special.count ?? 0) <= 0) {
+        showToast(t.errors.insufficientSpecialHearts);
+        return;
+      }
+      setSelectedTag(null);
+      setAppState("TAG_SELECT");
+    } else {
+      handleBasicDraw();
     }
   };
 
@@ -170,11 +188,16 @@ export default function Home() {
           onSelectTag={setSelectedTag}
           onBack={() => setAppState("HOME")}
           onConfirm={executeSpecialDraw}
+          recentTag={lastUsedTag}
         />
       )}
 
       {appState === "RESULT" && memeResult && (
-        <ResultScreen result={memeResult} onRedraw={() => setAppState("HOME")} />
+        <ResultScreen
+          result={memeResult}
+          onRedraw={handleRedraw}
+          onHome={() => setAppState("HOME")}
+        />
       )}
 
       <LoginSlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />

@@ -14,7 +14,7 @@ export interface AuthContextValue {
   isLoggedIn: boolean;
   isLoaded: boolean;
   username: string | null;
-  logout: () => Promise<void>;
+  logout: () => void;
   loginWith: (provider: "kakao" | "google") => void;
 }
 
@@ -33,10 +33,9 @@ export function useAuthState() {
     });
   }, []);
 
-  const logout = useCallback(async () => {
-    await apiFetch("/api/auth/logout", { method: "POST" });
-    setLoggedIn(false);
-    setUsername(null);
+  const logout = useCallback(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+    window.location.href = `${apiBase}/api/auth/logout`;
   }, []);
 
   const loginWith = useCallback((provider: "kakao" | "google") => {

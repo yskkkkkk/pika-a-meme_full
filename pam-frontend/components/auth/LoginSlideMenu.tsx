@@ -18,7 +18,6 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
-
   return (
     <div
       className={cn(
@@ -95,7 +94,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
               {t.gallery.myGallery}
             </button>
             <button
-              onClick={async () => { await logout(); onClose(); router.replace("/"); }}
+              onClick={() => { onClose(); logout(); }}
               className="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold shadow-sm transition-colors"
               style={{
                 backgroundColor: "var(--pam-surface-card)",

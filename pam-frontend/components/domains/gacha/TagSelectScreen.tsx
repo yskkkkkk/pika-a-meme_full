@@ -21,9 +21,10 @@ interface Props {
   onSelectTag: (tag: string) => void;
   onBack: () => void;
   onConfirm: () => void;
+  recentTag?: string | null;
 }
 
-export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }: Props) {
+export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm, recentTag }: Props) {
   const { t } = useLanguage();
   return (
     <div
@@ -44,37 +45,56 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm }:
         {t.gacha.selectTagDesc}
       </p>
       <div className="flex flex-wrap justify-center" style={{ gap: 8, marginBottom: 28 }}>
-        {AVAILABLE_TAGS.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => onSelectTag(tag)}
-            className={cn(
-              "font-bold border-[1.5px] transition-all flex items-center gap-1 whitespace-nowrap",
-              selectedTag === tag ? "text-white border-transparent" : "",
-            )}
-            style={{
-              padding: "7px 12px",
-              borderRadius: 9999,
-              fontSize: 14,
-              ...(selectedTag === tag
-                ? {
-                  background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
-                  boxShadow: "0 2px 10px var(--pam-shadow-pink-btn)",
-                  borderColor: "transparent",
-                  color: "white",
-                }
-                : {
-                  backgroundColor: "var(--pam-tag-bg)",
-                  borderColor: "var(--pam-tag-border)",
-                  color: "var(--pam-text-sub)",
-                }),
-            }}
-          >
-            <span>{TAG_EMOJI[tag]}</span>
-            <span style={{ color: selectedTag === tag ? "rgba(255,255,255,.65)" : "var(--pam-tag-text)" }}>#</span>
-            {t.tags[tag as keyof TranslationMessages["tags"]] || tag}
-          </button>
-        ))}
+        {AVAILABLE_TAGS.map((tag) => {
+          const isSelected = selectedTag === tag;
+          const isRecent = recentTag === tag && !isSelected;
+          return (
+            <button
+              key={tag}
+              onClick={() => onSelectTag(tag)}
+              className={cn(
+                "font-bold border-[1.5px] transition-all flex items-center gap-1 whitespace-nowrap relative",
+                isSelected ? "text-white border-transparent" : "",
+              )}
+              style={{
+                padding: "7px 12px",
+                borderRadius: 9999,
+                fontSize: 14,
+                ...(isSelected
+                  ? {
+                    background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+                    boxShadow: "0 2px 10px var(--pam-shadow-pink-btn)",
+                    borderColor: "transparent",
+                    color: "white",
+                  }
+                  : isRecent
+                  ? {
+                    backgroundColor: "var(--pam-tag-bg)",
+                    borderColor: "var(--pam-pink)",
+                    color: "var(--pam-text-sub)",
+                    boxShadow: "0 0 0 1px var(--pam-pink)",
+                  }
+                  : {
+                    backgroundColor: "var(--pam-tag-bg)",
+                    borderColor: "var(--pam-tag-border)",
+                    color: "var(--pam-text-sub)",
+                  }),
+              }}
+            >
+              <span>{TAG_EMOJI[tag]}</span>
+              <span style={{ color: isSelected ? "rgba(255,255,255,.65)" : "var(--pam-tag-text)" }}>#</span>
+              {t.tags[tag as keyof TranslationMessages["tags"]] || tag}
+              {isRecent && (
+                <span
+                  className="font-black"
+                  style={{ fontSize: 9, marginLeft: 2, color: "var(--pam-pink)", letterSpacing: "0.05em" }}
+                >
+                  최근
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
       <button
         onClick={onConfirm}
