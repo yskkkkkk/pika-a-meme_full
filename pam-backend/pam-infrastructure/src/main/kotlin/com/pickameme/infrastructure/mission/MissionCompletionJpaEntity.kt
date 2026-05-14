@@ -2,6 +2,8 @@ package com.pickameme.infrastructure.mission
 
 import com.pickameme.domain.mission.MissionCompletion
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -30,7 +32,7 @@ class MissionCompletionJpaEntity(
     @Column(name = "reward_granted", nullable = false)
     val rewardGranted: Int,
 
-    @Convert(converter = StringMapConverter::class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "metadata", columnDefinition = "jsonb")
     val metadata: Map<String, String> = emptyMap()
 ) {

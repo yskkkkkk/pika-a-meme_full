@@ -13,9 +13,18 @@ import { SpinningScreen } from "@/components/domains/gacha/SpinningScreen";
 import { TagSelectScreen } from "@/components/domains/gacha/TagSelectScreen";
 import { ResultScreen } from "@/components/domains/gacha/ResultScreen";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useToast } from "@/hooks/useToast";
+import { Toast } from "@/components/ui/Toast";
 import { recordVisit } from "@/hooks/useMissions";
 
 type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
+
+function classifyDrawError(e: unknown, t: { errors: { networkTimeout: string; insufficientHearts: string; drawFailed: string } }): string {
+  const msg = e instanceof Error ? e.message : "";
+  if (msg === "TIMEOUT") return t.errors.networkTimeout;
+  if (msg.toLowerCase().includes("insufficient") || msg.includes("하트가 부족")) return t.errors.insufficientHearts;
+  return t.errors.drawFailed;
+}
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("HOME");
@@ -23,6 +32,7 @@ export default function Home() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
   const { t } = useLanguage();
+  const { toastMsg, showToast } = useToast();
 
   const { isLoggedIn, username } = useAuth();
   const guest = useGuestHeart();
@@ -52,7 +62,7 @@ export default function Home() {
     queryClient.invalidateQueries({ queryKey: ["hearts"] });
     // 약간의 딜레이 후 표시 (하트 UI가 렌더된 후)
     const t_timer = setTimeout(() => {
-      alert(t.auth.welcomeMessage);
+      showToast(t.auth.welcomeMessage);
     }, 500);
     return () => clearTimeout(t_timer);
   }, [isLoggedIn, queryClient]);
@@ -63,12 +73,12 @@ export default function Home() {
     if (isLoggedIn) {
       if (heartsLoading) return;
       if ((serverHearts?.basic.count ?? 0) <= 0) {
-        alert(t.errors.insufficientHearts);
+        showToast(t.errors.insufficientHearts);
         return;
       }
     } else {
       if (guest.hearts <= 0) {
-        alert(t.errors.insufficientHeartsGuest);
+        showToast(t.errors.insufficientHeartsGuest);
         return;
       }
       if (!guest.consumeHeart()) return;
@@ -93,7 +103,7 @@ export default function Home() {
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
-      alert(e instanceof Error ? e.message : t.errors.errorOccurred);
+      showToast(classifyDrawError(e, t));
       setAppState("HOME");
     }
   };
@@ -105,7 +115,7 @@ export default function Home() {
     }
     if (heartsLoading) return;
     if ((serverHearts?.special.count ?? 0) <= 0) {
-      alert("스페셜 하트가 부족합니다! ⚡ 미션을 완료해서 스페셜 하트를 획득하세요.");
+      showToast(t.errors.insufficientSpecialHearts);
       return;
     }
     setSelectedTag(null);
@@ -131,7 +141,7 @@ export default function Home() {
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
     } catch (e) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
-      alert(e instanceof Error ? e.message : t.errors.errorOccurred);
+      showToast(classifyDrawError(e, t));
       setAppState("HOME");
     }
   };
@@ -168,6 +178,7 @@ export default function Home() {
       )}
 
       <LoginSlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <Toast message={toastMsg} />
     </div>
   );
 }

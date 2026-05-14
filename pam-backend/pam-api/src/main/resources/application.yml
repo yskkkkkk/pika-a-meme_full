@@ -5,10 +5,11 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      max-lifetime: 60000
-      keepalive-time: 30000
+      maximum-pool-size: 10
+      max-lifetime: 600000
+      keepalive-time: 60000
       connection-timeout: 10000
-      idle-timeout: 30000
+      idle-timeout: 300000
 
   jpa:
     open-in-view: false
@@ -116,6 +117,9 @@ app:
 
 server:
   port: 8080
+  tomcat:
+    connection-timeout: 20000   # 20s: 클라이언트 연결 수립 타임아웃
+    keep-alive-timeout: 30000   # 30s: keep-alive 유휴 커넥션 최대 유지시간
 
 logging:
   level:
