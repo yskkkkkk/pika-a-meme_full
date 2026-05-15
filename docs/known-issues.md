@@ -263,6 +263,43 @@ if (cookieDomain.isNotBlank()) {
 
 ---
 
+### 4차 수정 (260515) — 프론트 Route Handler 보강
+
+**증상**
+`pick-a-me.me/api/auth-logout`에서 same-origin `Set-Cookie`로 삭제해도 일부 브라우저/사용자에게 로그인 상태가 남았다.
+
+**원인**
+`COOKIE_DOMAIN=.pick-a-me.me`가 Vercel에 설정되어 있어도 프론트 Route Handler만으로는 충분하지 않았다. 핵심은 환경변수 누락이 아니라 **host-only 쿠키의 삭제 권한**이었다.
+
+1. `pick-a-me.me` 응답은 `Domain=.pick-a-me.me` 쿠키와 `pick-a-me.me` host-only 쿠키는 지울 수 있다.
+2. 하지만 배포 전/전환 과정에서 `api.pick-a-me.me`가 domain 없이 발급한 host-only 쿠키는 `pick-a-me.me`가 지울 수 없다. host-only 쿠키는 발급 호스트(`api.pick-a-me.me`)만 같은 이름/경로로 만료시킬 수 있다.
+3. 브라우저가 `/api/auth/me` 요청을 `api.pick-a-me.me`로 보낼 때, 남아 있는 `api.pick-a-me.me` host-only `pam_token`도 함께 전송된다. 백엔드 `JwtAuthenticationFilter`는 같은 이름의 쿠키 중 첫 번째 값을 사용하므로, parent-domain 쿠키를 지워도 남은 API host-only 쿠키가 유효하면 로그인 상태가 복원될 수 있다.
+
+즉, same-origin Route Handler 자체는 맞지만, **프론트 origin이 삭제 가능한 쿠키 범위를 벗어난 `api.pick-a-me.me` host-only 쿠키**가 남을 수 있었다.
+
+**조치**
+`/api/auth-logout`은 먼저 프론트 origin 및 `.pick-a-me.me` parent-domain 쿠키를 만료시킨 뒤, 백엔드 `/api/auth/logout`으로 네비게이션 리다이렉트한다. 백엔드는 `api.pick-a-me.me` host-only 쿠키와 configured domain 쿠키를 다시 만료시키고 프론트로 돌아온다. 이번 변경의 핵심은 fallback domain 추가가 아니라 **백엔드 origin을 한 번 반드시 방문하게 만든 것**이다.
+
+```
+pick-a-me.me/api/auth-logout
+  → Set-Cookie: pam_token=; Path=/; Max-Age=0
+  → Set-Cookie: pam_token=; Domain=.pick-a-me.me; Path=/; Max-Age=0
+  → 307/302 api.pick-a-me.me/api/auth/logout
+
+api.pick-a-me.me/api/auth/logout
+  → Set-Cookie: pam_token=; Path=/; Max-Age=0
+  → Set-Cookie: pam_token=; Domain=.pick-a-me.me; Path=/; Max-Age=0
+  → 302 pick-a-me.me
+```
+
+이제 삭제 대상은 다음을 모두 포함한다.
+
+- `pick-a-me.me` host-only 쿠키
+- `.pick-a-me.me` parent-domain 쿠키
+- `api.pick-a-me.me` host-only 쿠키
+
+---
+
 ## BUG-06 · 미션 트리거 시 500 에러 (mission_completions.metadata jsonb 타입 불일치)
 
 - **상태**: FIXED (260514)
