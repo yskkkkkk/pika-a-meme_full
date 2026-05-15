@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Clock, Download, Eye, EyeOff, Heart, ImageIcon, Share2 } from "lucide-react";
-import html2canvas from "html2canvas";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { recordShare } from "@/hooks/useMissions";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
+import { captureElement, saveImage } from "@/lib/imageSave";
 
 interface MemeDetail {
   id: string;
@@ -20,22 +20,6 @@ interface MemeDetail {
   matchedTags: string[];
   createdAt: string;
   enabled: boolean;
-}
-
-async function captureCard(el: HTMLElement): Promise<Blob> {
-  const canvas = await html2canvas(el, {
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: null,
-    scale: window.devicePixelRatio ?? 2,
-  });
-  return new Promise((resolve, reject) =>
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("canvas empty"))),
-      "image/jpeg",
-      0.92
-    )
-  );
 }
 
 function formatDateTime(iso: string, language: string): string {
@@ -104,15 +88,11 @@ export default function MyMemeDetailPage() {
     if (!cardRef.current || !meme || isSaving) return;
     setIsSaving(true);
     try {
-      const blob = await captureCard(cardRef.current);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `pika-meme-${meme.id.slice(0, 8)}.jpg`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const blob = await captureElement(cardRef.current, "image/jpeg", 0.92);
+      await saveImage(blob, `pika-meme-${meme.id.slice(0, 8)}.jpg`);
       showToast(t.toast.imageSaved);
-    } catch {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
       showToast(t.errors.saveFailed);
     } finally {
       setIsSaving(false);
@@ -123,7 +103,7 @@ export default function MyMemeDetailPage() {
     if (!cardRef.current || !meme || isSharing) return;
     setIsSharing(true);
     try {
-      const blob = await captureCard(cardRef.current);
+      const blob = await captureElement(cardRef.current, "image/jpeg", 0.92);
       const file = new File([blob], "pika-meme.jpg", { type: "image/jpeg" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {

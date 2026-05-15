@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import html2canvas from "html2canvas";
 import { MemeResult } from "@/hooks/useMemeApi";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -10,21 +9,7 @@ import { useToast } from "@/hooks/useToast";
 import { Toast } from "@/components/ui/Toast";
 import { recordShare } from "@/hooks/useMissions";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
-
-async function captureCard(el: HTMLElement): Promise<Blob> {
-  const canvas = await html2canvas(el, {
-    useCORS: true,
-    allowTaint: false,
-    scale: 2,
-    backgroundColor: null,
-  });
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob: Blob | null) => {
-      if (blob) resolve(blob);
-      else reject(new Error("Capture failed"));
-    }, "image/png");
-  });
-}
+import { captureElement, saveImage } from "@/lib/imageSave";
 
 // SVG 아이콘 컴포넌트
 function IconHome() {
@@ -88,15 +73,11 @@ export function ResultScreen({ result, onRedraw, onHome }: Props) {
     if (!cardRef.current || saving) return;
     setSaving(true);
     try {
-      const blob = await captureCard(cardRef.current);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "pick-a-meme.png";
-      a.click();
-      URL.revokeObjectURL(url);
+      const blob = await captureElement(cardRef.current, "image/png");
+      await saveImage(blob, "pick-a-meme.png");
       showToast(t.toast.imageSaved);
-    } catch {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
       showToast(t.errors.saveFailed);
     } finally {
       setSaving(false);
@@ -107,7 +88,7 @@ export function ResultScreen({ result, onRedraw, onHome }: Props) {
     if (!cardRef.current || sharing) return;
     setSharing(true);
     try {
-      const blob = await captureCard(cardRef.current);
+      const blob = await captureElement(cardRef.current, "image/png");
       const file = new File([blob], "pick-a-meme.png", { type: "image/png" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
