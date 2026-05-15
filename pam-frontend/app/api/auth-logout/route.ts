@@ -1,20 +1,43 @@
 import { NextResponse } from "next/server";
 
+const COOKIE_NAME = "pam_token";
+const PRODUCTION_COOKIE_DOMAIN = ".pick-a-me.me";
+
+function getLogoutRedirectUrl() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  return new URL("/api/auth/logout", apiBase);
+}
+
+function getCookieDomains(hostname: string) {
+  const domains = new Set<string>();
+  const configuredDomain = process.env.COOKIE_DOMAIN?.trim();
+
+  if (configuredDomain) {
+    domains.add(configuredDomain);
+  }
+
+  // Keep an explicit production fallback, but the critical cleanup for legacy
+  // api.pick-a-me.me host-only cookies happens after redirecting to backend logout.
+  if (hostname === "pick-a-me.me" || hostname.endsWith(".pick-a-me.me")) {
+    domains.add(PRODUCTION_COOKIE_DOMAIN);
+  }
+
+  return Array.from(domains);
+}
+
 export async function GET(request: Request) {
-  const origin = new URL(request.url).origin;
-  const response = NextResponse.redirect(new URL("/", origin));
+  const requestUrl = new URL(request.url);
+  const response = NextResponse.redirect(getLogoutRedirectUrl());
 
   const isProduction = process.env.NODE_ENV === "production";
-  const cookieDomain = process.env.COOKIE_DOMAIN ?? "";
+  const base = `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isProduction ? "; Secure" : ""}`;
 
-  const base = `pam_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isProduction ? "; Secure" : ""}`;
-
-  // domain 없는 쿠키 삭제 (로컬 개발 및 이전 발급분)
+  // Delete host-only cookies for the frontend origin (local/dev and any accidental frontend-scoped issue).
   response.headers.append("Set-Cookie", base);
 
-  // domain 있는 쿠키 삭제 (운영 발급분)
-  if (cookieDomain) {
-    response.headers.append("Set-Cookie", `${base}; Domain=${cookieDomain}`);
+  // Delete parent-domain cookies issued for both pick-a-me.me and api.pick-a-me.me.
+  for (const domain of getCookieDomains(requestUrl.hostname)) {
+    response.headers.append("Set-Cookie", `${base}; Domain=${domain}`);
   }
 
   return response;
