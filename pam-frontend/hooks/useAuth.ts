@@ -34,8 +34,7 @@ export function useAuthState() {
   }, []);
 
   const logout = useCallback(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-    window.location.href = `${apiBase}/api/auth/logout`;
+    window.location.href = "/api/auth-logout";
   }, []);
 
   const loginWith = useCallback((provider: "kakao" | "google") => {
