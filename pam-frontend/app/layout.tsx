@@ -34,6 +34,13 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
+        {/* 밈 말풍선용 디스플레이 폰트 (Google Fonts) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Nanum+Pen+Script&family=Yeon+Sung&display=swap"
+        />
       </head>
       <body className="font-sans font-bold antialiased" style={{ backgroundColor: "var(--pam-bg-outer)" }}>
         <Providers>

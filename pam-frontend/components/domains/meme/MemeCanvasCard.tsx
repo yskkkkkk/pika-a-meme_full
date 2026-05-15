@@ -26,24 +26,46 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-function useMemeBubbleStyle(seed?: string) {
+const FONT_POOLS: Record<"ko" | "en", string[]> = {
+  ko: [
+    `"Jua", "Pretendard", sans-serif`,
+    `"Yeon Sung", "Pretendard", sans-serif`,
+    `"Nanum Pen Script", "Pretendard", cursive`,
+  ],
+  en: [
+    `"Black Han Sans", "Pretendard", sans-serif`,
+    `"Jua", "Pretendard", sans-serif`,
+    `"Nanum Pen Script", "Pretendard", cursive`,
+  ],
+};
+
+function pickFontPool(language: string): string[] {
+  return language === "en" ? FONT_POOLS.en : FONT_POOLS.ko;
+}
+
+function useMemeBubbleStyle(seed: string | undefined, language: string) {
+  const pool = pickFontPool(language);
   const randomRef = useRef({
     shapeIdx: Math.floor(Math.random() * BUBBLE_VARIANTS.length),
     posJx: Math.random(),
     posJy: Math.random(),
     tailPathIdx: Math.floor(Math.random() * 3),
+    fontIdx: Math.floor(Math.random() * pool.length),
   });
 
   return useMemo(() => {
-    if (!seed) return randomRef.current;
+    if (!seed) {
+      return { ...randomRef.current, fontIdx: randomRef.current.fontIdx % pool.length };
+    }
     const random = seededRandom(hashSeed(seed));
     return {
       shapeIdx: Math.floor(random() * BUBBLE_VARIANTS.length),
       posJx: random(),
       posJy: random(),
       tailPathIdx: Math.floor(random() * 3),
+      fontIdx: Math.floor(random() * pool.length),
     };
-  }, [seed]);
+  }, [seed, pool.length]);
 }
 
 function getTailDir(pos: string): TailDir {
@@ -142,13 +164,14 @@ function getBubbleStyle(pos: string, jx: number, jy: number, scale: number): CSS
 }
 
 function SpeechBubble({
-  pos, text, shapeIdx, tailPathIdx, scale,
+  pos, text, shapeIdx, tailPathIdx, scale, fontFamily,
 }: {
   pos: string;
   text: string;
   shapeIdx: number;
   tailPathIdx: number;
   scale: number;
+  fontFamily: string;
 }) {
   const dir = getTailDir(pos);
   const v = BUBBLE_VARIANTS[shapeIdx % BUBBLE_VARIANTS.length];
@@ -175,8 +198,15 @@ function SpeechBubble({
         }}
       >
         <p
-          className="font-black text-center text-[#111] break-keep"
-          style={{ fontSize: Math.max(9, Math.round(15 * scale)), lineHeight: 1.4 }}
+          className="text-center text-[#111] break-keep"
+          style={{
+            fontFamily,
+            fontWeight: 400,
+            fontSize: Math.max(9, Math.round(16 * scale)),
+            lineHeight: 1.4,
+            // 디스플레이 폰트 합성 방지 (브라우저가 가짜 bold 적용 못 하도록)
+            fontSynthesis: "none",
+          }}
         >
           {text}
         </p>
@@ -207,9 +237,10 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
   className,
   imageAlt,
 }, externalRef) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [scale, setScale] = useState(1);
-  const bubble = useMemeBubbleStyle(seed);
+  const bubble = useMemeBubbleStyle(seed, language);
+  const fontFamily = pickFontPool(language)[bubble.fontIdx];
   const roRef = useRef<ResizeObserver | null>(null);
 
   const mergedRef = useCallback((el: HTMLDivElement | null) => {
@@ -247,6 +278,7 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
           shapeIdx={bubble.shapeIdx}
           tailPathIdx={bubble.tailPathIdx}
           scale={scale}
+          fontFamily={fontFamily}
         />
       </div>
 
