@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.config.annotation.ObjectPostProcessor
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
@@ -50,6 +52,12 @@ class SecurityConfig(
                     .authorizationEndpoint { it.authorizationRequestRepository(cookieAuthorizationRequestRepository) }
                     .userInfoEndpoint { it.userService(customOAuth2UserService) }
                     .successHandler(oAuth2SuccessHandler)
+                    .withObjectPostProcessor(object : ObjectPostProcessor<OAuth2LoginAuthenticationFilter> {
+                        override fun <O : OAuth2LoginAuthenticationFilter> postProcess(filter: O): O {
+                            filter.setAuthorizationRequestRepository(cookieAuthorizationRequestRepository)
+                            return filter
+                        }
+                    })
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
