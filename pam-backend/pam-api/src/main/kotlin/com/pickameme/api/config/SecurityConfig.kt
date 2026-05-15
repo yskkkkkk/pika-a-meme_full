@@ -1,5 +1,6 @@
 package com.pickameme.api.config
 
+import com.pickameme.api.auth.CookieOAuth2AuthorizationRequestRepository
 import com.pickameme.api.auth.CustomOAuth2UserService
 import com.pickameme.api.auth.JwtAuthenticationFilter
 import com.pickameme.api.auth.OAuth2SuccessHandler
@@ -26,6 +27,7 @@ class SecurityConfig(
     private val customOAuth2UserService: CustomOAuth2UserService,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val cookieAuthorizationRequestRepository: CookieOAuth2AuthorizationRequestRepository,
     private val rateLimitFilterProvider: ObjectProvider<RateLimitFilter>,
     @Value("\${cors.allowed-origins}") private val allowedOrigins: String
 ) {
@@ -35,7 +37,7 @@ class SecurityConfig(
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/oauth2/**", "/login/**", "/actuator/health").permitAll()
@@ -45,6 +47,7 @@ class SecurityConfig(
             }
             .oauth2Login { oauth2 ->
                 oauth2
+                    .authorizationEndpoint { it.authorizationRequestRepository(cookieAuthorizationRequestRepository) }
                     .userInfoEndpoint { it.userService(customOAuth2UserService) }
                     .successHandler(oAuth2SuccessHandler)
             }
