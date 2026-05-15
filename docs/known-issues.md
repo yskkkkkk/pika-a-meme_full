@@ -154,7 +154,7 @@ OAuth2 핸드셰이크 동안에만 임시 세션이 생성되며, JWT 발급 �
 
 ## BUG-07 · 로그아웃 후 새로고침 시 로그인 상태 복원
 
-- **상태**: FIXED (260514) — 3차 수정
+- **상태**: FIXED (260515) — 5차 수정
 - **연관 태스크**: TASK-260513-05
 
 **증상**  
@@ -297,6 +297,53 @@ api.pick-a-me.me/api/auth/logout
 - `pick-a-me.me` host-only 쿠키
 - `.pick-a-me.me` parent-domain 쿠키
 - `api.pick-a-me.me` host-only 쿠키
+
+---
+
+### 5차 수정 (260515) — JSESSIONID 재인증
+
+**진단 과정**
+
+네트워크 트레이스에서 서버 사이드는 이미 정상이었다.
+
+```
+location: https://www.pick-a-me.me/           ← 같은 오리진으로 리다이렉트 ✓
+set-cookie: pam_token=; Max-Age=0; Secure     ← host-only 삭제 ✓
+set-cookie: pam_token=; Max-Age=0; Domain=.pick-a-me.me  ← domain 삭제 ✓
+```
+
+`pam_token`이 삭제됐는데도 `/api/auth/me`가 유저 데이터를 반환하는 상황이었다.  
+DevTools → Application → Cookies 확인 결과 `pam_token`은 없고 `JSESSIONID`만 남아 있었다.  
+`JSESSIONID`를 수동 삭제하자 즉시 로그아웃 상태가 됐다.
+
+**원인**
+
+`SessionCreationPolicy.IF_REQUIRED`로 설정되어 있어 OAuth2 로그인 시 Spring Security가 HTTP 세션을 생성했다.  
+`pam_token`을 삭제해도 `JSESSIONID`가 유효한 세션을 가리키고 있어 `/api/auth/me` 요청 시 세션 기반으로 재인증됐다.
+
+BUG-05 조치에서 `STATELESS` → `IF_REQUIRED`로 복구한 것이 이 문제의 직접적인 원인이다.
+
+**왜 당시 STATELESS가 OAuth2 로그인을 깼는가**  
+Spring Security OAuth2는 로그인 시작 시 CSRF 방지용 `state` 파라미터를 HTTP 세션에 저장하고, 콜백에서 꺼내 검증한다.  
+`STATELESS`이면 세션 자체가 없으므로 콜백에서 state를 찾지 못해 `authorization_request_not_found` 오류가 발생한다.
+
+**조치**
+
+`CookieOAuth2AuthorizationRequestRepository`를 새로 구현하여 OAuth2 state를 세션 대신 단기 쿠키(180초)에 저장하도록 변경.  
+`SecurityConfig`를 `STATELESS`로 전환하고 OAuth2 `authorizationEndpoint`에 이 쿠키 저장소를 연결했다.
+
+```
+[OAuth2 로그인 흐름 — 수정 후]
+1. 유저 → "카카오 로그인" 클릭
+2. Spring Security → state를 oauth2_auth_request 쿠키(180s)에 저장 후 카카오로 리다이렉트
+3. 카카오 → 콜백(top-level GET 네비게이션) — 브라우저가 쿠키 자동 전송
+4. Spring Security → 쿠키에서 state 조회 → 검증 성공 → JWT 발급
+5. JSESSIONID 생성 없음
+```
+
+변경 파일:
+- `CookieOAuth2AuthorizationRequestRepository.kt` 신규 생성
+- `SecurityConfig.kt`: `IF_REQUIRED` → `STATELESS`, `authorizationEndpoint` 에 쿠키 저장소 연결
 
 ---
 
