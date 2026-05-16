@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>하트가 두 종류라 저장소도 두 개다 | pick-a-meme Dev Blog</title>
+  <title>하트 하나 쓰는 데 락이 필요했던 이유 | pick-a-meme Dev Blog</title>
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
@@ -119,32 +119,31 @@
       <span class="read-time">📖 약 6분</span>
     </div>
 
-    <h1 class="post-main-title">하트가 두 종류라<br>저장소도 두 개다</h1>
+    <h1 class="post-main-title">하트 하나 쓰는 데<br>락이 필요했던 이유</h1>
 
     <div class="post-tags">
       <span class="tag-chip">#Redis</span>
       <span class="tag-chip">#JPA</span>
       <span class="tag-chip">#분산락</span>
       <span class="tag-chip">#하트시스템</span>
-      <span class="tag-chip">#바이브코딩</span>
+      <span class="tag-chip">#동시성</span>
     </div>
 
     <div class="toc">
       <p class="toc-title">목차</p>
       <ol>
-        <li><a href="#heart">하트 시스템이란</a></li>
-        <li><a href="#basic">BASIC 하트 — 5분마다 1개</a></li>
-        <li><a href="#special">SPECIAL 하트 — 조건 달성 시 지급</a></li>
-        <li><a href="#race">Race Condition과 분산 락</a></li>
+        <li><a href="#heart">하트가 두 종류인 이유</a></li>
+        <li><a href="#basic">BASIC 하트 — Lazy Charging</a></li>
+        <li><a href="#special">SPECIAL 하트 — 정합성이 우선</a></li>
+        <li><a href="#race">Race Condition</a></li>
+        <li><a href="#lock">분산 락으로 막는다</a></li>
         <li><a href="#guest">비로그인 하트 — 서버가 없다</a></li>
       </ol>
     </div>
 
-    <h2 id="heart">하트 시스템이란</h2>
+    <h2 id="heart">하트가 두 종류인 이유</h2>
 
-    <p>피카밈에서 밈을 뽑으려면 하트가 필요하다. 하트는 두 종류다. <strong>BASIC</strong>은 시간이 지나면 차오르는 일반 하트고, <strong>SPECIAL</strong>은 특정 조건을 달성해야 지급되는 희귀 하트다.</p>
-
-    <p>처음에는 하트를 하나로 통일하려고 했다. 근데 설계를 이어가다 보니까 두 종류의 성격이 너무 달랐다. 충전 방식도 다르고, 저장 위치도 다르고, 중요도도 달랐다.</p>
+    <p>처음 설계할 때는 하트를 하나로 통일하려 했다. 하트는 하트 아닌가. 근데 설계를 이어가다 보니까 두 종류의 성격이 너무 달랐다. 충전 방식도 다르고, 중요도도 달랐다. 같은 저장소에 넣으면 결국 어느 쪽에도 최적화가 안 된다.</p>
 
     <div class="heart-compare">
       <div class="heart-col">
@@ -153,69 +152,77 @@
         <div class="heart-row"><span class="label">충전</span> 5분마다 1개</div>
         <div class="heart-row"><span class="label">방식</span> 시간 기반 Lazy</div>
         <div class="heart-row"><span class="label">저장소</span> Redis (Upstash)</div>
-        <div class="heart-row"><span class="label">SSOT</span> Redis</div>
+        <div class="heart-row"><span class="label">핵심</span> 속도</div>
       </div>
       <div class="heart-col">
         <div class="heart-col-header special">💜 SPECIAL</div>
         <div class="heart-row"><span class="label">최대</span> 제한 없음</div>
-        <div class="heart-row"><span class="label">충전</span> 이벤트 달성 시</div>
-        <div class="heart-row"><span class="label">방식</span> 조건 기반 Grant</div>
+        <div class="heart-row"><span class="label">충전</span> 조건 달성 시</div>
+        <div class="heart-row"><span class="label">방식</span> 이벤트 기반 Grant</div>
         <div class="heart-row"><span class="label">저장소</span> JPA (PostgreSQL)</div>
-        <div class="heart-row"><span class="label">SSOT</span> DB</div>
+        <div class="heart-row"><span class="label">핵심</span> 정합성</div>
       </div>
     </div>
 
-    <h2 id="basic">BASIC 하트 — 5분마다 1개</h2>
+    <h2 id="basic">BASIC 하트 — Lazy Charging</h2>
 
-    <p>BASIC 하트는 빠르게 쓰고 빠르게 차오르는 게 목적이다. 5분마다 1개, 최대 5개. 모바일 게임의 스테미나 시스템과 같은 구조다.</p>
+    <p>BASIC 하트는 빠르게 쓰고 빠르게 차오르는 게 목적이다. 5분마다 1개, 최대 5개. 모바일 게임의 스태미너 시스템과 같은 구조다.</p>
 
-    <p>Redis를 SSOT로 쓴 이유는 실시간성 때문이다. BASIC 하트는 충전이 자주 일어나고, 사용자가 "지금 몇 개야?"를 수시로 확인한다. DB에 넣으면 읽기 속도가 문제가 되고, 충전 체크 로직을 매번 돌리기엔 DB가 부담스럽다.</p>
+    <p>Redis를 SSOT로 쓴 이유는 실시간성 때문이다. 사용자가 "지금 하트 몇 개야?"를 자주 확인한다. DB에 넣으면 읽기 속도가 문제가 되고, 충전 체크 로직을 매번 돌리기엔 부담스럽다.</p>
 
-    <p>대신 충전 방식은 <strong>Lazy Charging</strong>을 쓴다. 5분마다 배치 잡을 돌리는 게 아니라, 조회 시점에 "마지막 충전 이후 얼마나 지났는지"를 계산해서 그 자리에서 채워준다. 서버 자원 절약이 목적이다.</p>
+    <p>대신 충전 방식은 <strong>Lazy Charging</strong>을 쓴다. 5분마다 배치 잡을 돌리는 게 아니라, 조회 시점에 "마지막 충전 이후 얼마나 지났는지"를 계산해서 그 자리에서 채워준다. 배치 없이 서버 자원을 아끼는 방법이다.</p>
 
-    <h2 id="special">SPECIAL 하트 — 조건 달성 시 지급</h2>
+    <h2 id="special">SPECIAL 하트 — 정합성이 우선</h2>
 
-    <p>SPECIAL 하트는 희소성이 핵심이다. 로그인 첫날 지급, 특정 밈을 N회 공유했을 때, 이벤트 달성 시 — 이런 조건에서 생긴다. 자주 충전되지 않는 만큼 한 개 한 개가 의미 있어야 한다.</p>
+    <p>SPECIAL 하트는 희소성이 핵심이다. 로그인 첫날 지급, 특정 밈을 N회 공유했을 때, 이벤트 달성 시 — 조건에서 생긴다. 자주 충전되지 않는 만큼 한 개 한 개가 의미 있어야 한다.</p>
 
-    <p>JPA/DB를 SSOT로 쓴 이유는 정합성 때문이다. SPECIAL 하트는 지급 내역이 정확히 기록돼야 한다. 나중에 "왜 이 사람한테 하트가 지급됐는지" 추적할 수 있어야 하고, 중복 지급이 절대 없어야 한다. Redis는 이런 영속성 보장에 적합하지 않다.</p>
+    <p>JPA/DB를 SSOT로 쓴 이유는 정합성 때문이다. SPECIAL 하트는 지급 내역이 정확히 기록돼야 한다. 나중에 "왜 이 사용자한테 하트가 지급됐는지" 추적할 수 있어야 하고, 중복 지급이 절대 없어야 한다. Redis는 이런 영속성 보장에 적합하지 않다.</p>
 
     <div class="highlight-box">
-      <p>같은 "하트"라도 성격이 다르면 저장소가 달라야 한다. 빠른 것과 정확한 것을 같은 곳에 넣으려고 하면 둘 다 어중간해진다.</p>
+      <p>같은 재화라도 성격이 다르면 저장소가 달라야 한다. 빠른 것과 정확한 것은 같은 곳에 최적화할 수 없다.</p>
     </div>
 
-    <h2 id="race">Race Condition과 분산 락</h2>
+    <h2 id="race">Race Condition</h2>
 
-    <p>하트 소모 로직을 처음 짤 때는 단순했다. "현재 하트 수 읽기 → 1 빼기 → 저장". 근데 여기에 구멍이 있다.</p>
+    <p>하트 소모 로직을 처음 짤 때는 단순했다. "현재 하트 수 읽기 → 1 빼기 → 저장." 근데 여기에 구멍이 있었다.</p>
 
-    <p>사용자가 연속으로 두 번 뽑기 버튼을 빠르게 누르면 어떻게 될까. 두 요청이 동시에 날아오면, 두 요청 다 "현재 하트 3개"를 읽을 수 있다. 둘 다 3에서 1을 빼서 2로 저장하면 — 하트를 2개 썼는데 1개만 빠진다.</p>
+    <p>사용자가 뽑기 버튼을 빠르게 두 번 연속으로 누르면 어떻게 될까. 두 요청이 동시에 들어오면, 둘 다 Redis에서 "현재 하트 3개"를 읽을 수 있다. 둘 다 3에서 1을 빼서 2로 저장하면 — 하트를 2개 썼는데 1개만 빠진다.</p>
 
     <div class="flow-box">
       <div class="flow-step"><div class="flow-num">1</div>요청 A, B 동시 도착 → 둘 다 Redis에서 하트 잔량 읽음 (3개)</div>
-      <div class="flow-step"><div class="flow-num">2</div>A가 3 - 1 = 2 저장. B도 3 - 1 = 2 저장</div>
+      <div class="flow-step"><div class="flow-num">2</div>A가 3 − 1 = 2 저장. B도 3 − 1 = 2 저장</div>
       <div class="flow-step"><div class="flow-num">3</div>결과: 하트 2개 사용 → 잔량 2개 (실제론 1개여야 함)</div>
     </div>
 
-    <p>이걸 막으려고 <strong>Redisson 분산 락</strong>을 붙였다. 하트 소모/충전 로직에 진입하기 전에 Redis에서 락을 획득하고, 작업이 끝나면 락을 해제한다. 락을 못 얻으면 짧게 대기하다가 재시도한다.</p>
+    <p>테스트 환경에서는 잘 안 잡힌다. 혼자 조용히 쓰면 동시 요청이 없다. 실제 사용자가 몰리거나, 네트워크가 늦어서 요청이 겹칠 때 터진다. Pet-Pass에서 이런 종류의 버그를 뒤늦게 발견한 적이 있었기 때문에, 피카밈에서는 처음부터 설계에 포함시켰다.</p>
 
-    <p>락 범위는 사용자 단위다. 사용자 A의 락이 사용자 B의 요청을 막으면 안 된다. 키를 <code>heart:lock:{userId}</code>로 잡아서 사용자별로 독립적으로 락이 걸린다.</p>
+    <h2 id="lock">분산 락으로 막는다</h2>
+
+    <p>해결책은 <strong>Redisson 분산 락</strong>이다. 하트 소모/충전 로직에 진입하기 전에 Redis에서 락을 획득하고, 작업이 끝나면 락을 해제한다. 락을 못 얻으면 짧게 대기하다가 재시도한다.</p>
+
+    <div class="flow-box">
+      <div class="flow-step"><div class="flow-num">1</div>요청 A 도착 → <code>heart:lock:{userId}</code> 락 획득</div>
+      <div class="flow-step"><div class="flow-num">2</div>요청 B 도착 → 락 획득 실패 → 대기</div>
+      <div class="flow-step"><div class="flow-num">3</div>A가 하트 3 → 2로 저장, 락 해제</div>
+      <div class="flow-step"><div class="flow-num">4</div>B가 락 획득 → 하트 2 → 1로 저장, 락 해제</div>
+    </div>
+
+    <p>락 범위는 사용자 단위다. A의 락이 B의 요청을 막으면 안 된다. 키를 <code>heart:lock:{userId}</code>로 잡아서 사용자별로 독립적으로 락이 걸린다. 이렇게 하면 서로 다른 사용자의 요청은 아무 영향 없이 병렬로 처리된다.</p>
 
     <h2 id="guest">비로그인 하트 — 서버가 없다</h2>
 
-    <p>비로그인 사용자도 밈을 뽑을 수 있다. 근데 비로그인인데 하트를 서버에서 관리하면 서버 비용이 든다. 계정도 없는 사람의 하트를 Redis에 저장하면 무한정 쌓인다.</p>
+    <p>비로그인 사용자도 밈을 뽑을 수 있다. 근데 비로그인인데 하트를 서버에서 관리하면 문제가 생긴다. 계정도 없는 사람의 하트를 Redis에 저장하면 무한정 쌓이고, 만료 기준도 모호해진다.</p>
 
-    <p>그래서 비로그인 하트는 <strong>localStorage SSOT</strong>로 처리한다. 하트 잔량, 마지막 충전 시각 — 전부 브라우저에 저장한다. 서버 API 호출이 없다.</p>
+    <p>그래서 비로그인 하트는 <strong>localStorage SSOT</strong>로 처리한다. 하트 잔량, 마지막 충전 시각 — 전부 브라우저에 저장한다. 서버 API 호출이 없다. <code>useGuestHeart</code> 훅이 Lazy Charging 계산을 직접 한다.</p>
 
-    <p>충전 로직도 클라이언트 전담이다. <code>useGuestHeart</code> 훅이 5분 Lazy Charging 계산을 직접 한다. 탭을 닫았다가 30분 후에 다시 열면 "30분 지났으니까 6개 충전 가능, 최대 5개니까 5개"를 그 자리에서 계산한다.</p>
-
-    <p>단점은 있다. 브라우저를 닫으면 만든 밈 히스토리가 사라지고, 다른 기기에서 이어서 쓸 수 없다. 그 불편함이 자연스럽게 "로그인하면 저장돼요"로 연결된다.</p>
+    <p>단점은 있다. 탭을 닫으면 밈 히스토리가 사라지고, 다른 기기에서 이어서 쓸 수 없다. 그 불편함이 자연스럽게 "로그인하면 저장돼요"로 연결된다. 불편함 자체가 UX 설계의 일부였다.</p>
 
     <hr class="divider">
 
     <div class="lesson-box">
       <h3>이 경험에서 배운 것</h3>
-      <p>같은 개념(하트)이라도 성격이 다르면 저장소를 분리하는 게 맞다. 모든 걸 하나의 저장소에 몰아넣으면 결국 어느 쪽에도 최적화가 안 된다.</p>
-      <p>동시성 문제는 트래픽이 작을 때는 안 보인다. 테스트 환경에서 나오지 않는 버그가 실제 사용자가 몰릴 때 터진다. Pet-Pass에서 배운 것 중 하나가 이거다. 그래서 이번엔 처음부터 분산 락을 설계에 포함시켰다.</p>
-      <p>비로그인 하트를 localStorage로 처리한 건 비용 절감이기도 하지만, 그 불편함 자체가 UX 설계의 일부였다.</p>
+      <p>같은 개념(하트)이라도 성격이 다르면 저장소를 분리하는 게 맞다. 두 요구사항이 충돌하면 하나를 희생시키거나, 아니면 처음부터 분리해야 한다.</p>
+      <p>동시성 문제는 트래픽이 작을 때는 보이지 않는다. 설계 단계에서 "이 로직이 동시에 두 번 호출되면 어떻게 되는가"를 물어보는 습관이 필요하다. 분산 락은 무거운 도구지만, 필요한 곳에는 처음부터 쓰는 게 낫다.</p>
     </div>
 
     <div class="post-footer">
