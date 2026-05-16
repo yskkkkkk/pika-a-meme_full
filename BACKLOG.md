@@ -54,7 +54,7 @@
 | TASK-260430-02 | [프론트엔드] | [x] | 동물 사진 가챠(Gacha) 시스템 및 로딩 애니메이션 구현 | TASK-260429-26 | - | 260430 / 260501 |
 | TASK-260501-01 | [밈/이미지] | [x] | ~~R2 업로드 후 DB 저장 실패 시 고아 이미지 정리 전략 구현~~ | TASK-260429-18, TASK-260429-19 | **전제 무효화로 삭제 (260514).** 완성 이미지를 R2에 저장하지 않고 composition을 JSONB로 DB에만 저장하는 구조이므로 고아 파일이 발생할 수 없음. docs/known-issues.md `NOTE-01` 참고 | 260501 / 260514 |
 | TASK-260501-02 | [프론트엔드] | [x] | 프론트엔드 API 클라이언트 구현 (fetch + Bearer 헤더 + POST /api/memes 연동) | - | - | 260501 / 260503 |
-| TASK-260501-03 | [프론트엔드] | [/] | 밈 완성 후 "다시뽑기" 플로우 및 공유하기 고도화 | - | ResultScreen 버튼 2×2 재구성(홈/다시뽑기/저장/공유하기). 다시뽑기: BASIC→즉시재뽑기, SPECIAL→태그선택 복귀+최근태그 표시, 확인 UI. 공유하기: 저장/공유 분리, navigator.share 파일→URL→클립보드 순 fallback. feature/redraw-and-share | 260501 / - |
+| TASK-260501-03 | [프론트엔드] | [x] | 밈 완성 후 "다시뽑기" 플로우 및 공유하기 고도화 | - | ResultScreen 버튼 2×2 재구성(홈/다시뽑기/저장/공유하기). 다시뽑기: BASIC→handleBasicDraw() 즉시 재뽑기, SPECIAL→잔여 하트 체크 후 TAG_SELECT 복귀, confirmingRedraw 확인 UI. 공유하기: navigator.share(files)→URL→클립보드 순 fallback. 코드 확인(260516 재점검) | 260501 / 260516 |
 | TASK-260501-04 | [프론트엔드] | [x] | Canvas에 추가된 아이템의 크기(fontSize/stickerScale) 조절 UI 구현 | TASK-260429-24 | v2 재설계로 Canvas 에디터 자체가 제거됨. TASK-260429-24, TASK-260504-08 참고 | 260501 / 260505 |
 | TASK-260501-05 | [인프라/공통] | [x] | CI/CD 구축 및 클라우드 배포 (Frontend: Vercel + GitHub Actions, Backend: Railway Docker) | - | Vercel 자동배포(GitHub Actions + Vercel CLI), Railway Docker 자동배포 완료. 도메인: pick-a-me.me / api.pick-a-me.me | 260501 / 260511 |
 | TASK-260502-01 | [인프라/공통] | [ ] | Sentry 기반 프론트/백엔드 에러 트래킹 및 알림 채널(Slack/Email) 연동 | TASK-260429-14 | - | 260502 / - |
