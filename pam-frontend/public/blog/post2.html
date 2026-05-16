@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pet-Pass는 그냥 쌓았다 — 이번엔 계층을 나눈다 | pick-a-meme Dev Blog</title>
+  <title>AI에게 계층 규칙을 가르치는 방법 | pick-a-meme Dev Blog</title>
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
@@ -101,7 +101,7 @@
       <span class="read-time">📖 약 5분</span>
     </div>
 
-    <h1 class="post-main-title">Pet-Pass는 그냥 쌓았다<br>— 이번엔 계층을 나눈다</h1>
+    <h1 class="post-main-title">AI에게<br>계층 규칙을 가르치는 방법</h1>
 
     <div class="post-tags">
       <span class="tag-chip">#CleanArchitecture</span>
@@ -113,35 +113,29 @@
     <div class="toc">
       <p class="toc-title">목차</p>
       <ol>
-        <li><a href="#petpass">Pet-Pass 코드의 민낯</a></li>
         <li><a href="#why">왜 Clean Architecture인가</a></li>
         <li><a href="#layers">4계층으로 나누는 방법</a></li>
-        <li><a href="#airules">AI에게 계층 규칙을 지키게 하기</a></li>
+        <li><a href="#ai">AI는 계층을 모른다</a></li>
+        <li><a href="#fix">AIRULES.md가 해결했다</a></li>
         <li><a href="#result">실제로 어떻게 됐나</a></li>
       </ol>
     </div>
 
-    <h2 id="petpass">Pet-Pass 코드의 민낯</h2>
-
-    <p>Pet-Pass 코드는 솔직히 꽤 지저분했다. 기능이 생기면 그냥 파일 하나 더 만들었다. API 라우트 핸들러 안에 DB 쿼리가 직접 들어있었고, 데이터 가공 로직이 여기저기 중복으로 흩어져 있었다.</p>
-
-    <p>문제는 초반엔 전혀 불편하지 않다는 거다. 빠르게 돌아갔고, AI가 코드를 추가하는 것도 편했다. 문제는 수정할 때 생겼다. 뭔가를 바꾸면 예상치 못한 다른 곳이 터졌다. AI도 어디를 고쳐야 할지 문맥을 잃어버리기 시작했다.</p>
-
-    <div class="highlight-box">
-      <p>코드가 쌓이는 건 눈에 보이지만, 구조가 무너지는 건 다 쌓이고 나서야 보인다.</p>
-    </div>
-
     <h2 id="why">왜 Clean Architecture인가</h2>
 
-    <p>피카밈은 Pet-Pass보다 복잡하다. 하트 시스템, 가챠 로직, 이미지 합성, 소셜 로그인, 동시 요청 처리. 이걸 다 한 곳에 쑤셔 넣으면 Pet-Pass보다 훨씬 빠르게 혼돈이 온다.</p>
+    <p>Pet-Pass 코드를 다시 들여다본 적이 있다. API 라우트 안에 DB 쿼리가 직접 들어 있었다. 데이터 가공 로직이 여러 파일에 중복으로 흩어져 있었다. 기능이 생길 때마다 파일 하나씩 추가한 결과였다.</p>
 
-    <p>Clean Architecture를 선택한 이유는 단 하나였다. <strong>비즈니스 로직이 프레임워크에 오염되지 않았으면 했다.</strong> JPA를 쓰든 다른 걸 쓰든, Spring이 버전업되든 — 도메인 로직은 건드리지 않아야 한다.</p>
+    <p>나쁜 방법은 아니었다. 빠르게 돌아갔고, 처음엔 AI가 코드를 추가하는 것도 편했다. 문제는 수정할 때 생겼다. 뭔가를 바꾸면 예상치 못한 다른 곳이 터졌다. AI도 어디를 고쳐야 할지 문맥을 잃기 시작했다. 코드가 쌓이는 건 눈에 보이지만, 구조가 무너지는 건 다 쌓이고 나서야 보인다.</p>
 
-    <p>거창하게 들리지만, 실제로는 "어느 폴더에 뭘 넣는지"의 규칙이다.</p>
+    <p>피카밈은 Pet-Pass보다 훨씬 복잡하다. 하트 시스템, 가챠 로직, 소셜 로그인, 동시 요청 처리. 이걸 다 한 곳에 쑤셔 넣으면 Pet-Pass보다 훨씬 빠르게 혼돈이 온다. 그래서 처음부터 Clean Architecture로 시작했다.</p>
+
+    <div class="highlight-box">
+      <p>코드 스타일은 나중에 맞출 수 있다. 구조는 한 번 무너지면 되돌리기 어렵다.</p>
+    </div>
 
     <h2 id="layers">4계층으로 나누는 방법</h2>
 
-    <p>Gradle 멀티 모듈로 4개 계층을 물리적으로 분리했다. 의존성 방향이 핵심이다.</p>
+    <p>Gradle 멀티 모듈로 4개 계층을 물리적으로 분리했다. 의존성 방향이 핵심이다. 바깥이 안쪽을 의존하고, 안쪽은 바깥을 모른다.</p>
 
     <div class="layer-stack">
       <div class="layer-item">
@@ -166,7 +160,7 @@
     </div>
     <p class="layer-rule">Domain은 아무것도 모른다. Infrastructure는 Domain을 구현할 뿐이다.</p>
 
-    <p>중요한 건 <code>pam-domain</code> 모듈이다. 여기엔 순수 Kotlin 객체만 들어간다. JPA 어노테이션도 없고, Spring 의존도 없다. 이 모듈만 떼어내서 단위 테스트해도 돌아간다.</p>
+    <p>핵심은 <code>pam-domain</code>이다. 이 모듈에는 순수 Kotlin 객체만 들어간다. JPA 어노테이션 없음, Spring 의존 없음. 도메인 로직을 DB나 프레임워크 없이 단위 테스트할 수 있다.</p>
 
     <div class="code-block"><span class="code-comment">// pam-domain — 순수 Kotlin. @Entity 없음.</span>
 <span class="code-keyword">data class</span> <span class="code-type">User</span>(
@@ -179,39 +173,47 @@
     }
 }</div>
 
-    <h2 id="airules">AI에게 계층 규칙을 지키게 하기</h2>
+    <h2 id="ai">AI는 계층을 모른다</h2>
 
-    <p>계층 구조를 설계하는 것보다 AI가 그 구조를 지키게 하는 게 더 어려웠다.</p>
+    <p>구조를 설계하는 것보다 AI가 그 구조를 지키게 하는 게 더 어려웠다. 이게 진짜 이슈였다.</p>
 
-    <p>AI는 빠르게 동작하는 코드를 만드는 데 익숙하다. 레이어가 있어도 "여기다 JPA 어노테이션 달면 되잖아요"라는 식으로 domain 엔티티에 <code>@Entity</code>를 붙이려 했다. 동작은 하지만 원칙이 깨진다.</p>
+    <p>AI는 동작하는 코드를 빠르게 만드는 데 최적화되어 있다. 계층이 있다는 걸 알아도, 가장 빠른 방법으로 문제를 풀려다 보면 레이어 경계를 넘어버린다. 의도가 아니라 최적화의 부작용이다.</p>
 
     <div class="timeline">
       <div class="timeline-item fail">
         <div class="timeline-label">시도 1 · 실패</div>
-        <p>AI가 domain 엔티티에 <code>@Entity</code>, <code>@Column</code>을 달기 시작했다. Infrastructure에 있어야 할 JPA 매핑 로직이 domain으로 올라왔다. 코드는 돌아갔지만 계층 분리 의미가 사라졌다.</p>
+        <p>AI가 domain 엔티티에 <code>@Entity</code>, <code>@Column</code>을 달기 시작했다. Infrastructure에 있어야 할 JPA 매핑 로직이 domain으로 올라왔다. 코드는 돌아갔지만 계층 분리의 의미가 사라졌다.</p>
       </div>
       <div class="timeline-item fail">
         <div class="timeline-label">시도 2 · 부분 성공</div>
-        <p>계층 규칙을 프롬프트에 명시했다. AI가 지키려 했지만 여전히 application에서 JPA Repository를 직접 주입하는 경우가 생겼다. Domain Interface를 거쳐야 하는 흐름을 놓쳤다.</p>
+        <p>계층 규칙을 프롬프트에 명시했다. AI가 지키려 했지만 application에서 JPA Repository를 직접 주입하는 경우가 생겼다. domain Interface를 거쳐야 하는 흐름을 놓쳤다. 세션이 길어질수록 규칙을 잊어버렸다.</p>
+      </div>
+      <div class="timeline-item fail">
+        <div class="timeline-label">시도 3 · 부분 성공</div>
+        <p>매 세션 시작마다 규칙을 다시 설명했다. 지켜지긴 했지만 너무 번거로웠다. AI가 컨텍스트를 잃을 때마다 같은 설명을 반복해야 했다.</p>
       </div>
       <div class="timeline-item">
-        <div class="timeline-label">해결 · AIRULES.md 작성</div>
-        <p>프로젝트 루트에 <code>AIRULES.md</code>를 만들었다. 계층 의존성 방향, 금지 사항, 도메인 순수성 규칙을 한 문서에 정리해놓고 매 세션마다 참조하게 했다. 규칙이 문서로 고정되니 일관성이 생겼다.</p>
+        <div class="timeline-label">해결 · AIRULES.md</div>
+        <p>프로젝트 루트에 <code>AIRULES.md</code>를 만들었다. 계층 의존성 방향, 금지 사항, 도메인 순수성 규칙을 한 문서에 정리했다. AI가 세션마다 이 파일을 참조한다. 규칙이 코드 밖에 문서로 고정되니 일관성이 생겼다.</p>
       </div>
     </div>
+
+    <p>AIRULES.md가 효과적인 이유는 단순하다. AI의 단기 기억은 세션 단위로 리셋된다. 하지만 파일은 리셋되지 않는다. 설계 의도를 코드가 아니라 문서로 고정하면, AI가 새 세션에서도 같은 구조 위에서 작업할 수 있다.</p>
 
     <h2 id="result">실제로 어떻게 됐나</h2>
 
     <p>초반 세팅에 시간이 꽤 걸렸다. 모듈 간 의존성 설정, Flyway DB 형상 관리, GlobalExceptionHandler, 공통 응답 규격 — 기능 코드를 한 줄도 안 짰는데 작업 티켓이 이미 쌓여 있었다.</p>
 
-    <p>하지만 그 이후가 달랐다. 하트 시스템을 추가할 때, 밈 생성 로직을 붙일 때 — "이건 Domain에", "이건 Infrastructure에"가 자연스럽게 정해졌다. AI도 구조를 파악하고 나니까 헷갈리지 않았다. AIRULES.md가 AI의 단기 기억을 대신해주는 역할을 했다.</p>
+    <p>하지만 그 이후가 달랐다. 하트 시스템을 추가할 때, 밈 생성 로직을 붙일 때 — "이건 Domain에", "이건 Infrastructure에"가 자연스럽게 결정됐다. AI도 구조를 파악하고 나니까 헷갈리지 않았다.</p>
+
+    <p>Pet-Pass에서는 뭔가를 바꾸면 예상치 못한 곳이 터졌다. 피카밈에서는 그런 일이 거의 없었다. 구조가 잡혀 있으면 AI도 안전하게 작업한다.</p>
 
     <hr class="divider">
 
     <div class="lesson-box">
       <h3>이 경험에서 배운 것</h3>
-      <p>AI에게 코드 스타일보다 구조 규칙을 먼저 가르쳐야 한다. 코드는 AI가 금방 짜지만, 구조는 한 번 무너지면 되돌리기 어렵다.</p>
-      <p>AIRULES.md처럼 규칙을 명문화해두면 AI뿐 아니라 나 자신도 흔들리지 않는다. 설계 의도를 문서로 남기는 것 자체가 프로젝트 자산이다.</p>
+      <p>AI에게 코드 스타일보다 구조 규칙을 먼저 가르쳐야 한다. AI는 코드를 빠르게 짜지만, 구조는 직접 지정해줘야 지킨다. 그 지정을 프롬프트가 아니라 파일로 해야 세션이 바뀌어도 유지된다.</p>
+      <p>Clean Architecture의 진짜 가치는 테스트 가능성이나 교체 용이성보다, 적어도 지금 이 단계에서는 — 변경이 퍼지지 않는다는 것이다. 어디를 고쳐야 할지 안다는 것만으로도 충분히 가치가 있다.</p>
     </div>
 
     <div class="post-footer">
