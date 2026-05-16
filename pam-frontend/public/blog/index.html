@@ -97,22 +97,21 @@
     <!-- 이슈 #2 -->
     <a href="/blog/post3.html" class="blog-post-card glass">
       <div class="blog-post-date">피카밈 개발기 · 이슈 #2</div>
-      <h2 class="blog-post-title">하트가 두 종류라 저장소도 두 개다</h2>
-      <p class="blog-post-summary">BASIC 하트는 Redis, SPECIAL 하트는 JPA. 같은 재화인데 저장소가 다른 이유가 있다. 분산 락이 없었으면 동시 요청에서 하트가 이상하게 차거나 빠졌을 것이다.</p>
+      <h2 class="blog-post-title">하트 하나 쓰는 데 락이 필요했던 이유</h2>
+      <p class="blog-post-summary">BASIC 하트는 Redis, SPECIAL 하트는 JPA. 같은 재화인데 저장소가 다른 이유가 있다. 분산 락이 없었으면 동시 요청에서 하트가 두 개 써지고 하나만 빠지는 버그가 생겼을 것이다.</p>
       <div class="post-tags">
         <span class="tag-chip">#Redis</span>
         <span class="tag-chip">#JPA</span>
         <span class="tag-chip">#분산락</span>
-        <span class="tag-chip">#하트시스템</span>
-        <span class="tag-chip">#바이브코딩</span>
+        <span class="tag-chip">#동시성</span>
       </div>
     </a>
 
     <!-- 이슈 #1 -->
     <a href="/blog/post2.html" class="blog-post-card glass">
       <div class="blog-post-date">피카밈 개발기 · 이슈 #1</div>
-      <h2 class="blog-post-title">Pet-Pass는 그냥 쌓았다 — 이번엔 계층을 나눈다</h2>
-      <p class="blog-post-summary">Pet-Pass에서 코드가 뒤섞이는 게 어떤 느낌인지 배웠다. 이번엔 처음부터 Clean Architecture로 시작했다. AI에게 계층 규칙을 지키게 하는 게 코드 짜는 것보다 더 어려웠다.</p>
+      <h2 class="blog-post-title">AI에게 계층 규칙을 가르치는 방법</h2>
+      <p class="blog-post-summary">AI는 동작하는 코드를 빠르게 만들지만 설계 경계는 모른다. Clean Architecture로 시작했는데 AI가 세션마다 계층을 무너뜨렸다. AIRULES.md가 해결했다.</p>
       <div class="post-tags">
         <span class="tag-chip">#CleanArchitecture</span>
         <span class="tag-chip">#DDD</span>
@@ -124,12 +123,13 @@
     <!-- 시작하며 -->
     <a href="/blog/post1.html" class="blog-post-card glass">
       <div class="blog-post-date">피카밈 개발기 · 시작하며</div>
-      <h2 class="blog-post-title">Pet-Pass를 마치고, 피카밈을 시작한다</h2>
-      <p class="blog-post-summary">Pet-Pass는 아무도 안 쓴다는 걸 인정하고, 다음 프로젝트의 조건을 다시 정했다. 즉각성, 바이럴, 단순함. 그 조건에서 나온 게 B급 감성 가챠 밈 생성기다.</p>
+      <h2 class="blog-post-title">백엔드 개발자가 풀스택을 선택한 이유</h2>
+      <p class="blog-post-summary">4년차 백엔드 개발자가 포트폴리오 프로젝트를 만들면서 Supabase BaaS 대신 Kotlin+Spring Boot를 선택한 이유. 프론트엔드만 있는 버전을 먼저 만들었다가, 결국 직접 백엔드를 짜기로 했다.</p>
       <div class="post-tags">
+        <span class="tag-chip">#풀스택</span>
+        <span class="tag-chip">#Kotlin</span>
+        <span class="tag-chip">#포트폴리오</span>
         <span class="tag-chip">#바이브코딩</span>
-        <span class="tag-chip">#가챠</span>
-        <span class="tag-chip">#AI협업</span>
       </div>
     </a>
 
