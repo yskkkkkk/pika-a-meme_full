@@ -60,7 +60,7 @@
 | TASK-260502-01 | [인프라/공통] | [ ] | Sentry 기반 프론트/백엔드 에러 트래킹 및 알림 채널(Slack/Email) 연동 | TASK-260429-14 | - | 260502 / - |
 | TASK-260502-02 | [인프라/공통] | [ ] | 헬스체크/레디니스 엔드포인트 및 외부 의존성(DB/Redis/R2) 상태 점검 추가 | TASK-260501-05 | - | 260502 / - |
 | TASK-260502-03 | [밈/이미지] | [ ] | 업로드 이미지 파일 크기/MIME 검증 및 악성 파일 방어 정책 적용 | TASK-260429-20 | - | 260502 / - |
-| TASK-260502-04 | [회원/인증] | [ ] | JWT Refresh Token 회전 및 강제 로그아웃(토큰 무효화) 플로우 구현 | TASK-260429-28, TASK-260429-29 | - | 260502 / - |
+| TASK-260502-04 | [회원/인증] | [~] | ~~JWT Refresh Token 회전 및 강제 로그아웃 플로우 구현~~ | TASK-260429-28, TASK-260429-29 | TASK-260517-01로 통합 대체 | 260502 / - |
 | TASK-260502-05 | [프론트엔드] | [ ] | 주요 퍼널 이벤트(가챠 시작/완료, 저장 클릭, 로그인 전환) 분석 로깅(GA4/PostHog) 연동 | TASK-260429-26, TASK-260429-31 | - | 260502 / - |
 | TASK-260502-06 | [문서/기타] | [ ] | 운영 런북 작성 (장애 대응, 핫픽스/롤백 절차) | TASK-260501-05 | R2 고아 파일 정리 항목 제거 (TASK-260501-01 전제 무효화) | 260502 / - |
 | TASK-260502-07 | [인프라/공통] | [x] | 로컬 개발 환경 최적화 (CORS 설정, Tailwind v4 PostCSS 연동, API 호출 최적화) | - | - | 260502 / 260502 |
@@ -80,7 +80,7 @@
 | TASK-260504-07 | [프론트엔드] | [x] | 모바일 퍼스트 메인 화면 재구축 (500px 컨테이너, BASIC/SPECIAL 하트 버튼) | TASK-260504-06 | HomeScreen, TagSelectScreen, SpinningScreen, ResultScreen 컴포넌트 분리 및 main 반영 완료 | 260504 / 260505 |
 | TASK-260504-08 | [프론트엔드] | [x] | CSS 말풍선 컴포넌트 구현 (subject_position 기반 절대 포지셔닝) | TASK-260504-07 | ResultScreen의 getPositionClasses()로 구현. TASK-260429-24(Canvas 에디터)를 대체 | 260504 / 260505 |
 | TASK-260504-09 | [프론트엔드] | [x] | SPECIAL 하트 태그 선택 UI 구현 (태그 멀티셀렉트 → 조합 요청 → 결과 표시) | TASK-260504-07 | TagSelectScreen 컴포넌트로 구현 완료. TASK-260504-07과 함께 진행 | 260504 / 260505 |
-| TASK-260504-10 | [프론트엔드] | [ ] | 로그인/서비스 소개 별도 화면 구현 (슬라이드 애니메이션 전환) | TASK-260504-07 | LoginSlideMenu로 기본 로그인 유도는 있으나, 서비스 소개 콘텐츠 및 온보딩 플로우 미구현 | 260504 / - |
+| TASK-260504-10 | [프론트엔드] | [~] | ~~로그인/서비스 소개 별도 화면 구현~~ | TASK-260504-07 | **의도적 제거 (260517).** 설명 없이 바로 가챠로 진입하는 것이 서비스 컨셉에 부합한다고 판단. 온보딩 없이도 5초 안에 파악 가능한 구조가 목표. | 260504 / - |
 | TASK-260505-01 | [밈/이미지] | [x] | 밈 결과물 저장 기능 구현 (ResultScreen → html2canvas 캡처 → 기기 저장) | TASK-260504-08 | PC는 파일 다운로드, 모바일은 Web Share API로 갤러리 저장. TASK-260429-19(R2 어댑터)와 연계 | 260505 / 260505 |
 | TASK-260506-01 | [밈/이미지] | [x] | SPECIAL 뽑기 단일 태그 정책 적용 및 selected_tag 컬럼 추가 (V9 마이그레이션) | TASK-260505-01 | selected_tag NULL=BASIC, NOT NULL=SPECIAL. AIRULES.md 정책 문서화 포함 | 260506 / 260506 |
 | TASK-260511-01 | [회원/인증] | [x] | HttpOnly Cookie JWT 전환 (localStorage → pam_token 쿠키, SameSite=Lax) | TASK-260429-28 | OAuth2SuccessHandler, JwtAuthenticationFilter, AuthController(/me, /logout) 구현. CORS allowCredentials=true | 260511 / 260511 |
@@ -89,7 +89,7 @@
 | TASK-260511-04 | [인프라/공통] | [x] | R2 커스텀 도메인 전환 (pub-*.r2.dev → img.pick-a-me.me, V13 마이그레이션) | - | Cloudflare R2 커스텀 도메인 연결 + meme_images.image_url 일괄 교체 | 260511 / 260511 |
 | TASK-260511-05 | [인프라/공통] | [ ] | Origin Shielding 구현 (Railway 기본 도메인 직접 접근 차단) | TASK-260511-03 | X-Origin-Verify 헤더 검증 또는 Cloudflare Tunnel 검토 필요 | 260511 / - |
 | TASK-260511-06 | [인프라/공통] | [ ] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | Cloudflare Proxy 우회 검증 후 활성화. RATE_LIMIT_USE_FORWARDED_HEADERS=true 환경변수 전환 필요 | 260511 / - |
-| TASK-260511-07 | [회원/인증] | [ ] | JWT Refresh Token 회전 구현 (Access Token 15분 + Refresh Token rotation + jti denylist) | TASK-260511-01 | - | 260511 / - |
+| TASK-260511-07 | [회원/인증] | [~] | ~~JWT Refresh Token 회전 구현~~ | TASK-260511-01 | TASK-260517-01로 통합 대체 | 260511 / - |
 | TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
 | TASK-260512-01 | [하트/스테미나] | [x] | 하트 소모 버그 전면 수정 (로그인/비회원 모두) | TASK-260429-07 | (1) MemeComposeService에 HeartService.consumeHeart 호출 누락 → 추가. (2) 비회원 consumeHeart에서 setCurrentHearts 직접 호출로 즉시 UI 반영. (3) useMemeApi mock 폴백을 네트워크 오류 한정으로 축소 — success=false 응답은 throw. (4) HeartDisplay SPINNING 중 display:none 유지로 observer 연속성 보장, refetchQueries로 즉시 갱신 | 260512 / 260512 |
 | TASK-260512-02 | [프론트엔드] | [x] | 로그아웃 시 홈(/) 리다이렉트 구현 | TASK-260429-29 | LoginSlideMenu 로그아웃 버튼에 router.replace("/") 추가 | 260512 / 260512 |
@@ -108,6 +108,7 @@
 | TASK-260513-07 | [인프라/공통] | [ ] | 백엔드 서버 OCI(Oracle Cloud) 이관 준비 | [!] 외부 요청 | 현재 Railway Docker 운영 중. OCI로 이관을 위한 사전 준비: (1) OCI 인스턴스 스펙/구성 검토. (2) Docker Compose 또는 OCI Container Instance 배포 방식 결정. (3) 도메인/Cloudflare 연결 변경 계획. CI/CD GitHub Actions 수정 범위 포함 | 260513 / - |
 | TASK-260514-01 | [인프라/공통] | [x] | mission_completions.metadata jsonb 타입 불일치 운영 버그 수정 | [!] 외부 요청 | StringMapConverter(Map→varchar)를 @JdbcTypeCode(SqlTypes.JSON)으로 교체. 미션 트리거 시 500 에러 발생. docs/known-issues.md BUG-06 참고 | 260514 / 260514 |
 | TASK-260514-02 | [인프라/공통] | [x] | HTTP 요청 타임아웃 전체 설정 및 사용자 알럿 고도화 | [!] 외부 요청 | (1) apiFetch AbortController 15초 타임아웃. (2) application.yml Tomcat 연결타임아웃·HikariCP max-pool-size 명시. (3) alert() 전부 인앱 토스트로 교체. (4) 에러 분류(타임아웃/하트부족/서버에러) 별 메시지 분기 | 260514 / 260514 |
+| TASK-260517-01 | [회원/인증] | [ ] | JWT Refresh Token 구현 (Access Token 단축 + Refresh Token rotation + DB denylist) | TASK-260511-01, TASK-260502-04, TASK-260511-07 | 현재 Access Token 24시간 단일 운용. 설계: (1) Access Token 15분으로 단축. (2) Refresh Token 14일, HttpOnly Cookie (`pam_refresh`) 별도 발급. (3) `/api/auth/refresh` 엔드포인트 — Refresh Token 검증 후 새 Access Token + 새 Refresh Token 발급(rotation). (4) `refresh_tokens` 테이블(jti, user_id, expires_at, revoked) — 로그아웃/강제만료 시 revoked=true. (5) 프론트엔드: apiFetch 401 응답 시 `/api/auth/refresh` 자동 재시도 인터셉터 추가. TASK-260502-04, TASK-260511-07 통합 대체 | 260517 / - |
 
 ---
 
