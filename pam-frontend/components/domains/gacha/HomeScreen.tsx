@@ -33,8 +33,8 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
         <RecentMemeCarousel />
         <button
           onClick={onBasicDraw}
-          className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform"
-          style={{ background: "var(--pam-text)", borderRadius: 20, padding: "16px 20px", border: "none" }}
+          className="w-full flex items-center justify-between active:scale-[0.98] transition-transform"
+          style={{ background: "var(--pam-text)", borderRadius: 20, padding: "16px 20px", border: "none", color: "var(--pam-bg)" }}
         >
           <div className="text-left">
             <div className="font-black" style={{ fontSize: 18 }}>{t.home.basicDraw}</div>
@@ -46,7 +46,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
               style={{ padding: "7px 13px", borderRadius: 9999, background: "var(--pam-icon-overlay)" }}
             >
               <span style={{ fontSize: 15 }}>❤️</span>
-              <span className="font-black text-white" style={{ fontSize: 20 }}>{guestHeartCount}</span>
+              <span className="font-black" style={{ fontSize: 20, color: "var(--pam-bg)" }}>{guestHeartCount}</span>
             </div>
           ) : (
             <div
