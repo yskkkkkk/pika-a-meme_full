@@ -43,7 +43,7 @@ function CallbackHandler() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center space-y-4">
         <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-gray-500 font-medium">{t.auth.processingLogin}</p>
+        <p className="font-medium" style={{ color: "var(--pam-text-muted)" }}>{t.auth.processingLogin}</p>
       </div>
     </div>
   );
