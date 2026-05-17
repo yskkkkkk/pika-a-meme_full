@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MemeResult } from "@/hooks/useMemeApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,19 +54,46 @@ function IconShare() {
 
 interface Props {
   result: MemeResult;
+  heartType: 'BASIC' | 'SPECIAL';
+  selectedTag?: string;
   onRedraw: () => void;
   onHome: () => void;
+  onLoginClick: () => void;
 }
 
-export function ResultScreen({ result, onRedraw, onHome }: Props) {
+export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome, onLoginClick }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [confirmingRedraw, setConfirmingRedraw] = useState(false);
+  const [showNudge, setShowNudge] = useState(false);
   const { isLoggedIn } = useAuth();
   const { t } = useLanguage();
   const { toastMsg, showToast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    if (isLoggedIn) return;
+    const timer = setTimeout(() => setShowNudge(true), 2000);
+    return () => clearTimeout(timer);
+  }, [isLoggedIn]);
+
+  const handleLoginNudge = () => {
+    if (result.imageId && result.phraseId) {
+      sessionStorage.setItem('pam_pending_meme', JSON.stringify({
+        imagePresignedUrl: result.imagePresignedUrl,
+        subjectPosition: result.subjectPosition,
+        phrase: result.phrase,
+        imageId: result.imageId,
+        phraseId: result.phraseId,
+        heartType,
+        selectedTag,
+        _savedAt: Date.now(),
+        _fromResult: true as const,
+      }));
+    }
+    onLoginClick();
+  };
 
   const handleSave = async () => {
     if (!isLoggedIn) return; // 비회원 강제 차단
@@ -241,6 +268,35 @@ export function ResultScreen({ result, onRedraw, onHome }: Props) {
       )}
 
       <Toast message={toastMsg} />
+
+      {!isLoggedIn && showNudge && (
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl z-[100] animate-fade-in"
+          style={{
+            backgroundColor: "var(--pam-surface)",
+            border: "1.5px solid var(--pam-border)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span className="text-sm font-semibold" style={{ color: "var(--pam-text)" }}>
+            {t.result.loginNudge}
+          </span>
+          <button
+            onClick={handleLoginNudge}
+            className="text-sm font-black px-3 py-1.5 rounded-xl text-white"
+            style={{ background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))" }}
+          >
+            {t.result.loginNudgeAction}
+          </button>
+          <button
+            onClick={() => setShowNudge(false)}
+            className="text-xs"
+            style={{ color: "var(--pam-text-muted)" }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

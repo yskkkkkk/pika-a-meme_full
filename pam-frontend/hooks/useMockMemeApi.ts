@@ -5,6 +5,8 @@ export interface MockMemeResponse {
   imagePresignedUrl: string;
   subjectPosition: string;
   phrase: string;
+  imageId?: string;
+  phraseId?: string;
 }
 
 const PHRASES = [

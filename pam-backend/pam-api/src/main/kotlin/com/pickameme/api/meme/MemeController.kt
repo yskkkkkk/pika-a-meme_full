@@ -4,6 +4,8 @@ import com.pickameme.api.common.ApiResponse
 import com.pickameme.application.meme.MemeQueryService
 import com.pickameme.application.meme.MemeComposeService
 import com.pickameme.application.meme.MemeComposeResult
+import com.pickameme.application.meme.SaveCompositionService
+import com.pickameme.application.meme.SaveCompositionCommand
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.UserMemeRepository
 import org.springframework.http.HttpStatus
@@ -11,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -23,6 +26,7 @@ import java.util.UUID
 class MemeController(
     private val memeQueryService: MemeQueryService,
     private val memeComposeService: MemeComposeService,
+    private val saveCompositionService: SaveCompositionService,
     private val userMemeRepository: UserMemeRepository
 ) {
 
@@ -123,6 +127,30 @@ class MemeController(
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
         userMemeRepository.updateEnabled(userId, memeId, body.enabled)
         return ApiResponse.ok()
+    }
+
+    /**
+     * POST /api/memes/save-composition
+     * 비로그인 뽑기 결과를 로그인 후 저장 (하트 차감 없음)
+     */
+    @PostMapping("/save-composition")
+    fun saveComposition(
+        @AuthenticationPrincipal userId: UUID,
+        @RequestBody body: SaveCompositionRequest
+    ): ApiResponse<SaveCompositionResponse> {
+        val memeId = saveCompositionService.save(
+            SaveCompositionCommand(
+                userId = userId,
+                imageId = body.imageId,
+                phraseId = body.phraseId,
+                heartType = body.heartType,
+                imageUrl = body.imageUrl,
+                subjectPosition = body.subjectPosition,
+                phrase = body.phrase,
+                selectedTag = body.selectedTag,
+            )
+        )
+        return ApiResponse.ok(SaveCompositionResponse(memeId))
     }
 }
 
