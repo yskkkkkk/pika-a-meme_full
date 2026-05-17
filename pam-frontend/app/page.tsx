@@ -195,8 +195,11 @@ export default function Home() {
       {appState === "RESULT" && memeResult && (
         <ResultScreen
           result={memeResult}
+          heartType={lastDrawHeartType}
+          selectedTag={lastUsedTag ?? undefined}
           onRedraw={handleRedraw}
           onHome={() => setAppState("HOME")}
+          onLoginClick={() => setIsMenuOpen(true)}
         />
       )}
 

@@ -94,7 +94,10 @@
   },
   "result": {
     "viewGallery": "View My Gallery →",
-    "resultAlt": "Meme Result"
+    "resultAlt": "Meme Result",
+    "loginNudge": "Log in to save this meme",
+    "loginNudgeAction": "Log in",
+    "memeSaved": "Meme saved to your gallery!"
   },
   "errors": {
     "insufficientHearts": "Not enough hearts! Complete missions or wait a bit.",

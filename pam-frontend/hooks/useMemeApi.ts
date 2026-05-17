@@ -3,6 +3,36 @@ import { getMockMeme, MockMemeResponse } from '@/hooks/useMockMemeApi';
 
 export type MemeResult = MockMemeResponse; // reuse same shape
 
+export interface PendingMeme {
+  imagePresignedUrl: string;
+  subjectPosition: string;
+  phrase: string;
+  imageId: string;
+  phraseId: string;
+  heartType: 'BASIC' | 'SPECIAL';
+  selectedTag?: string;
+  _savedAt: number;
+  _fromResult: true;
+}
+
+export async function saveComposition(pending: PendingMeme): Promise<string> {
+  const result = await apiFetch<{ memeId: string }>('/api/memes/save-composition', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      imageId: pending.imageId,
+      phraseId: pending.phraseId,
+      heartType: pending.heartType,
+      imageUrl: pending.imagePresignedUrl,
+      subjectPosition: pending.subjectPosition,
+      phrase: pending.phrase,
+      selectedTag: pending.selectedTag ?? null,
+    }),
+  });
+  if (!result?.success || !result.data?.memeId) throw new Error('save failed');
+  return result.data.memeId;
+}
+
 /**
  * Compose a meme using backend API. Falls back to mock data on failure.
  */

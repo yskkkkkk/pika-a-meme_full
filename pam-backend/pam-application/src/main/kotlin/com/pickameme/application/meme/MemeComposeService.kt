@@ -70,7 +70,9 @@ class MemeComposeService(
         return MemeComposeResult(
             imagePresignedUrl = image.imageUrl,
             subjectPosition = image.subjectPosition.name,
-            phrase = phrase.text
+            phrase = phrase.text,
+            imageId = image.id,
+            phraseId = phrase.id
         )
     }
 }
@@ -78,5 +80,7 @@ class MemeComposeService(
 data class MemeComposeResult(
     val imagePresignedUrl: String,
     val subjectPosition: String,
-    val phrase: String
+    val phrase: String,
+    val imageId: UUID,
+    val phraseId: UUID
 )
