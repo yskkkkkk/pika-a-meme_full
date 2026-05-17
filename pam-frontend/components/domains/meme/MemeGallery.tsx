@@ -37,11 +37,18 @@ function MemeCard({ meme }: { meme: MemeItem }) {
   const { language, t } = useLanguage();
 
   return (
-    <div className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+    <div
+      className="group relative rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300"
+      style={{
+        backgroundColor: "var(--pam-surface-card)",
+        border: "1px solid var(--pam-border)",
+        boxShadow: "0 1px 4px var(--pam-shadow-pink)",
+      }}
+    >
+      <div className="aspect-square relative overflow-hidden" style={{ backgroundColor: "var(--pam-surface)" }}>
         {imgError ? (
           <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon className="w-10 h-10 text-gray-300" />
+            <ImageIcon className="w-10 h-10" style={{ color: "var(--pam-text-faint)" }} />
           </div>
         ) : (
           <img
@@ -53,17 +60,26 @@ function MemeCard({ meme }: { meme: MemeItem }) {
         )}
         <div className="absolute top-2 right-2">
           {meme.heartType === "SPECIAL" ? (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-400 text-white text-xs font-black rounded-full shadow">
-              <Star className="w-3 h-3 fill-white" /> SPECIAL
+            <span
+              className="flex items-center gap-1 px-2 py-0.5 text-xs font-black rounded-full shadow neon-glow-accent"
+              style={{
+                background: "linear-gradient(135deg, var(--pam-badge-special-from), var(--pam-badge-special-to))",
+                color: "var(--pam-badge-special-text)",
+              }}
+            >
+              <Star className="w-3 h-3" style={{ fill: "var(--pam-badge-special-text)" }} /> SPECIAL
             </span>
           ) : (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-pink-500 text-white text-xs font-black rounded-full shadow">
-              <Heart className="w-3 h-3 fill-white" /> BASIC
+            <span
+              className="flex items-center gap-1 px-2 py-0.5 text-xs font-black rounded-full shadow"
+              style={{ backgroundColor: "var(--pam-badge-basic-bg)", color: "var(--pam-badge-basic-text)" }}
+            >
+              <Heart className="w-3 h-3" style={{ fill: "var(--pam-badge-basic-text)" }} /> BASIC
             </span>
           )}
         </div>
       </div>
-      <div className="px-3 py-2 flex items-center gap-1.5 text-xs text-gray-400">
+      <div className="px-3 py-2 flex items-center gap-1.5 text-xs" style={{ color: "var(--pam-text-muted)" }}>
         <Clock className="w-3 h-3" />
         <span>{timeAgo(meme.createdAt, language)}</span>
       </div>
@@ -94,7 +110,7 @@ export function MemeGallery() {
 
   if (!isFetching && !isError && allMemes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-24 gap-4" style={{ color: "var(--pam-text-muted)" }}>
         <div className="text-6xl">🖼️</div>
         <p className="text-lg font-bold">{t.gallery.noPublicMemes}</p>
         <p className="text-sm">{t.gallery.makeFirstMeme}</p>
@@ -110,19 +126,20 @@ export function MemeGallery() {
         ))}
         {isFetching &&
           Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="aspect-square rounded-2xl animate-pulse" style={{ backgroundColor: "var(--pam-surface)" }} />
           ))}
       </div>
 
       {isError && (
-        <p className="text-center text-sm text-red-400 font-medium">{t.gallery.fetchFailed}</p>
+        <p className="text-center text-sm font-medium" style={{ color: "var(--pam-pink)" }}>{t.gallery.fetchFailed}</p>
       )}
 
       {!isFetching && hasMore && (
         <div className="flex justify-center">
           <button
             onClick={() => setPage((p) => p + 1)}
-            className="px-8 py-3 bg-black text-white font-black rounded-full hover:bg-gray-800 active:scale-95 transition-all text-sm"
+            className="px-8 py-3 font-black rounded-full active:scale-95 transition-all text-sm"
+            style={{ backgroundColor: "var(--pam-text)", color: "var(--pam-bg)" }}
           >
             {t.actions.loadMore}
           </button>

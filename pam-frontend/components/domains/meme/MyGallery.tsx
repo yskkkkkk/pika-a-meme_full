@@ -245,7 +245,7 @@ export function MyGallery() {
       </div>
 
       {isError && (
-        <p className="text-center text-sm font-medium" style={{ color: "#f87171" }}>{t.gallery.fetchFailed}</p>
+        <p className="text-center text-sm font-medium" style={{ color: "var(--pam-pink)" }}>{t.gallery.fetchFailed}</p>
       )}
 
       {!isFetching && hasMore && (
