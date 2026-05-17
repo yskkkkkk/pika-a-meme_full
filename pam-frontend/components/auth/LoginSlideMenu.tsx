@@ -168,7 +168,7 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
           <div className="flex gap-4 items-start">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "var(--pam-surface)", color: "#34d399" }}
+              style={{ backgroundColor: "var(--pam-surface)", color: "var(--pam-pink)" }}
             >
               <Cloud className="w-5 h-5" />
             </div>

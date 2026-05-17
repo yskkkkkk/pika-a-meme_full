@@ -22,7 +22,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           className="font-black text-center leading-none"
           style={{ fontSize: 40, letterSpacing: "-0.03em", color: "var(--pam-text)" }}
         >
-          {t.brand.homeTitle}
+          PICK-A-<span className="pam-brand-em">MEME</span>
         </h1>
         <p className="text-center" style={{ fontSize: 13, color: "var(--pam-text-faint)" }}>
           {username ? t.format.homeSubtitleUser(username) : t.home.subtitle}
