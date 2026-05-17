@@ -39,18 +39,23 @@ pick-a-me.me 진입 or 기본 링크 공유
 밈 결과 또는 상세 페이지 링크를 공유할 때, 해당 밈 이미지가 미리보기로 표시된다.
 
 ```
-사용자가 공유하기 클릭 (ResultScreen 또는 /my/[memeId])
+사용자가 공유하기 클릭 (ResultScreen 또는 /share/[memeId])
   ① html-to-image로 MemeCanvasCard 캡처 → Blob
   ② POST /api/memes/{memeId}/og-image (인증 필요)
        → R2에 og/{memeId}.png 업로드
        → user_memes.og_image_url 컬럼 저장
   ③ 프론트에 og_image_url 반환
 
-/my/[memeId] 페이지 (Next.js generateMetadata)
-  → DB에서 user_memes.og_image_url 조회 (서버사이드)
+/share/[memeId] 페이지 (Next.js generateMetadata)
+  → DB에서 user_memes.og_image_url 조회 (서버사이드, 인증 불필요)
   → og_image_url 있으면: <meta og:image="https://img.pick-a-me.me/og/{memeId}.png">
   → 없으면: og-default.png fallback
 ```
+
+> **`/share/[memeId]` 를 신규 라우트로 선택한 이유:**  
+> 기존 `/my/[memeId]`는 로그인 가드가 걸려 있어 SNS 크롤러(비로그인 봇)가 `generateMetadata`에 도달하지 못한다.  
+> `/share/[memeId]`는 공개 라우트로 설계해 크롤러·비로그인 방문자 모두 밈을 볼 수 있고, OG 메타태그도 정상 삽입된다.  
+> 로그인 사용자가 `/my/[memeId]`에서 공유하기를 누르면 공유 URL은 `/share/[memeId]`로 생성한다.
 
 ---
 
@@ -68,7 +73,7 @@ TASK-OG-02      DB: user_memes.og_image_url 컬럼 추가 (V18 마이그레이�
 TASK-OG-03      백엔드: POST /api/memes/{memeId}/og-image 엔드포인트
                   (html-to-image Blob → R2 업로드 → og_image_url 저장)
 TASK-OG-04      프론트: 공유하기 버튼에 og-image 업로드 + URL 저장 연동
-TASK-OG-05      프론트: /my/[memeId] generateMetadata()에서 og_image_url 동적 반영
+TASK-OG-05      프론트: /share/[memeId] generateMetadata()에서 og_image_url 동적 반영
 ```
 
 ---
@@ -95,7 +100,7 @@ SNS/메신저 크롤러(카카오, 트위터, 슬랙 등)는 JavaScript를 실�
 `<meta property="og:image">`가 서버사이드 HTML에 있어야만 크롤러가 읽는다.
 
 ```typescript
-// app/my/[memeId]/page.tsx
+// app/share/[memeId]/page.tsx  ← 공개 라우트 (인증 불필요)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const meme = await fetchMemeById(params.memeId); // 서버사이드
   return {
@@ -132,6 +137,42 @@ OG 이미지는 덮어쓰기 허용. 한 밈에 대해 og_image_url은 항상 �
 비로그인 사용자의 뽑기 결과는 DB에 저장되지 않으므로 `memeId`가 없다.  
 → 동적 OG 생성 불가. ResultScreen 공유하기는 `navigator.share({ url: window.location.origin })`으로 서비스 기본 URL만 공유한다.  
 → 로그인 유도 토스트와 연계: "로그인하면 밈을 저장하고 링크로 공유할 수 있어요."
+
+#### 5-1-1. 비로그인 결과 → 로그인 후 자동 저장 (TASK-260517-02)
+
+비로그인 결과창에서 로그인 버튼을 누르면, 뽑기 결과를 sessionStorage에 보존한 채 OAuth2 인증으로 이동한다.  
+OAuth2 흐름은 카카오/구글 로그인 페이지 진입, 계정 선택, (경우에 따라) 2FA까지 포함되므로 **소요 시간이 불확실하다.**
+
+**TTL 설계 원칙:**
+- `sessionStorage`는 탭이 닫히거나 브라우저가 종료되면 자동 소멸한다. 악성 재사용을 막는 세션 격리는 이미 보장됨.
+- 명시적 TTL은 "정말 오래된 결과가 의도치 않게 저장되는 상황"을 방지하기 위한 것이다.
+- OAuth2 인증 흐름에서 5분은 너무 짧다 (계정 선택 + 2FA + 네트워크 지연 고려).
+
+**결정: TTL 30분 + 의도 플래그 조합**
+
+```ts
+// ResultScreen — 로그인 버튼 클릭 시
+sessionStorage.setItem('pam_pending_meme', JSON.stringify({
+  ...memeResult,
+  _savedAt: Date.now(),       // 30분 TTL 체크용
+  _fromResult: true,          // 의도적 저장 플래그 (우발적 재저장 방지)
+}));
+```
+
+```ts
+// oauth2/callback/page.tsx
+const raw = sessionStorage.getItem('pam_pending_meme');
+if (raw) {
+  const pending = JSON.parse(raw);
+  const elapsed = Date.now() - pending._savedAt;
+  if (pending._fromResult && elapsed < 30 * 60 * 1000) {
+    // 저장 진행
+  }
+  sessionStorage.removeItem('pam_pending_meme'); // 성공/실패 무관 항상 제거
+}
+```
+
+30분을 초과한 경우는 저장하지 않고 조용히 홈으로 이동한다. 사용자 입장에서는 정상 로그인 후 홈 진입과 동일하게 보인다.
 
 ### 5-2. OG 이미지 크기 및 포맷
 
@@ -183,5 +224,5 @@ html-to-image 캡처 실패 또는 R2 업로드 실패 시:
 |---|---|
 | og-default.png 제작 주체 | 디자인 필요. AI 생성 또는 직접 제작 |
 | OG 이미지 비율 | 1:1 vs 16:9 최종 결정 필요 |
-| 공유 URL 구조 | `/my/[memeId]` 그대로 사용할지, `/share/[memeId]` 별도 라우트 만들지 |
-| 비로그인 결과 공유 | 로그인 후 저장 연동(TASK-260517-02)과 함께 결정 |
+| 공유 URL 구조 | **결정: `/share/[memeId]` 신규 공개 라우트** (크롤러 접근 보장, `/my/`는 로그인 가드로 크롤러 차단됨) |
+| 비로그인 결과 공유 | **결정: TTL 30분 + `_fromResult` 의도 플래그** (TASK-260517-02 설계 확정) |
