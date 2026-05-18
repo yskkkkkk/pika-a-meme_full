@@ -264,6 +264,7 @@ export const MemeCanvasCard = forwardRef<HTMLDivElement, MemeCanvasCardProps>(fu
       <img
         src={imageUrl}
         alt={imageAlt || t.brand.meme}
+        crossOrigin="anonymous"
         className="w-full h-full object-cover"
       />
 
