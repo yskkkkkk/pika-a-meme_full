@@ -34,11 +34,16 @@ export async function captureElement(
     imageTimeout: 15000,
   });
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("canvas to blob failed"))),
-      mimeType,
-      quality
-    );
+    try {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("canvas to blob failed"))),
+        mimeType,
+        quality
+      );
+    } catch (e) {
+      // R2 CORS 미설정 시 캔버스가 오염돼 SecurityError 발생 — 저장 실패로 처리
+      reject(e);
+    }
   });
 }
 
