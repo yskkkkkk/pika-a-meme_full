@@ -1,8 +1,9 @@
 package com.pickameme.api.auth
 
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.ResponseCookie
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository
 import org.springframework.stereotype.Component
@@ -13,7 +14,10 @@ import java.io.ObjectOutputStream
 import java.util.Base64
 
 @Component
-class CookieOAuth2AuthorizationRequestRepository : AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
+class CookieOAuth2AuthorizationRequestRepository(
+    @Value("\${cookie.secure:true}") private val cookieSecure: Boolean,
+    @Value("\${cookie.domain:}") private val cookieDomain: String,
+) : AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
     companion object {
         private const val COOKIE_NAME = "oauth2_auth_request"
@@ -32,13 +36,15 @@ class CookieOAuth2AuthorizationRequestRepository : AuthorizationRequestRepositor
             clearCookie(response)
             return
         }
-        val cookie = Cookie(COOKIE_NAME, serialize(authorizationRequest)).apply {
-            path = "/"
-            isHttpOnly = true
-            maxAge = EXPIRE_SECONDS
-            secure = request.isSecure
-        }
-        response.addCookie(cookie)
+        val builder = ResponseCookie.from(COOKIE_NAME, serialize(authorizationRequest))
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(EXPIRE_SECONDS.toLong())
+
+        val cookie = if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
+        response.addHeader("Set-Cookie", cookie.toString())
     }
 
     override fun removeAuthorizationRequest(
@@ -47,11 +53,14 @@ class CookieOAuth2AuthorizationRequestRepository : AuthorizationRequestRepositor
     ): OAuth2AuthorizationRequest? = loadAuthorizationRequest(request).also { clearCookie(response) }
 
     private fun clearCookie(response: HttpServletResponse) {
-        val cookie = Cookie(COOKIE_NAME, "").apply {
-            path = "/"
-            maxAge = 0
-        }
-        response.addCookie(cookie)
+        val builder = ResponseCookie.from(COOKIE_NAME, "")
+            .path("/")
+            .maxAge(0)
+            .secure(cookieSecure)
+            .sameSite("Lax")
+
+        val cookie = if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
+        response.addHeader("Set-Cookie", cookie.toString())
     }
 
     private fun getCookieValue(request: HttpServletRequest, name: String): String? =

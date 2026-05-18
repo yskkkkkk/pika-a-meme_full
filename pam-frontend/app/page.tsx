@@ -53,8 +53,10 @@ export default function Home() {
   // 방문 미션 트리거 (로그인 유저 앱 진입 시 1회)
   useEffect(() => {
     if (!isLoggedIn) return;
-    recordVisit();
-  }, [isLoggedIn]);
+    recordVisit().then(() => {
+      queryClient.invalidateQueries({ queryKey: ["hearts"] });
+    });
+  }, [isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 최초 로그인 웰컴 알럿
   useEffect(() => {
