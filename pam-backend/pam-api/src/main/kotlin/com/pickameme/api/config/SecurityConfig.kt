@@ -4,6 +4,7 @@ import com.pickameme.api.auth.CookieOAuth2AuthorizationRequestRepository
 import com.pickameme.api.auth.CustomOAuth2UserService
 import com.pickameme.api.auth.JwtAuthenticationFilter
 import com.pickameme.api.auth.OAuth2SuccessHandler
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler
 import com.pickameme.api.ratelimit.RateLimitFilter
 import com.pickameme.api.ratelimit.RateLimitProperties
 import org.springframework.beans.factory.ObjectProvider
@@ -31,7 +32,8 @@ class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val cookieAuthorizationRequestRepository: CookieOAuth2AuthorizationRequestRepository,
     private val rateLimitFilterProvider: ObjectProvider<RateLimitFilter>,
-    @Value("\${cors.allowed-origins}") private val allowedOrigins: String
+    @Value("\${cors.allowed-origins}") private val allowedOrigins: String,
+    @Value("\${oauth2.redirect-uri}") private val redirectUri: String
 ) {
 
     @Bean
@@ -52,6 +54,7 @@ class SecurityConfig(
                     .authorizationEndpoint { it.authorizationRequestRepository(cookieAuthorizationRequestRepository) }
                     .userInfoEndpoint { it.userService(customOAuth2UserService) }
                     .successHandler(oAuth2SuccessHandler)
+                    .failureHandler(SimpleUrlAuthenticationFailureHandler(redirectUri))
                     .withObjectPostProcessor(object : ObjectPostProcessor<OAuth2LoginAuthenticationFilter> {
                         override fun <O : OAuth2LoginAuthenticationFilter> postProcess(filter: O): O {
                             filter.setAuthorizationRequestRepository(cookieAuthorizationRequestRepository)
