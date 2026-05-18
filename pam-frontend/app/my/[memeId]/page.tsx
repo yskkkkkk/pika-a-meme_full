@@ -93,7 +93,19 @@ export default function MyMemeDetailPage() {
       showToast(t.toast.imageSaved);
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") return;
-      showToast(t.errors.saveFailed);
+      try {
+        const a = document.createElement("a");
+        a.href = meme.imageUrl;
+        a.download = `pika-meme-${meme.id.slice(0, 8)}.jpg`;
+        a.target = "_blank";
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast(t.toast.imageSaved);
+      } catch {
+        showToast(t.errors.saveFailed);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -117,7 +129,18 @@ export default function MyMemeDetailPage() {
         showToast(t.toast.linkCopied);
       }
     } catch (e: unknown) {
-      if (e instanceof Error && e.name !== "AbortError") showToast(t.errors.shareFailed);
+      if (e instanceof Error && e.name === "AbortError") return;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "PICK-A-MEME", text: meme.phraseText, url: window.location.href });
+          recordShare("OTHER");
+        } else {
+          await navigator.clipboard.writeText(window.location.href);
+          showToast(t.toast.linkCopied);
+        }
+      } catch {
+        showToast(t.errors.shareFailed);
+      }
     } finally {
       setIsSharing(false);
     }

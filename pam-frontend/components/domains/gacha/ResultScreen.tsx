@@ -67,16 +67,16 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
   const [sharing, setSharing] = useState(false);
   const [confirmingRedraw, setConfirmingRedraw] = useState(false);
   const [showNudge, setShowNudge] = useState(false);
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoaded } = useAuth();
   const { t } = useLanguage();
   const { toastMsg, showToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoggedIn) return;
+    if (!isLoaded || isLoggedIn) return;
     const timer = setTimeout(() => setShowNudge(true), 2000);
     return () => clearTimeout(timer);
-  }, [isLoggedIn]);
+  }, [isLoaded, isLoggedIn]);
 
   const handleLoginNudge = () => {
     if (result.imageId && result.phraseId) {
@@ -96,16 +96,29 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
   };
 
   const handleSave = async () => {
-    if (!isLoggedIn) return; // 비회원 강제 차단
+    if (!isLoggedIn) return;
     if (!cardRef.current || saving) return;
     setSaving(true);
     try {
-      const blob = await captureElement(cardRef.current, "image/png");
-      await saveImage(blob, "pick-a-meme.png");
+      const blob = await captureElement(cardRef.current, "image/jpeg", 0.92);
+      await saveImage(blob, "pick-a-meme.jpg");
       showToast(t.toast.imageSaved);
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") return;
-      showToast(t.errors.saveFailed);
+      // 캡처 실패 시 원본 이미지 URL로 fallback 다운로드
+      try {
+        const a = document.createElement("a");
+        a.href = result.imagePresignedUrl;
+        a.download = "pick-a-meme.jpg";
+        a.target = "_blank";
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast(t.toast.imageSaved);
+      } catch {
+        showToast(t.errors.saveFailed);
+      }
     } finally {
       setSaving(false);
     }
@@ -115,8 +128,8 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
     if (!cardRef.current || sharing) return;
     setSharing(true);
     try {
-      const blob = await captureElement(cardRef.current, "image/png");
-      const file = new File([blob], "pick-a-meme.png", { type: "image/png" });
+      const blob = await captureElement(cardRef.current, "image/jpeg", 0.92);
+      const file = new File([blob], "pick-a-meme.jpg", { type: "image/jpeg" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "PICK-A-MEME", text: result.phrase });
@@ -129,7 +142,19 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
         showToast(t.toast.linkCopied);
       }
     } catch (e: unknown) {
-      if (e instanceof Error && e.name !== "AbortError") showToast(t.errors.shareFailed);
+      if (e instanceof Error && e.name === "AbortError") return;
+      // 캡처 실패 시 URL 공유로 fallback
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: window.location.origin });
+          recordShare("OTHER");
+        } else {
+          await navigator.clipboard.writeText(window.location.origin);
+          showToast(t.toast.linkCopied);
+        }
+      } catch {
+        showToast(t.errors.shareFailed);
+      }
     } finally {
       setSharing(false);
     }
