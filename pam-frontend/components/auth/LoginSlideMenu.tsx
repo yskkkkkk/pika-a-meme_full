@@ -71,9 +71,11 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
           <h2 className="text-3xl font-black tracking-tight mb-4" style={{ color: "var(--pam-text)" }}>
             {t.brand.homeTitle}
           </h2>
-          <p className="font-medium leading-relaxed whitespace-pre-line" style={{ color: "var(--pam-text-muted)" }}>
-            {t.auth.loginToSave}
-          </p>
+          {!isLoggedIn && (
+            <p className="font-medium leading-relaxed whitespace-pre-line" style={{ color: "var(--pam-text-muted)" }}>
+              {t.auth.loginToSave}
+            </p>
+          )}
         </div>
 
         {isLoggedIn ? (
