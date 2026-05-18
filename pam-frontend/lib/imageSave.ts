@@ -1,4 +1,4 @@
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 
 async function waitForAssets(el: HTMLElement): Promise<void> {
   const images = Array.from(el.querySelectorAll("img"));
@@ -25,13 +25,10 @@ export async function captureElement(
   quality?: number
 ): Promise<Blob> {
   await waitForAssets(el);
-  const canvas = await html2canvas(el, {
+  const canvas = await toCanvas(el, {
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 2) * 1.5,
+    skipFonts: false,
     useCORS: true,
-    allowTaint: false,
-    backgroundColor: null,
-    scale: Math.min(window.devicePixelRatio || 1, 2) * 1.5,
-    logging: false,
-    imageTimeout: 15000,
   });
   return new Promise<Blob>((resolve, reject) => {
     try {
