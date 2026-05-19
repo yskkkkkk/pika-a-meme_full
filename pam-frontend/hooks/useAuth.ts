@@ -26,11 +26,16 @@ export function useAuthState() {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     apiFetch<MeResponse>("/api/auth/me").then((res) => {
+      if (!isMounted) return;
       setLoggedIn(!!res?.data);
       setUsername(res?.data?.username ?? null);
       setIsLoaded(true);
     });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const logout = useCallback(() => {
