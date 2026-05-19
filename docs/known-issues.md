@@ -367,3 +367,36 @@ Hint: You will need to rewrite or cast the expression.
 `@Convert(converter = StringMapConverter::class)` → `@JdbcTypeCode(SqlTypes.JSON)` 교체.  
 Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬럼에 정상 삽입.  
 미사용 `StringMapConverter` 클래스 삭제.
+
+---
+
+## BUG-08 · 잘못된 예외 매핑 (NoResourceFoundException)
+
+- **상태**: FIXED (260519)
+- **연관 태스크**: TASK-260519-01
+- **발견**: 정적 리소스(favicon.ico 등) 요청 실패 시 발생하는 `NoResourceFoundException`을 `ErrorCode.MEME_SOURCE_NOT_FOUND`로 엉뚱하게 매핑 중.
+
+**원인 및 조치 필요 사항**
+`GlobalExceptionHandler`에서 해당 예외를 밈 데이터가 없다는 비즈니스 에러로 반환하여 프론트엔드에 잘못된 에러 처리를 유발할 수 있음. 일반적인 404 리소스 없음 에러로 분리해야 함.
+
+---
+
+## BUG-09 · OAuth2 리다이렉트 URI 파싱 예외 은닉(Swallowing)
+
+- **상태**: OPEN
+- **연관 태스크**: TASK-260519-02
+- **발견**: `AuthController`에서 `oauth2RedirectUri` 파싱 시 예외가 발생하면 에러 로그 없이 `"/"`로 fallback 처리됨.
+
+**원인 및 조치 필요 사항**
+설정 오류나 환경 변수 누락 등으로 인해 URI 파싱에 실패할 경우 에러가 삼켜져(swallowed) 런타임 오류 추적이 매우 어려움. `catch` 블록 내부에 적절한 에러 로깅(`log.error`) 추가 필요.
+
+---
+
+## BUG-10 · 프론트엔드 비동기 상태 업데이트 메모리 누수 위험
+
+- **상태**: OPEN
+- **연관 태스크**: TASK-260519-03
+- **발견**: 비동기 상태 업데이트 시 컴포넌트가 언마운트된 후 상태를 업데이트하려는 시도로 인해 잠재적 메모리 누수 발생 가능.
+
+**원인 및 조치 필요 사항**
+`useEffect` 내 비동기 호출 등에서 클린업(cleanup) 함수 처리가 미흡함. `AbortController`를 사용하거나 언마운트 시 상태 업데이트 방지 로직(또는 클린업) 추가가 필요.
