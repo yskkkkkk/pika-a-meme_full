@@ -23,40 +23,34 @@ class GlobalExceptionHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // 422 — 하트 부족
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(InsufficientHeartException::class)
-    fun handleInsufficientHeart(e: InsufficientHeartException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.INSUFFICIENT_HEART)
+    fun handleInsufficientHeart(e: InsufficientHeartException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(ErrorCode.INSUFFICIENT_HEART.status).body(ApiResponse.fail(ErrorCode.INSUFFICIENT_HEART))
 
     // 422 — 밈 생성 정책 위반
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(MemeCreationPolicyViolationException::class)
-    fun handleMemePolicyViolation(e: MemeCreationPolicyViolationException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.MEME_POLICY_VIOLATION)
+    fun handleMemePolicyViolation(e: MemeCreationPolicyViolationException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(ErrorCode.MEME_POLICY_VIOLATION.status).body(ApiResponse.fail(ErrorCode.MEME_POLICY_VIOLATION))
 
     // 404 — 하트 없음
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(HeartNotFoundException::class)
-    fun handleHeartNotFound(e: HeartNotFoundException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.HEART_NOT_FOUND)
+    fun handleHeartNotFound(e: HeartNotFoundException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(ErrorCode.HEART_NOT_FOUND.status).body(ApiResponse.fail(ErrorCode.HEART_NOT_FOUND))
 
     // 404 — 밈 소스 없음 (meme_images/meme_phrases 데이터 공백)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(MemeSourceNotFoundException::class)
-    fun handleMemeSourceNotFound(e: MemeSourceNotFoundException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.MEME_SOURCE_NOT_FOUND)
+    fun handleMemeSourceNotFound(e: MemeSourceNotFoundException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(ErrorCode.MEME_SOURCE_NOT_FOUND.status).body(ApiResponse.fail(ErrorCode.MEME_SOURCE_NOT_FOUND))
 
     // 404 — 유저 없음
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(UserNotFoundException::class)
-    fun handleUserNotFound(e: UserNotFoundException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.USER_NOT_FOUND)
+    fun handleUserNotFound(e: UserNotFoundException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(ErrorCode.USER_NOT_FOUND.status).body(ApiResponse.fail(ErrorCode.USER_NOT_FOUND))
 
     // 409 — 이메일 중복
-    @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(DuplicateEmailException::class)
-    fun handleDuplicateEmail(e: DuplicateEmailException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.DUPLICATE_EMAIL)
+    fun handleDuplicateEmail(e: DuplicateEmailException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(ErrorCode.DUPLICATE_EMAIL.status).body(ApiResponse.fail(ErrorCode.DUPLICATE_EMAIL))
 
     // 400 — Bean Validation 실패
     @ResponseStatus(HttpStatus.BAD_REQUEST)

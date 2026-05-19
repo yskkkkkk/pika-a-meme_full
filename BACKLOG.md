@@ -112,7 +112,7 @@
 | TASK-260517-02 | [회원/인증] | [x] | 비로그인 뽑기 결과 → 로그인 후 자동 저장 연동 | [!] 외부 요청 | 결과창에서 로그인 유도 토스트 노출(1회). 토스트 내 로그인 버튼 클릭 시: (1) memeResult를 sessionStorage('pam_pending_meme')에 저장. (2) OAuth2 플로우 진행. (3) 로그인 완료 후 AuthContext isLoggedIn 변화 감지 → sessionStorage 체크 → POST /api/memes/save-composition 호출(신규 엔드포인트) → sessionStorage 삭제. 백엔드: POST /api/memes/save-composition (인증 필수, composition JSONB 받아서 user_memes 저장). 토스트 문구: "저장하고 공유하려면 로그인하세요 — 지금 결과도 바로 저장돼요" | 260517 / PR#105 |
 | TASK-260519-01 | [인프라/공통] | [x] | GlobalExceptionHandler의 NoResourceFoundException 잘못된 매핑 수정 | BUG-08 | NoResourceFoundException을 밈 리소스 에러가 아닌 일반 404로 수정 | 260519 / 260519 |
 | TASK-260519-02 | [회원/인증] | [x] | AuthController 내 OAuth2 URI 파싱 예외 은닉(Swallowing) 수정 및 로깅 추가 | BUG-09 | 예외 발생 시 에러 로그 추가하여 디버깅 용이성 확보 | 260519 / 260519 |
-| TASK-260519-03 | [프론트엔드] | [x] | 프론트엔드 비동기 통신 언마운트 상태 업데이트(메모리 누수) 방지 처리 | BUG-10 | useEffect 내 isMounted 플래그를 통한 클린업 로직 추가 | 260519 / 260519 |
+| TASK-260519-03 | [프론트엔드] | [x] | 프론트엔드 비동기 통신 언마운트 상태 업데이트(메모리 누수) 방지 처리 | BUG-10 | useEffect 내 AbortController를 도입하여 언마운트 시 실제 네트워크 요청(apiFetch) 취소 적용 | 260519 / 260519 |
 
 ---
 

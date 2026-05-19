@@ -26,15 +26,16 @@ export function useAuthState() {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    apiFetch<MeResponse>("/api/auth/me").then((res) => {
-      if (!isMounted) return;
+    const controller = new AbortController();
+    apiFetch<MeResponse>("/api/auth/me", { signal: controller.signal }).then((res) => {
+      // AbortError인 경우 res가 {success: false, error: {code: "TIMEOUT"...}} 로 반환되거나 undefined일 수 있음
+      if (controller.signal.aborted) return;
       setLoggedIn(!!res?.data);
       setUsername(res?.data?.username ?? null);
       setIsLoaded(true);
     });
     return () => {
-      isMounted = false;
+      controller.abort();
     };
   }, []);
 

@@ -28,6 +28,14 @@ export async function apiFetch<T>(
   const controller = new AbortController();
   const timerId = setTimeout(() => controller.abort(), timeoutMs);
 
+  if (init?.signal) {
+    if (init.signal.aborted) {
+      controller.abort();
+    } else {
+      init.signal.addEventListener("abort", () => controller.abort());
+    }
+  }
+
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
