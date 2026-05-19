@@ -192,3 +192,20 @@ GET /api/memes/compose?heartType=SPECIAL&tags=피곤
 | 2 | Flyway V4 — meme_images/meme_phrases 스키마 + GIN 인덱스 | `infra/db-v2-schema` |
 | 3 | 하트 타입별 조합 전략 서비스 레이어 (Random Mix / Contextual Matching) | `feat/heart/tag-matching` |
 | 4 | 프론트엔드 전면 재구축 (모바일 퍼스트, 말풍선 CSS) | `feat/front/mobile-ui-rebuild` |
+
+---
+
+## 9. 명명 규칙 (Naming Convention)
+
+**"Meme" vs "MimiCard" 분리 원칙**
+도메인의 안정성과 브랜딩의 유연성을 동시에 확보하기 위해 다음과 같은 명명 규칙을 강제합니다.
+
+- **기술적 도메인 언어 (Meme):** 
+  - 백엔드 코드, DB 테이블(`user_memes`, `meme_images`), API 엔드포인트(`/api/memes`)
+  - 프론트엔드 비즈니스 로직(변수명 `memeData`, 훅 `useMemeApi`), 컴포넌트 파일명(`MemeGallery`, `MemeCanvasCard`)
+  - 모든 코드는 본질적 역할인 **'밈(Meme)'**으로 통일하여 개발자 인지 비용을 최소화합니다.
+
+- **UI 프레젠테이션 언어 (MimiCard):**
+  - 사용자에게 노출되는 화면 텍스트 및 i18n 번역 리소스(`ko.json`, `en.json`)
+  - 마케팅 및 브랜딩 요소이므로 오직 번역 리소스 수준에서만 **'미미카드(MimiCard)'**로 표기합니다.
+  - 이를 통해 향후 서비스 명이 변경되더라도 코드를 리팩토링할 필요 없이 번역 파일만 수정하여 대응할 수 있습니다.
