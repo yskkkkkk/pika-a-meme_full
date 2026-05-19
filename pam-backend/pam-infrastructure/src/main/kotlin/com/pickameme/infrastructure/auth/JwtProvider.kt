@@ -11,7 +11,8 @@ import java.util.UUID
 @Component
 class JwtProvider(
     @Value("\${jwt.secret}") secret: String,
-    @Value("\${jwt.expiration-ms}") private val expirationMs: Long
+    @Value("\${jwt.expiration-ms}") private val expirationMs: Long,
+    @Value("\${jwt.refresh-expiration-ms}") private val refreshExpirationMs: Long
 ) {
     private val key = Keys.hmacShaKeyFor(secret.toByteArray())
 
@@ -22,10 +23,24 @@ class JwtProvider(
         .signWith(key)
         .compact()
 
+    fun generateRefreshToken(userId: UUID, jti: UUID): String = Jwts.builder()
+        .subject(userId.toString())
+        .id(jti.toString())
+        .issuedAt(Date())
+        .expiration(Date(System.currentTimeMillis() + refreshExpirationMs))
+        .signWith(key)
+        .compact()
+
     fun extractUserId(token: String): UUID =
         UUID.fromString(
             Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).payload.subject
+        )
+
+    fun extractJti(token: String): UUID =
+        UUID.fromString(
+            Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).payload.id
         )
 
     fun isValid(token: String): Boolean = runCatching {

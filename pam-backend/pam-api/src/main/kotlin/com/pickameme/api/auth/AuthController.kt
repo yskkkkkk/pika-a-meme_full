@@ -1,10 +1,15 @@
 package com.pickameme.api.auth
 
 import com.pickameme.api.common.ApiResponse
+import com.pickameme.api.common.ErrorCode
 import com.pickameme.domain.user.UserRepository
+import com.pickameme.infrastructure.auth.JwtProvider
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,8 +21,12 @@ import java.util.UUID
 @RequestMapping("/api/auth")
 class AuthController(
     private val userRepository: UserRepository,
+    private val jwtProvider: JwtProvider,
+    private val refreshTokenService: RefreshTokenService,
     @Value("\${cookie.secure:true}") private val cookieSecure: Boolean,
     @Value("\${cookie.domain:}") private val cookieDomain: String,
+    @Value("\${jwt.expiration-ms}") private val expirationMs: Long,
+    @Value("\${jwt.refresh-expiration-ms}") private val refreshExpirationMs: Long,
     @Value("\${oauth2.redirect-uri:http://localhost:3000/oauth2/callback}") private val oauth2RedirectUri: String
 ) {
 
@@ -28,20 +37,35 @@ class AuthController(
         return ApiResponse.ok(MeResponse(id = user.id, username = user.username, email = user.email))
     }
 
-    @GetMapping("/logout")
-    fun logout(response: HttpServletResponse) {
-        val base = ResponseCookie.from("pam_token", "")
-            .httpOnly(true)
-            .secure(cookieSecure)
-            .sameSite("Lax")
-            .path("/")
-            .maxAge(0)
+    @PostMapping("/refresh")
+    fun refresh(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<ApiResponse<Unit>> {
+        val refreshToken = request.cookies
+            ?.firstOrNull { it.name == "pam_refresh" }
+            ?.value
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.fail(ErrorCode.INVALID_REFRESH_TOKEN))
 
-        // domain 없는 쿠키 (배포 전 발급분) + domain 있는 쿠키 (배포 후 발급분) 둘 다 만료
-        response.addHeader("Set-Cookie", base.build().toString())
-        if (cookieDomain.isNotBlank()) {
-            response.addHeader("Set-Cookie", base.domain(cookieDomain).build().toString())
+        val result = refreshTokenService.rotate(refreshToken)
+            ?: run {
+                clearRefreshCookie(response)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail(ErrorCode.INVALID_REFRESH_TOKEN))
+            }
+
+        response.addHeader("Set-Cookie", buildCookie("pam_token", result.newAccessToken, "/", expirationMs / 1000).toString())
+        response.addHeader("Set-Cookie", buildCookie("pam_refresh", result.newRefreshJwt, "/api/auth", refreshExpirationMs / 1000).toString())
+        return ResponseEntity.ok(ApiResponse.ok())
+    }
+
+    @GetMapping("/logout")
+    fun logout(request: HttpServletRequest, response: HttpServletResponse) {
+        request.cookies?.firstOrNull { it.name == "pam_refresh" }?.value?.let {
+            refreshTokenService.revokeByToken(it)
         }
+
+        clearTokenCookie(response)
+        clearRefreshCookie(response)
+
         val frontendBase = try {
             val uri = java.net.URI.create(oauth2RedirectUri)
             "${uri.scheme}://${uri.host}${if (uri.port != -1) ":${uri.port}" else ""}"
@@ -49,6 +73,34 @@ class AuthController(
             "/"
         }
         response.sendRedirect(frontendBase)
+    }
+
+    private fun buildCookie(name: String, value: String, path: String, maxAgeSec: Long): ResponseCookie {
+        val builder = ResponseCookie.from(name, value)
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite("Lax")
+            .path(path)
+            .maxAge(maxAgeSec)
+        return if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
+    }
+
+    private fun clearTokenCookie(response: HttpServletResponse) {
+        val base = ResponseCookie.from("pam_token", "")
+            .httpOnly(true).secure(cookieSecure).sameSite("Lax").path("/").maxAge(0)
+        response.addHeader("Set-Cookie", base.build().toString())
+        if (cookieDomain.isNotBlank()) {
+            response.addHeader("Set-Cookie", base.domain(cookieDomain).build().toString())
+        }
+    }
+
+    private fun clearRefreshCookie(response: HttpServletResponse) {
+        val base = ResponseCookie.from("pam_refresh", "")
+            .httpOnly(true).secure(cookieSecure).sameSite("Lax").path("/api/auth").maxAge(0)
+        response.addHeader("Set-Cookie", base.build().toString())
+        if (cookieDomain.isNotBlank()) {
+            response.addHeader("Set-Cookie", base.domain(cookieDomain).build().toString())
+        }
     }
 }
 

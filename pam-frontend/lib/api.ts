@@ -7,10 +7,23 @@ export interface ApiResponse<T> {
   error?: { code: string; message: string };
 }
 
+async function tryRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit,
-  timeoutMs = DEFAULT_TIMEOUT_MS
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  _retry = true
 ): Promise<ApiResponse<T> | undefined> {
   const controller = new AbortController();
   const timerId = setTimeout(() => controller.abort(), timeoutMs);
@@ -22,6 +35,12 @@ export async function apiFetch<T>(
       signal: controller.signal,
     });
     clearTimeout(timerId);
+
+    if (res.status === 401 && _retry) {
+      const refreshed = await tryRefresh();
+      if (refreshed) return apiFetch(path, init, timeoutMs, false);
+    }
+
     return (await res.json()) as ApiResponse<T>;
   } catch (e) {
     clearTimeout(timerId);

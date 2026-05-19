@@ -45,7 +45,7 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/oauth2/**", "/login/**", "/actuator/health").permitAll()
-                    .requestMatchers("/api/auth/logout", "/api/auth/me").permitAll()
+                    .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/auth/refresh").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/memes/**", "/api/hearts").permitAll()
                     .anyRequest().authenticated()
             }
