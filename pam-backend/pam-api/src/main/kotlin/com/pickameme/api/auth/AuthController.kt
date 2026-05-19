@@ -6,6 +6,7 @@ import com.pickameme.domain.user.UserRepository
 import com.pickameme.infrastructure.auth.JwtProvider
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -29,6 +30,8 @@ class AuthController(
     @Value("\${jwt.refresh-expiration-ms}") private val refreshExpirationMs: Long,
     @Value("\${oauth2.redirect-uri:http://localhost:3000/oauth2/callback}") private val oauth2RedirectUri: String
 ) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @GetMapping("/me")
     fun me(@AuthenticationPrincipal userId: UUID?): ApiResponse<MeResponse?> {
@@ -70,6 +73,7 @@ class AuthController(
             val uri = java.net.URI.create(oauth2RedirectUri)
             "${uri.scheme}://${uri.host}${if (uri.port != -1) ":${uri.port}" else ""}"
         } catch (e: Exception) {
+            log.error("Failed to parse OAuth2 Redirect URI: {}", oauth2RedirectUri, e)
             "/"
         }
         response.sendRedirect(frontendBase)

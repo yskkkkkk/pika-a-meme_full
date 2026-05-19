@@ -383,7 +383,7 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 
 ## BUG-09 · OAuth2 리다이렉트 URI 파싱 예외 은닉(Swallowing)
 
-- **상태**: OPEN
+- **상태**: FIXED (260519)
 - **연관 태스크**: TASK-260519-02
 - **발견**: `AuthController`에서 `oauth2RedirectUri` 파싱 시 예외가 발생하면 에러 로그 없이 `"/"`로 fallback 처리됨.
 
@@ -394,7 +394,7 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 
 ## BUG-10 · 프론트엔드 비동기 상태 업데이트 메모리 누수 위험
 
-- **상태**: OPEN
+- **상태**: FIXED (260519)
 - **연관 태스크**: TASK-260519-03
 - **발견**: 비동기 상태 업데이트 시 컴포넌트가 언마운트된 후 상태를 업데이트하려는 시도로 인해 잠재적 메모리 누수 발생 가능.
 
