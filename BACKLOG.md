@@ -133,6 +133,9 @@
 - **HeartRepository 라우팅:** BASIC → Redis, SPECIAL → JPA (CompositeHeartRepositoryAdapter)
 - **이력:** heart_histories 테이블 (CONSUME/CHARGE/GRANT 모두 기록 — 운영 핵심 지표)
 
+### 명명 규칙 및 도메인 언어 (Naming Convention)
+- **도메인 객체 분리 원칙:** 백엔드/프론트엔드의 기술적 코드(변수, API, DB)는 **'밈(Meme)'**으로 명칭을 통일하여 유지보수성을 극대화한다. 사용자 노출용 브랜딩 명칭인 **'미미카드(MimiCard)'**는 프론트엔드의 화면 표시 계층 및 i18n 번역 리소스(`ko.json`) 수준에서만 엄격하게 한정하여 적용한다.
+
 ### 밈 생성 정책 (Meme Creation Policy)
 - **BASIC 하트 사용 시:** 태그 무시, meme_images + meme_phrases 완전 랜덤 조합
 - **SPECIAL 하트 사용 시:** 단일 태그 선택 (멀티셀렉트 금지) → 해당 태그 기준 이미지+문구 필터링 후 조합
