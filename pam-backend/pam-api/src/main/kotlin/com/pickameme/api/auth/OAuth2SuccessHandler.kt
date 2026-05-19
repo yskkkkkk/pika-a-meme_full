@@ -12,10 +12,12 @@ import org.springframework.stereotype.Component
 @Component
 class OAuth2SuccessHandler(
     private val jwtProvider: JwtProvider,
+    private val refreshTokenService: RefreshTokenService,
     @Value("\${oauth2.redirect-uri}") private val redirectUri: String,
     @Value("\${cookie.secure:true}") private val cookieSecure: Boolean,
     @Value("\${cookie.domain:}") private val cookieDomain: String,
-    @Value("\${jwt.expiration-ms}") private val expirationMs: Long
+    @Value("\${jwt.expiration-ms}") private val expirationMs: Long,
+    @Value("\${jwt.refresh-expiration-ms}") private val refreshExpirationMs: Long
 ) : SimpleUrlAuthenticationSuccessHandler() {
 
     override fun onAuthenticationSuccess(
@@ -24,19 +26,25 @@ class OAuth2SuccessHandler(
         authentication: Authentication
     ) {
         val principal = authentication.principal as PrincipalDetails
-        val token = jwtProvider.generate(principal.user.id)
+        val userId = principal.user.id
 
-        val builder = ResponseCookie.from("pam_token", token)
+        val accessToken = jwtProvider.generate(userId)
+        val refreshJwt = refreshTokenService.issue(userId)
+
+        response.addHeader("Set-Cookie", buildCookie("pam_token", accessToken, "/", expirationMs / 1000).toString())
+        response.addHeader("Set-Cookie", buildCookie("pam_refresh", refreshJwt, "/api/auth", refreshExpirationMs / 1000).toString())
+
+        val target = if (principal.isNewUser) "$redirectUri?welcome=1" else redirectUri
+        redirectStrategy.sendRedirect(request, response, target)
+    }
+
+    private fun buildCookie(name: String, value: String, path: String, maxAgeSec: Long): ResponseCookie {
+        val builder = ResponseCookie.from(name, value)
             .httpOnly(true)
             .secure(cookieSecure)
             .sameSite("Lax")
-            .path("/")
-            .maxAge(expirationMs / 1000)
-
-        val cookie = if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
-
-        response.addHeader("Set-Cookie", cookie.toString())
-        val target = if (principal.isNewUser) "$redirectUri?welcome=1" else redirectUri
-        redirectStrategy.sendRedirect(request, response, target)
+            .path(path)
+            .maxAge(maxAgeSec)
+        return if (cookieDomain.isNotBlank()) builder.domain(cookieDomain).build() else builder.build()
     }
 }
