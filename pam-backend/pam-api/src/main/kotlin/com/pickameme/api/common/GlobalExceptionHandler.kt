@@ -94,7 +94,7 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleNoResource(e: NoResourceFoundException): ApiResponse<Nothing> =
-        ApiResponse.fail(ErrorCode.MEME_SOURCE_NOT_FOUND)
+        ApiResponse.fail(ErrorCode.RESOURCE_NOT_FOUND)
 
     // 500 — 예상치 못한 예외
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
