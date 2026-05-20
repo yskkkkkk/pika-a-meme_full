@@ -13,9 +13,11 @@ pam-frontend/public/blog/
 ├── post1.html
 ├── post2.html
 ├── post{n}.html        ← 새 포스트는 순번 이어서 작성
-├── profile.html        ← [NEW] 공통 프로필 아카이브 카드 템플릿 (동적 임포트용)
+├── profile.html        ← 공통 프로필 아카이브 카드 템플릿 조각
+├── header.html         ← [NEW] 공통 헤더 및 테마 스위처 조각
+├── config.js           ← [NEW] 블로그 전용 글로벌 설정 및 외부 상수 정의 파일
 ├── blog_post.css       ← 공통 CSS + 테마 변수 (모든 포스트가 공유)
-├── theme.js            ← 테마 전환 로직 + 프로필 카드 동적 Fetch 로더 정의
+├── theme.js            ← 테마 전환 로직 + 비동기 Fetch 조각 로더 정의
 └── WRITING_GUIDE.md    ← 이 파일
 ```
 
@@ -23,7 +25,7 @@ pam-frontend/public/blog/
 - 모든 파일은 `pam-frontend/public/blog/` 아래에 위치한다.
 - **pet-pass와 달리** `/style.css`, `/theme.js` 같은 외부 앱 파일에 의존하지 않는다.
   - CSS 변수는 `blog_post.css` 안에 모두 정의되어 있다.
-  - 테마 로직 및 동적 컴포넌트 바인딩은 `/blog/theme.js`를 사용한다.
+  - 테마 로직, 조각 로딩, 링크 설정 바인딩은 `/blog/theme.js`와 `/blog/config.js`를 사용한다.
 
 ---
 
@@ -50,14 +52,8 @@ pam-frontend/public/blog/
 </head>
 <body>
 
-  <header class="blog-header glass">
-    <h1>[Gacha] pick-a-meme Dev Blog</h1>
-    <div class="theme-dots">
-      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
-      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
-      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
-    </div>
-  </header>
+  <!-- 1. 공통 헤더 동적 플레이스홀더 (하드코딩 절대 금지) -->
+  <div id="blog-header-placeholder"></div>
 
   <div class="nav-buttons">
     <a href="/blog" class="btn-nav">← 목록으로</a>
@@ -65,7 +61,7 @@ pam-frontend/public/blog/
   </div>
 
   <main class="blog-content glass">
-    <!-- 1 ~ 5. 본문 및 TOC 콘텐츠가 들어가는 영역 -->
+    <!-- 2 ~ 5. 본문 및 TOC 콘텐츠 영역 -->
     
     <!-- 6. 공통 프로필 카드 동적 플레이스홀더 (하드코딩 절대 금지) -->
     <div id="profile-card-placeholder"></div>
@@ -77,6 +73,8 @@ pam-frontend/public/blog/
     </div>
   </main>
 
+  <!-- 8. 환경설정 및 비동기 엔진 로드 (순서 중요) -->
+  <script src="/blog/config.js"></script>
   <script src="/blog/theme.js"></script>
 
 </body>
@@ -85,9 +83,9 @@ pam-frontend/public/blog/
 
 **절대 빠뜨리면 안 되는 것:**
 - `<head>` 내 테마 플래시 방지 인라인 스크립트 (`pam-theme` 키, 기본값 `'dark'`)
-- `<body>` 끝의 `<script src="/blog/theme.js"></script>`
-- `.blog-header` 안의 테마 도트 버튼 3개 (dark / light / neon)
+- **공통 헤더용 플레이스홀더 `<div id="blog-header-placeholder"></div>`**
 - **공통 프로필 카드용 플레이스홀더 `<div id="profile-card-placeholder"></div>`**
+- `<body>` 끝자락에 **`<script src="/blog/config.js"></script>`와 `<script src="/blog/theme.js"></script>` 순서대로 탑재**
 - **pet-pass와 다른 점**: 기본 테마가 `'dark'`이므로, 플래시 방지 스크립트에서 `'dark'`일 때는 `data-theme` 속성을 붙이지 않는다.
 
 ---
@@ -216,9 +214,11 @@ pam-frontend/public/blog/
 
 ### 7-1. 공통 컴포넌트 및 프래그먼트 (blog_post.css / theme.js에 있음)
 
-| 컴포넌트 | 선택자 / 플레이스홀더 | 용도 |
+| 컴포넌트 | 선택자 / 플레이스홀더 / 속성 | 용도 |
 |---|---|---|
+| 공통 헤더 및 스위처 | `#blog-header-placeholder` | 타이틀 및 다크/라이트/네온 버튼 동적 바인딩 (header.html 로드) |
 | 공통 프로필 아카이브 | `#profile-card-placeholder` | 류대성 엔지니어 Identity 카드 동적 Fetch 바인딩 (profile.html 로드) |
+| 글로벌 설정 링크 매핑 | `data-config-link="{key}"` | config.js의 중앙 정의된 URL 값을 빌드 없이 런타임에 동적으로 매핑 주입 |
 | 하이라이트 박스 | `.highlight-box > p` | 핵심 문장 강조, 이탤릭 인용 |
 | 레슨 박스 | `.lesson-box > h3 + p` | 포스트 말미 교훈 정리 |
 | 타임라인 | `.timeline > .timeline-item[.fail]` | 시도/실패 과정 나열 |
@@ -268,7 +268,7 @@ pam-frontend/public/blog/
 ## 9. index.html 업데이트 규칙
 
 새 포스트를 추가할 때 반드시 `index.html`의 `<main class="blog-container">` 안에 카드를 **최상단에** 추가한다.
-또한 `index.html` 내에서도 공통 프로필 카드가 동적으로 로드되도록 최상단이나 최하단에 `<div id="profile-card-placeholder"></div>`가 명시되어 있는지 확인한다.
+또한 `index.html` 내에서도 공통 프로필 카드와 헤더가 동적으로 로드되도록 플레이스홀더들이 명시되어 있는지 확인한다.
 
 ```html
 <a href="/blog/post{n}.html" class="blog-post-card glass">
@@ -327,10 +327,11 @@ feat(blog): add post{n} — {한 줄 요약}
 - [ ] 목차 링크(`id`)가 실제 `h2` id와 일치하는지 확인
 - [ ] 이전 포스트의 "다음 글" 링크를 추가했는지 확인
 - [ ] `index.html`에 새 카드를 최상단에 추가했는지 확인
-- [ ] `<script src="/blog/theme.js"></script>`가 `</body>` 직전에 있는지 확인
+- [ ] **헤더 마크업을 하드코딩하지 않고 `<div id="blog-header-placeholder"></div>` 플레이스홀더를 삽입했는지 확인**
 - [ ] **프로필 카드 마크업을 하드코딩하지 않고 `<div id="profile-card-placeholder"></div>` 플레이스홀더를 삽입했는지 확인**
+- [ ] `config.js`와 `theme.js`가 순서대로 `</body>` 직전에 잘 들어가 로드되는지 확인
+- [ ] **외부 설정 링크(GitHub, Pet-Pass 등)에 하드코딩 대신 `data-config-link` 속성을 적절히 부여했는지 확인**
 - [ ] 테마 플래시 방지 스크립트가 `<head>` 안에 있는지, `pam-theme` 키와 `'dark'` 기본값을 쓰는지 확인
-- [ ] 헤더 타이틀이 `[Gacha] pick-a-meme Dev Blog` 등 테마 도트와 일치하는지 확인
 - [ ] 같은 비주얼 컴포넌트를 직전 포스트와 중복 사용하지 않았는지 확인
 - [ ] 고유 CSS를 `<style>` 블록에 선언했고, 공통 CSS와 중복되지 않는지 확인
 - [ ] `blog_post.css` 경로가 `/blog/blog_post.css`인지 확인

@@ -99,14 +99,7 @@
 </head>
 <body>
 
-  <header class="blog-header glass">
-    <h1>🎰 pick-a-meme Dev Blog</h1>
-    <div class="theme-dots">
-      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
-      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
-      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
-    </div>
-  </header>
+  <div id="blog-header-placeholder"></div>
 
   <div class="nav-buttons">
     <a href="/blog" class="btn-nav">← 목록으로</a>
@@ -234,6 +227,7 @@
     </div>
   </main>
 
+  <script src="/blog/config.js"></script>
   <script src="/blog/theme.js"></script>
 
 </body>
