@@ -202,3 +202,25 @@ const LOADING_STEPS = [
 | `pam-frontend/tailwind.config.ts` | colors, fontFamily 추가 |
 | `pam-frontend/app/page.tsx` | 상단 하트 UI 교체, 홈 프리뷰 스트립 추가, 로딩 문구 로직, 스페셜 하트 탭 핸들러 |
 | `pam-frontend/components/domains/heart/HeartDisplay.tsx` | 에너지 바 UI로 재작성 |
+
+---
+
+## 🎰 7. [NEW] 1평 남짓한 셸 밖의 기적: 데스크톱 여백을 활용한 포트폴리오 전환율 극대화 푸터 (Footer)
+
+### 🎯 도입 의의 및 기획적 의도
+1. **은밀하고 고급스러운 노출:** 일반 사용자의 밈 생성 재미를 절대 방해하면 안 됩니다. 따라서 얇고 투명한 글래스모피즘(Glassmorphism)과 미니멀한 텍스트/아이콘을 차용합니다.
+2. **오디언스 타겟 반응형 배치 (Dual-Layer Layout):**
+   * **데스크톱 ( recruiter & developer )**: 모바일 셸(`max-w-[500px]`) **하단 외부 여백 영역**에 넓고 정교하게 배치합니다. 데스크톱으로 포트폴리오를 검토하는 면접관의 시선에 가장 완벽하게 꽂히도록 설계합니다.
+   * **모바일 ( 일반 독자 및 유저 )**: 앱 셸 내부의 **홈 스크린(`HomeScreen`) 최하단** 영역에 스크롤을 끝까지 내렸을 때만 은근히 등장하도록 배치하여 불필요한 고정 영역 차지를 완전히 예방합니다.
+
+### 🎨 디자인 명세 (Footer UI Spec)
+* **배경 및 아웃라인:** 얇은 1px 반반사 연분홍 아웃라인(`var(--pam-border-pink)`) + 아주 옅은 글래스모픽 투명 백그라운드.
+* **호버 마이크로 애니메이션:** 호버 시 몽환적인 핑크/퍼플 네온 글로우가 은은하게 번지는 HSL 트랜지션 애니메이션 (`var(--pam-pink)` 및 `var(--pam-purple)` 교차).
+* **다크모드 대응:** 다크 테마 시 네온 라임(`var(--pam-accent)`) 글로우 및 연분홍 색조로 완벽히 리포지셔닝.
+
+### 📁 수정 대상 파일 (신규 추가)
+- `pam-frontend/components/Footer.tsx` [NEW] — 푸터 공통 컴포넌트
+- `pam-frontend/app/layout.tsx` [MODIFY] — 외부 데스크톱용 플로팅 배치
+- `pam-frontend/components/domains/gacha/HomeScreen.tsx` [MODIFY] — 모바일 홈스크린 하단 배치
+- `pam-frontend/app/globals.css` [MODIFY] — 푸터 전용 애니메이션/글로우 CSS 유틸리티
+

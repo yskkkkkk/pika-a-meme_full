@@ -28,7 +28,6 @@ export async function captureElement(
   const canvas = await toCanvas(el, {
     pixelRatio: Math.min(window.devicePixelRatio || 1, 2) * 1.5,
     skipFonts: false,
-    useCORS: true,
   });
   return new Promise<Blob>((resolve, reject) => {
     try {

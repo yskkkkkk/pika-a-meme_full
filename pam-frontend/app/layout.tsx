@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "pick-a-meme",
@@ -44,7 +45,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans font-bold antialiased" style={{ backgroundColor: "var(--pam-bg-outer)" }}>
         <Providers>
-          <div className="flex justify-center min-h-[100dvh]">
+          <div className="flex justify-center min-h-[100dvh] relative">
             <div
               className="w-full max-w-[500px] shadow-2xl relative flex flex-col overflow-hidden"
               style={{
@@ -59,9 +60,12 @@ export default function RootLayout({
                 {children}
               </main>
             </div>
+            {/* 데스크톱 접속 시 모바일 셸 바깥 여백에 안착되는 프리미엄 푸터 */}
+            <Footer insideShell={false} />
           </div>
         </Providers>
       </body>
     </html>
   );
 }
+

@@ -79,20 +79,16 @@
 </head>
 <body>
 
-  <header class="blog-header glass">
-    <h1>🎰 pick-a-meme Dev Blog</h1>
-    <div class="theme-dots">
-      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
-      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
-      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
-    </div>
-  </header>
+  <div id="blog-header-placeholder"></div>
 
   <div class="back-btn-container">
     <a href="/" class="btn-back-home">← pick-a-meme 메인으로</a>
   </div>
 
   <main class="blog-container">
+
+    <!-- 류대성 엔지니어 공통 프로필 아카이브 카드 (방안 B) -->
+    <div id="profile-card-placeholder"></div>
 
     <!-- 이슈 #3 -->
     <a href="/blog/post4.html" class="blog-post-card glass">
@@ -148,6 +144,7 @@
 
   </main>
 
+  <script src="/blog/config.js"></script>
   <script src="/blog/theme.js"></script>
 
 </body>

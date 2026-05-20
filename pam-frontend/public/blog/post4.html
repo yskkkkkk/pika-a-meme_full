@@ -7,32 +7,28 @@
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
-    /* ─── 이 포스트 고유: 코드 블록 ─── */
-    .code-block {
-      background: #0d1117;
-      border-radius: 10px;
-      padding: 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      color: #c9d1d9;
-      margin: 20px 0;
-      overflow-x: auto;
-      line-height: 1.7;
-      border: 1px solid #30363d;
-    }
-    .code-comment  { color: #6e7681; }
-    .code-keyword  { color: #ff7b72; }
-    .code-annotation { color: #79c0ff; }
-    .code-type     { color: #ffa657; }
-    .code-string   { color: #a5d6ff; }
-    /* ─── 흐름 박스 (최종 해결책 시각화) ─── */
-    .fix-flow {
+    /* ─── 리다이렉트 쿠키 서킷 시각화 ─── */
+    .circuit-container {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
       margin: 28px 0;
+    }
+    .circuit-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .circuit-flow {
       display: flex;
       flex-direction: column;
       gap: 0;
     }
-    .fix-step {
+    .circuit-step {
       display: flex;
       align-items: center;
       gap: 14px;
@@ -42,10 +38,10 @@
       font-size: 14px;
       color: var(--text-secondary);
     }
-    .fix-step:first-child { border-radius: 12px 12px 0 0; }
-    .fix-step:last-child  { border-radius: 0 0 12px 12px; }
-    .fix-step + .fix-step { border-top: none; }
-    .fix-step-num {
+    .circuit-step:first-child { border-radius: 12px 12px 0 0; }
+    .circuit-step:last-child  { border-radius: 0 0 12px 12px; }
+    .circuit-step + .circuit-step { border-top: none; }
+    .circuit-step-num {
       font-size: 12px;
       font-weight: 800;
       color: white;
@@ -58,15 +54,16 @@
       justify-content: center;
       flex-shrink: 0;
     }
-    .fix-step-arrow {
+    .circuit-arrow {
       text-align: center;
-      font-size: 16px;
+      font-size: 14px;
       color: var(--primary);
-      padding: 4px 0;
+      padding: 6px 0;
       background: var(--bg-primary);
       border-left: 1px solid var(--border);
       border-right: 1px solid var(--border);
       padding-left: 58px;
+      font-weight: bold;
     }
   </style>
   <script>
@@ -78,14 +75,7 @@
 </head>
 <body>
 
-  <header class="blog-header glass">
-    <h1>🎰 pick-a-meme Dev Blog</h1>
-    <div class="theme-dots">
-      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
-      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
-      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
-    </div>
-  </header>
+  <div id="blog-header-placeholder"></div>
 
   <div class="nav-buttons">
     <a href="/blog" class="btn-nav">← 목록으로</a>
@@ -95,169 +85,196 @@
   <main class="blog-content glass">
     <div class="post-meta">
       <span class="post-series-tag">피카밈 개발기 · 이슈 #3</span>
-      <span class="read-time">📖 약 8분</span>
+      <span class="read-time">📖 약 10분</span>
     </div>
 
     <h1 class="post-main-title">로그아웃이<br>5번 깨졌다</h1>
 
     <div class="post-tags">
-      <span class="tag-chip">#쿠키</span>
-      <span class="tag-chip">#JWT</span>
+      <span class="tag-chip">#쿠키정책</span>
       <span class="tag-chip">#HttpOnly</span>
-      <span class="tag-chip">#Spring Security</span>
-      <span class="tag-chip">#CORS</span>
+      <span class="tag-chip">#SameSite</span>
+      <span class="tag-chip">#Stateless</span>
+      <span class="tag-chip">#SpringSecurity</span>
     </div>
 
     <div class="toc">
       <p class="toc-title">목차</p>
       <ol>
-        <li><a href="#symptom">현상</a></li>
-        <li><a href="#round1">1차 — React Query 캐시를 의심했다</a></li>
-        <li><a href="#round2">2차 — CORS와 크로스 오리진 쿠키</a></li>
-        <li><a href="#round3">3차 — 페이지 이동으로 강제 초기화</a></li>
-        <li><a href="#round4">4차 — domain이 다른 쿠키는 별개다</a></li>
-        <li><a href="#round5">5차 — host-only 쿠키는 발급한 호스트에서만 지울 수 있다</a></li>
-        <li><a href="#bonus">덤 — JSESSIONID가 살아 있었다</a></li>
+        <li><a href="#symptom">사건의 발단</a></li>
+        <li><a href="#round1">1차 — React Query 캐시를 의심하다</a></li>
+        <li><a href="#round2">2차 — 크로스 오리진 fetch의 장벽</a></li>
+        <li><a href="#round3">3차 — 쿠키 domain 불일치의 늪</a></li>
+        <li><a href="#round4">4차 — Host-Only 쿠키의 주권과 리다이렉트 릴레이</a></li>
+        <li><a href="#round5">5차 — 잔존하는 JSESSIONID와 Stateless 아키텍처</a></li>
+        <li><a href="#conclusion">결론 및 배운 것</a></li>
       </ol>
     </div>
 
-    <h2 id="symptom">현상</h2>
+    <h2 id="symptom">사건의 발단</h2>
 
-    <p>로그아웃 버튼을 누르면 토스트가 뜬다. "로그아웃 되었습니다." 새로고침하면 다시 로그인 상태다.</p>
-
-    <p>1차에서 멈췄으면 좋았겠지만, 결국 5차까지 갔다. 매번 "이번엔 된 것 같은데?"라고 생각했고, 매번 틀렸다.</p>
+    <p>로그아웃 버튼을 누르면 인앱 토스트 알림이 경쾌하게 뜬다. "로그아웃 되었습니다."<br>
+    안심하고 화면을 새로고침했다. 그런데 귀신같이 내 프로필과 하트 수치가 로그인된 상태 그대로 다시 복원되어 있었다. 
+    1시간 안에 끝날 줄 알았던 이 평범하고 사소한 기능은, 브라우저 보안 정책의 가장 깊은 곳을 관통하며 장장 5차례의 집요한 디버깅 전쟁을 치른 끝에야 완벽한 항복을 받아냈다.</p>
 
     <div class="highlight-box">
-      <p>보안 기능은 개발 환경에서 고치면 되는 것 같다가도, 배포하면 또 다른 이유로 터진다.</p>
+      <p>보안 기능은 정상 동작할 때보다 비정상 상황에서 그 실체가 드러난다. 쿠키와 세션, 그리고 토큰은 단순히 넣고 빼는 변수가 아니라 브라우저가 다르게 해석하는 "정책으로 격리된 자원"이었다.</p>
     </div>
 
-    <p>피카밈 인증 구조는 이렇다. 로그인(카카오/구글 OAuth2) 후 백엔드가 JWT를 <code>HttpOnly; SameSite=Lax</code> 쿠키로 발급한다. 이후 API 요청마다 쿠키가 자동으로 붙는다. 로그아웃은 그 쿠키를 삭제하면 된다. 이론상 간단하다.</p>
+    <p>피카밈의 기본 인증 아키텍처는 이렇다. 카카오나 구글 소셜 로그인 성공 시 백엔드가 JWT를 생성해 <code>HttpOnly; Secure; SameSite=Lax</code> 쿠키(`pam_token`)로 클라이언트에 심는다. 브라우저는 다음 API 호출부터 이 쿠키를 자동으로 실어 보낸다. 그렇다면 로그아웃은 단순히 해당 쿠키를 만료(Max-Age=0)시켜 브라우저에서 지워주면 끝나는 문제였다. 적어도 이론상으로는 그랬다.</p>
 
-    <h2 id="round1">1차 — React Query 캐시를 의심했다</h2>
-
-    <div class="timeline">
-      <div class="timeline-item fail">
-        <div class="timeline-label">1차 · 실패</div>
-        <p>로그아웃 API를 호출하고 나서도 사용자 정보가 남아 있었다. 처음엔 React Query 캐시가 stale 상태로 남아 있어서 그런 거라고 생각했다. <code>queryClient.clear()</code>를 로그아웃 핸들러에 추가했다. 토스트도 정상적으로 뜬다. 새로고침하면 다시 로그인 상태다.</p>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-num">5번</span>
+        <span class="stat-label">실패와 수정 반복</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">3개</span>
+        <span class="stat-label">격돌한 격리 도메인</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">0개</span>
+        <span class="stat-label">세션 (완전 무상태 수호)</span>
       </div>
     </div>
 
-    <p>캐시 문제가 아니었다. 새로고침 후에도 로그인 상태가 돌아온다는 건 서버에서 여전히 유효한 JWT를 읽고 있다는 뜻이다. 쿠키가 실제로 지워지지 않았다.</p>
-
-    <h2 id="round2">2차 — CORS와 크로스 오리진 쿠키</h2>
+    <h2 id="round1">1차 — React Query 캐시를 의심하다</h2>
 
     <div class="timeline">
       <div class="timeline-item fail">
-        <div class="timeline-label">2차 · 부분 원인 발견</div>
-        <p>개발자 도구 Network 탭을 보니, 로그아웃 응답에 <code>Set-Cookie: token=; Max-Age=0</code>가 분명히 있었다. 근데 실제로 쿠키가 삭제되지 않았다. 이상했다. 응답은 오는데 왜 적용이 안 되지?</p>
+        <div class="timeline-label">1차 시도 · 실패</div>
+        <p>로그아웃 버튼을 눌렀음에도 내 프로필이 살아 있는 것을 보고, 첫 직감은 "React Query의 인메모리 캐시가 stale 상태로 갱신되지 않고 화면에 남아있는 현상"이라 판단했다.</p>
       </div>
     </div>
 
-    <p>원인은 CORS + <code>credentials</code> 조합에 있었다. <code>fetch</code>로 크로스 오리진 요청을 보낼 때, <code>credentials: 'include'</code>가 없으면 브라우저가 응답의 <code>Set-Cookie</code>를 무시한다. <code>include</code>를 붙이더라도 서버에서 <code>Access-Control-Allow-Credentials: true</code>와 <code>Access-Control-Allow-Origin</code>을 와일드카드가 아닌 명시적 오리진으로 내려줘야 한다.</p>
+    <p>곧바로 로그아웃 핸들러 로직에 <code>queryClient.clear()</code>를 추가했다. 확실히 화면상의 데이터는 그 순간 즉시 사라졌다. 하지만 새로고침을 누르자마자 다시 로그인 정보가 되살아났다. 캐시가 문제가 아니라, 새로고침 시 백엔드로 보내는 `/api/auth/me` 요청에 <strong>여전히 유효한 JWT 쿠키가 실려 날아가고 있음</strong>이 명백했다. 브라우저 저장소 수준에서 쿠키가 전혀 삭제되지 않았다.</p>
 
-    <div class="code-block"><span class="code-comment">// 이렇게 하면 Set-Cookie 응답이 있어도 브라우저가 적용하지 않는다</span>
-fetch(<span class="code-string">'/api/auth/logout'</span>, { method: <span class="code-string">'POST'</span> })
-
-<span class="code-comment">// credentials: 'include' 없이는 쿠키가 오가지 않는다</span>
-fetch(<span class="code-string">'/api/auth/logout'</span>, {
-  method: <span class="code-string">'POST'</span>,
-  credentials: <span class="code-string">'include'</span>,
-})</div>
-
-    <p>이걸 고쳤다. 로컬에서 잘 됐다. 배포하면 또 안 됐다.</p>
-
-    <h2 id="round3">3차 — 페이지 이동으로 강제 초기화</h2>
+    <h2 id="round2">2차 — 크로스 오리진 fetch의 장벽</h2>
 
     <div class="timeline">
       <div class="timeline-item fail">
-        <div class="timeline-label">3차 · 로컬만 됨</div>
-        <p><code>router.push('/')</code> 대신 <code>window.location.href = '/'</code>로 바꿔봤다. 소프트 네비게이션 대신 풀 페이지 리로드를 강제하면 React Query 캐시가 초기화되고, 쿠키 상태도 새로 읽힐 거라고 생각했다. 로컬에서는 됐다. 배포에서는 안 됐다.</p>
+        <div class="timeline-label">2차 시도 · 실패</div>
+        <p>크롬 개발자 도구의 Network 탭을 열어 로그아웃 API 응답 헤더를 추적했다. 백엔드는 분명하게 <code>Set-Cookie: pam_token=; Max-Age=0; Path=/</code> 헤더를 내려보내고 있었다. 그런데 왜 브라우저는 쿠키를 만료시키지 않고 버젓이 쥐고 있을까?</p>
       </div>
     </div>
 
-    <p>로컬과 배포의 동작이 다르다는 건 환경이 다르다는 뜻이다. 코드가 아니라 인프라를 봐야 했다.</p>
+    <p>원인은 브라우저의 **크로스 오리진 요청에 대한 쿠키 적용 차단 정책**이었다. 피카밈 프론트엔드는 <code>pick-a-me.me</code>에, 백엔드 API는 <code>api.pick-a-me.me</code>에 배포되어 있다. JS 코드의 비동기 <code>fetch()</code> 호출은 크로스 오리진 XHR 요청에 해당하므로, 브라우저는 보안상의 이유로 응답 헤더의 <code>Set-Cookie</code> 설정을 가차 없이 무시한다.</p>
+    <p>물론 <code>credentials: 'include'</code> 옵션을 fetch에 주고 CORS 설정을 허용해주면 해결되는 것처럼 보인다. 그러나 좀 더 확실하고 과하지 않은 해결책을 택했다. 비동기 백그라운드 fetch를 버리고, 로그아웃 버튼을 눌렀을 때 브라우저의 최상단 네비게이션 자체를 백엔드 오리진으로 직접 이동시키는 **탑레벨 GET 네비게이션** 방식을 강제한 것이다.</p>
 
-    <h2 id="round4">4차 — domain이 다른 쿠키는 별개다</h2>
+    <div class="code-block"><span class="code-comment">// [프론트엔드] fetch를 걷어내고 브라우저 네비게이션으로 강제 전환</span>
+<span class="code-keyword">const</span> <span class="code-type">handleLogout</span> = () => {
+    <span class="code-comment">// 비동기 fetch 대신 백엔드 오리진으로 직접 페이지 이동</span>
+    window.location.href = `${API_BASE}/api/auth/logout`;
+};</div>
+
+    <p>이제 브라우저가 직접 페이지를 이동하므로 크로스 오리진 제약 없이 백엔드가 보내는 쿠키 만료 헤더가 깔끔하게 먹히기 시작했다. 로컬 환경에서의 검증은 보기 좋게 성공했다. 하지만 안심하고 운영 서버에 배포한 순간, 버그는 다시 조롱하듯 부활했다.</p>
+
+    <h2 id="round3">3차 — 쿠키 domain 불일치의 늪</h2>
 
     <div class="timeline">
       <div class="timeline-item fail">
-        <div class="timeline-label">4차 · 원인 좁혀짐</div>
-        <p>브라우저의 Application 탭에서 쿠키 목록을 직접 봤다. <code>token</code>이라는 이름의 쿠키가 두 개 있었다. 하나는 <code>domain=localhost</code>, 하나는 <code>domain=pick-a-me.me</code>. 배포하기 전에 로컬에서 로그인했던 쿠키가 남아 있었고, 배포 후 쿠키와 공존하고 있었다. 로그아웃 응답이 배포 쿠키는 지웠지만, 로컬 쿠키는 그대로였다.</p>
+        <div class="timeline-label">3차 시도 · 실패</div>
+        <p>분명 로컬에선 삭제되던 쿠키가 운영 배포 서버에서는 새로고침을 하면 계속 부활했다. 원인을 밝히기 위해 브라우저 Application 탭의 Cookie 저장소를 뒤져보고 엄청난 사실을 발견했다.</p>
       </div>
     </div>
 
-    <p>로컬 쿠키를 수동으로 지우고 다시 시도했다. 배포 환경에서 새로 로그인해서 로그아웃하면 — 여전히 안 됐다. 로컬 쿠키는 원인이 아니었다. 여전히 뭔가 다른 문제가 있었다.</p>
+    <p>브라우저 저장소 내에 동일한 이름을 가졌지만 **domain 속성이 완전히 다른 두 개의 `pam_token` 쿠키**가 나란히 공존하고 있었다.
+    하나는 배포 전환 과정에서 쿠키 도메인을 지정하기 전에 생성된 `pam_token (domain 없음)`, 다른 하나는 도메인이 명시된 `pam_token (domain=.pick-a-me.me)`.<br>
+    브라우저는 이름이 같더라도 도메인 속성이 다르면 완전히 별개의 쿠키로 취급한다. 백엔드가 `domain=.pick-a-me.me`를 붙여 만료 헤더를 보냈기 때문에 배포 전 구형 쿠키는 삭제되지 않고 좀비처럼 살아남아 인증을 계속 유효하게 만들었던 것이다.</p>
 
-    <h2 id="round5">5차 — host-only 쿠키는 발급한 호스트에서만 지울 수 있다</h2>
+    <p>이를 해결하기 위해 백엔드 로그아웃 핸들러에서 **도메인이 설정된 버전과 설정되지 않은 버전 두 가지 만료 쿠키를 동시에 응답 헤더에 실어보내는 다중 만료 전략**을 취했다.</p>
+
+    <div class="code-block"><span class="code-comment">// [백엔드 AuthController.kt] 두 속성의 쿠키를 동시 삭제 요청</span>
+<span class="code-keyword">val</span> <span class="code-type">cookieDomain</span> = <span class="code-string">".pick-a-me.me"</span>
+<span class="code-comment">// 1. domain이 명시되지 않은 구버전 쿠키 만료</span>
+response.addHeader(<span class="code-string">"Set-Cookie"</span>, <span class="code-string">"pam_token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"</span>)
+<span class="code-comment">// 2. domain이 명시된 신버전 쿠키 만료</span>
+response.addHeader(<span class="code-string">"Set-Cookie"</span>, <span class="code-string">"pam_token=; Domain=$cookieDomain; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"</span>)</div>
+
+    <p>도메인 불일치로 인한 좀비 쿠키가 완전히 소멸했다. 드디어 끝난 줄 알았으나, 사파리 브라우저와 일부 크롬 사용자에게서 여전히 새로고침 시 로그인 상태가 풀리지 않는 제보가 잇따랐다.</p>
+
+    <h2 id="round4">4차 — Host-Only 쿠키의 주권과 리다이렉트 릴레이</h2>
+
+    <div class="timeline">
+      <div class="timeline-item fail">
+        <div class="timeline-label">4차 시도 · 실패</div>
+        <p>이유는 브라우저 쿠키 보안 정책의 가장 핵심인 **Host-Only 쿠키의 강력한 격리 제약** 때문이었다.</p>
+      </div>
+    </div>
+
+    <p>백엔드 API 서버(`api.pick-a-me.me`)가 발급한 host-only 쿠키는, 아무리 parent domain인 `.pick-a-me.me`가 만료를 외쳐도 **오직 발급 호스트인 `api.pick-a-me.me` 본인만이 만료시킬 수 있는 절대 주권**을 가진다.<br>
+    브라우저가 API 통신을 할 때 살아 있는 `api.pick-a-me.me` host-only 쿠키를 함께 전송하므로, 프론트에서 아무리 지우려 애써도 백엔드 필터는 잔존 쿠키를 읽고 로그인을 복원해 버렸다.</p>
+
+    <p>결국 프론트엔드와 백엔드가 서로 상대방의 host-only 영역을 침범해 삭제할 수 없다면, **두 오리진을 순차적으로 브라우저가 순회 릴레이 방문하여 각자의 쿠키를 본인 주권 하에 소멸시키는 쿠키 서킷(Circuit)**을 설계할 수밖에 없었다.</p>
+
+    <div class="circuit-container">
+      <p class="circuit-title">🔄 양방향 쿠키 소멸 리다이렉트 서킷</p>
+      <div class="circuit-flow">
+        <div class="circuit-step">
+          <div class="circuit-step-num">1</div>
+          <span>유저가 프론트엔드 로그아웃 리다이렉터(<code>pick-a-me.me/api/auth-logout</code>) 진입 ➔ 프론트 Host-Only 및 Parent-Domain 쿠키 만료</span>
+        </div>
+        <div class="circuit-arrow">↓ 307 Redirect</div>
+        <div class="circuit-step">
+          <div class="circuit-step-num">2</div>
+          <span>백엔드 로그아웃 엔드포인트(<code>api.pick-a-me.me/api/auth/logout</code>)로 자동 점프 ➔ 백엔드 Host-Only 및 Configured-Domain 쿠키 만료</span>
+        </div>
+        <div class="circuit-arrow">↓ 302 Redirect</div>
+        <div class="circuit-step">
+          <div class="circuit-step-num">3</div>
+          <span>프론트엔드 홈(<code>pick-a-me.me/</code>)으로 최종 도달 ➔ 모든 영역의 쿠키가 100% 영구 전멸</span>
+        </div>
+      </div>
+    </div>
+
+    <p>양 도메인의 주권 아래 호스트 쿠키를 각각 폭파하고 복귀하는 이 릴레이 서킷 설계로, 드디어 모든 브라우저에서 쿠키 클린 상태를 이뤄냈다. 그러나 귀신을 본 것처럼, 또다시 로그인 정보가 되살아나는 케이스가 발견되었다.</p>
+
+    <h2 id="round5">5차 — 잔존하는 JSESSIONID와 Stateless 아키텍처</h2>
 
     <div class="timeline">
       <div class="timeline-item">
-        <div class="timeline-label">5차 · 근본 원인</div>
-        <p>피카밈의 도메인 구조를 다시 봤다. 프론트엔드는 <code>pick-a-me.me</code>에 배포되어 있고, 백엔드 API는 <code>api.pick-a-me.me</code>에 있다. JWT 쿠키는 <strong>백엔드</strong>가 발급한다. 즉 <code>api.pick-a-me.me</code>가 심은 쿠키다.</p>
-        <p>쿠키를 지우는 <code>Set-Cookie: token=; Max-Age=0</code>도 <strong>같은 호스트</strong>에서 내려와야 한다. 프론트엔드(<code>pick-a-me.me</code>)가 <code>fetch</code>로 <code>/api/auth/logout</code>을 호출해서 받는 응답은 — 브라우저 입장에서는 <code>api.pick-a-me.me</code>가 보낸 것이지만, "크로스 오리진 XHR로 받은 Set-Cookie"라는 제약이 걸린다. domain을 명시하지 않은 쿠키(host-only 쿠키)는 정확히 발급한 호스트에서만 지울 수 있다.</p>
+        <div class="timeline-label">5차 시도 · 최종 정복 완료</div>
+        <p>네트워크 트레이스를 해보니 `pam_token`은 단 한 개도 남아 있지 않았다. 완벽하게 쿠키가 비워졌는데 백엔드 `/api/auth/me` API는 여전히 200 OK와 함께 유저 데이터를 반환했다. 이 마법 같은 복원의 실마리는 다름 아닌 **세션 쿠키인 `JSESSIONID`**에 있었다.</p>
       </div>
     </div>
 
-    <p>해결책은 <strong>프론트가 fetch를 쓰는 대신, 백엔드 호스트로 직접 브라우저 내비게이션을 보내는 것</strong>이었다. 백엔드에 <code>GET /auth/logout</code> 엔드포인트를 추가하고, 거기서 쿠키를 삭제한 뒤 프론트로 리다이렉트한다. 브라우저가 직접 이동하면 Same-site 요청이 되고, 쿠키 삭제도 정상 적용된다.</p>
+    <p>소셜 로그인 최초 구현 시 Spring Security OAuth2의 핸드셰이크를 위해 세션 정책을 임시로 <code>SessionCreationPolicy.IF_REQUIRED</code>로 풀어주었던 것이 화근이었다.
+    OAuth2 과정에서 Spring이 내부적으로 임시 세션을 수립하였고, 이 `JSESSIONID` 쿠키가 브라우저에 잔존하여 `pam_token`이 소멸했음에도 세션 ID를 매개로 백엔드가 사용자를 계속 식별 및 인증 처리해주고 있었던 것이다.</p>
 
-    <div class="fix-flow">
-      <div class="fix-step">
-        <div class="fix-step-num">1</div>
-        <span>프론트가 <code>window.location.href = 'https://api.pick-a-me.me/auth/logout'</code>으로 이동</span>
-      </div>
-      <div class="fix-step-arrow">↓</div>
-      <div class="fix-step">
-        <div class="fix-step-num">2</div>
-        <span>백엔드가 <code>Set-Cookie: token=; Max-Age=0; Path=/</code> 응답 → 쿠키 삭제됨</span>
-      </div>
-      <div class="fix-step-arrow">↓</div>
-      <div class="fix-step">
-        <div class="fix-step-num">3</div>
-        <span>백엔드가 <code>302 Redirect → https://pick-a-me.me/</code>로 리다이렉트</span>
-      </div>
-    </div>
+    <p>피카밈은 완전한 무상태(Stateless) JWT 기반 서비스여야 하므로, 이 모순을 참아 넘길 수 없었다. 
+    OAuth2의 CSRF용 `state` 파라미터 보관을 세션 대신 브라우저의 단기 보안 쿠키로 격리하는 <code>CookieOAuth2AuthorizationRequestRepository</code>를 구현 및 장착했다.<br>
+    그 직후 Spring Security 설정을 엄격한 <code>STATELESS</code> 상태로 전격 환원시켰다.</p>
 
-    <div class="code-block"><span class="code-comment">// 백엔드 — GET /auth/logout</span>
-<span class="code-annotation">@GetMapping</span>(<span class="code-string">"/auth/logout"</span>)
-<span class="code-keyword">fun</span> <span class="code-type">logout</span>(response: <span class="code-type">HttpServletResponse</span>) {
-    <span class="code-keyword">val</span> cookie = <span class="code-type">Cookie</span>(<span class="code-string">"token"</span>, <span class="code-string">""</span>).apply {
-        maxAge = 0
-        path = <span class="code-string">"/"</span>
-        isHttpOnly = <span class="code-keyword">true</span>
-        secure = <span class="code-keyword">true</span>
-    }
-    response.addCookie(cookie)
-    response.sendRedirect(<span class="code-string">"https://pick-a-me.me/"</span>)
-}</div>
-
-    <p>새로고침해도 로그아웃 상태가 유지됐다. 5차 만에 끝났다.</p>
-
-    <h2 id="bonus">덤 — JSESSIONID가 살아 있었다</h2>
-
-    <p>쿠키 문제를 해결하고 나니까 또 다른 문제가 보였다. JWT 쿠키를 삭제했는데도 특정 상황에서 인증이 유지됐다. 확인해보니 Spring이 자동으로 생성한 <code>JSESSIONID</code> 세션 쿠키가 있었고, Spring Security가 세션으로도 인증을 처리하고 있었다.</p>
-
-    <p>피카밈은 JWT 기반 Stateless 서비스다. 세션이 필요 없다. Spring Security 설정에서 <code>SessionCreationPolicy.STATELESS</code>로 명시하면 Spring은 세션을 생성하지 않고, 세션으로 인증도 시도하지 않는다.</p>
-
-    <div class="code-block"><span class="code-comment">// Spring Security — 세션 생성 안 함</span>
+    <div class="code-block"><span class="code-comment">// [백엔드 SecurityConfig.kt] 임시 세션 발급을 차단하고 쿠키 저장소 장착</span>
 http.sessionManagement {
     it.sessionCreationPolicy(<span class="code-type">SessionCreationPolicy</span>.<span class="code-keyword">STATELESS</span>)
+}
+http.oauth2Login {
+    it.authorizationEndpoint { auth ->
+        <span class="code-comment">// OAuth2 state 파라미터를 임시 세션이 아닌 보안 쿠키에 저장하도록 연결</span>
+        auth.authorizationRequestRepository(cookieOAuth2AuthorizationRequestRepository)
+    }
 }</div>
 
-    <p>이 설정이 없었던 게 post6에서 다룰 OAuth2 state 문제와도 연결된다. 그쪽은 반대 상황 — "상태가 필요한데 Stateless라서 없는" 경우다.</p>
+    <p>세션의 흔적을 완벽히 지우고, 무상태 아키텍처를 온전히 복구한 순간, 새로고침을 아무리 난타해도 로그인 정보가 부활하는 일은 두 번 다시 발생하지 않았다. 장장 1주일에 걸친 로그아웃의 5중 연쇄 버그가 드디어 완전 정복된 순간이었다.</p>
 
-    <hr class="divider">
+    <h2 id="conclusion">결론 및 배운 것</h2>
 
     <div class="lesson-box">
-      <h3>이 경험에서 배운 것</h3>
-      <p>쿠키는 "심고 지우는 변수"가 아니라 "정책으로 격리된 자원"이다. 발급한 호스트, domain 속성, SameSite, HttpOnly — 이 네 가지가 조합되어 어디서 읽히고 어디서 지워지는지가 결정된다. 로컬에서 됐다고 배포에서 된다는 보장이 없다.</p>
-      <p>다음 프로젝트에서는 인증 흐름을 배포 환경에서 먼저 검증한다. 로컬과 배포의 도메인 구조가 다르면, 쿠키 동작은 다를 수 있다.</p>
+      <h3>💡 이 험난한 여정의 교훈</h3>
+      <p>쿠키와 세션은 단순히 로컬 변수 다루듯 "읽고 지우는 데이터"가 아니다. 브라우저의 주권 영역(Same-Origin), 도메인 격리 레벨, 그리고 프레임워크의 세션 보존 메커니즘이 정교하게 맞물려 작동하는 보안 시스템이다.</p>
+      <p>개발자 도구에서 로컬(localhost)로 검증하고 만족하는 행위는 반쪽짜리에 불과하다. 호스트가 멀티 서브도메인으로 쪼개지는 운영 인프라의 관점을 고려하여, 설계 단계부터 양방향 보안 주권과 영속성 격리 수준을 엄밀히 따지는 판단력이 진짜 엔지니어의 자질임을 이번 트러블슈팅을 통해 깊이 배웠다.</p>
     </div>
 
+    <!-- 류대성 엔지니어 공통 프로필 아카이브 카드 (방안 B) -->
+    <div id="profile-card-placeholder"></div>
+
     <div class="post-footer">
-      <a href="/blog/post3.html" class="btn-post-nav btn-prev">← 이전 글: 하트 시스템</a>
+      <a href="/blog/post3.html" class="btn-post-nav btn-prev">← 이전 글: 하트 하나 쓰는 데 락이 필요했던 이유</a>
     </div>
   </main>
 
+  <script src="/blog/config.js"></script>
   <script src="/blog/theme.js"></script>
 
 </body>

@@ -79,14 +79,7 @@
 </head>
 <body>
 
-  <header class="blog-header glass">
-    <h1>🎰 pick-a-meme Dev Blog</h1>
-    <div class="theme-dots">
-      <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
-      <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
-      <button class="theme-dot" data-t="neon"  onclick="applyTheme('neon')"  title="네온"  style="background:#00ff88;"></button>
-    </div>
-  </header>
+  <div id="blog-header-placeholder"></div>
 
   <div class="nav-buttons">
     <a href="/blog" class="btn-nav">← 목록으로</a>
@@ -128,9 +121,11 @@
 
     <h2 id="petpass">Pet-Pass가 가르쳐준 것</h2>
 
-    <p>피카밈 전에 Pet-Pass라는 반려동물 관련 지도 앱을 만들었다. AI와 협업해서 3주 만에 완성했다. 잘 돌아간다. 아무도 안 쓴다.</p>
+    <p>피카밈 전에 <a href="https://pet-pass-web.vercel.app/blog" target="_blank" rel="noopener noreferrer" class="blog-inline-link">Pet-Pass 🐶</a>라는 반려동물 관련 동반입장 지도 앱을 만들었다. AI와 긴밀히 협업하여 Next.js와 Supabase(BaaS) 기반으로 3주 만에 완성했다. 서비스는 잘 돌아갔지만, 아무도 쓰지 않았다.</p>
 
-    <p>왜 실패했는지는 금방 보였다. 이미 비슷한 앱이 여럿 있었고, Pet-Pass가 그것들보다 뭔가 명확히 나은 게 없었다. 기능이 없어서가 아니라, 굳이 올 이유가 없었던 거다. 지도 앱이라 진입에도 맥락이 필요했고, 결과를 저장하거나 공유할 구조도 없었다.</p>
+    <p>기획적으로는 비슷한 지도 서비스가 많았고 차별성이 부족했다. 기술적으로도 한계가 명확했다. Supabase BaaS는 빠른 프로토타입 제작에 극적인 효율을 보여주었으나, 복잡한 비즈니스 로직과 트랜잭션 격리, 실시간 동기화 상태에서의 데이터 정합성 등을 정밀 제어하기에는 블랙박스 영역이 너무 컸다. 특히 서버리스 환경의 콜드 스타트 지연과 백엔드 부재로 인한 아키텍처적 공허함은 4년 차 백엔드 엔지니어로서 큰 고민거리였다. (자세한 Pet-Pass 아키텍처 한계는 <a href="https://pet-pass-web.vercel.app/blog" target="_blank" rel="noopener noreferrer" class="blog-inline-link">Pet-Pass 개발기</a>에서 다루었다.)</p>
+
+    <p>결국 지도 앱 특성상 진입에 너무 큰 맥락이 필요했고, 결과물을 손쉽게 저장하고 자랑할 수 있는 바이럴 고리가 부재한 것이 결정적 실패 원인이었다.</p>
 
     <div class="highlight-box">
       <p>기능이 있다고 사람이 오는 게 아니다. 굳이 와야 할 이유가 있어야 한다.</p>
@@ -249,7 +244,7 @@
 
     <p>버튼 하나면 이미지, 문구, 스티커가 무작위로 조합된다. 결과가 마음에 안 들면 하트를 써서 다시 뽑는다. 하트는 시간이 지나면 차오른다 — 모바일 게임의 스태미너와 같은 구조다.</p>
 
-    <p>로그인 사용자에게는 워터마크 없는 결과물을, 비로그인 사용자에게는 워터마크가 있는 결과물을 준다. 이 차이가 자연스러운 로그인 유도 수단이 된다. 공유하고 싶은데 워터마크가 거슬리면 로그인하게 된다.</p>
+    <p>이를 위해 비로그인 사용자는 이미지 직접 저장 기능을 엄격히 차단하고 오직 Web Share API를 통한 링크 공유만 허용하며, 로그인 유저에게만 깨끗한 브랜딩 바가 삽입된 고품질 이미지 저장(PNG 다운로드) 권한을 부여합니다. 또한, 비로그인 상태에서 가챠를 뽑은 후 로그인으로 전환하면 이전 결과물이 휘발되지 않고 자동 보존 및 서버 데이터베이스에 즉시 동기화(sessionStorage 기반 연동)되는 고난도 프론트엔드 퍼널 UX를 설계했습니다. 이는 일반 사용자의 즉각적인 로그인 전환을 유도하는 최적의 트리거가 됩니다.</p>
 
     <div class="highlight-box">
       <p>가챠에서 중요한 건 결과물이 아니라 뽑는 순간이다. 기대감이 있어야 다시 누른다.</p>
@@ -263,11 +258,15 @@
       <p>프론트엔드만 있는 버전을 먼저 만들었던 건 의미 있었다. 개념 검증 후에 큰 투자(백엔드 설계)를 결정했기 때문이다. 빠른 프로토타입이 설계 결정을 뒷받침했다.</p>
     </div>
 
+    <!-- 류대성 엔지니어 공통 프로필 아카이브 카드 (방안 B) -->
+    <div id="profile-card-placeholder"></div>
+
     <div class="post-footer">
       <a href="/blog/post2.html" class="btn-post-nav btn-next">다음 글: Clean Architecture 도입기 →</a>
     </div>
   </main>
 
+  <script src="/blog/config.js"></script>
   <script src="/blog/theme.js"></script>
 
 </body>
