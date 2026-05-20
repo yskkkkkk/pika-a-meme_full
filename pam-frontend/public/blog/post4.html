@@ -7,25 +7,6 @@
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
-    /* ─── 이 포스트 고유: 코드 블록 ─── */
-    .code-block {
-      background: #0d1117;
-      border-radius: 10px;
-      padding: 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      color: #c9d1d9;
-      margin: 20px 0;
-      overflow-x: auto;
-      line-height: 1.7;
-      border: 1px solid #30363d;
-    }
-    .code-comment  { color: #6e7681; }
-    .code-keyword  { color: #ff7b72; }
-    .code-annotation { color: #79c0ff; }
-    .code-type     { color: #ffa657; }
-    .code-string   { color: #a5d6ff; }
-
     /* ─── 리다이렉트 쿠키 서킷 시각화 ─── */
     .circuit-container {
       background: rgba(255, 255, 255, 0.03);
@@ -291,6 +272,9 @@ http.oauth2Login {
       <p>쿠키와 세션은 단순히 로컬 변수 다루듯 "읽고 지우는 데이터"가 아니다. 브라우저의 주권 영역(Same-Origin), 도메인 격리 레벨, 그리고 프레임워크의 세션 보존 메커니즘이 정교하게 맞물려 작동하는 보안 시스템이다.</p>
       <p>개발자 도구에서 로컬(localhost)로 검증하고 만족하는 행위는 반쪽짜리에 불과하다. 호스트가 멀티 서브도메인으로 쪼개지는 운영 인프라의 관점을 고려하여, 설계 단계부터 양방향 보안 주권과 영속성 격리 수준을 엄밀히 따지는 판단력이 진짜 엔지니어의 자질임을 이번 트러블슈팅을 통해 깊이 배웠다.</p>
     </div>
+
+    <!-- 류대성 엔지니어 공통 프로필 아카이브 카드 (방안 B) -->
+    <div id="profile-card-placeholder"></div>
 
     <div class="post-footer">
       <a href="/blog/post3.html" class="btn-post-nav btn-prev">← 이전 글: 하트 하나 쓰는 데 락이 필요했던 이유</a>

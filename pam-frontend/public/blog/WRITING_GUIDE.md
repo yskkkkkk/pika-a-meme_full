@@ -13,8 +13,9 @@ pam-frontend/public/blog/
 ├── post1.html
 ├── post2.html
 ├── post{n}.html        ← 새 포스트는 순번 이어서 작성
+├── profile.html        ← [NEW] 공통 프로필 아카이브 카드 템플릿 (동적 임포트용)
 ├── blog_post.css       ← 공통 CSS + 테마 변수 (모든 포스트가 공유)
-├── theme.js            ← 테마 전환 로직 (applyTheme 함수 정의)
+├── theme.js            ← 테마 전환 로직 + 프로필 카드 동적 Fetch 로더 정의
 └── WRITING_GUIDE.md    ← 이 파일
 ```
 
@@ -22,7 +23,7 @@ pam-frontend/public/blog/
 - 모든 파일은 `pam-frontend/public/blog/` 아래에 위치한다.
 - **pet-pass와 달리** `/style.css`, `/theme.js` 같은 외부 앱 파일에 의존하지 않는다.
   - CSS 변수는 `blog_post.css` 안에 모두 정의되어 있다.
-  - 테마 로직은 `/blog/theme.js`를 사용한다.
+  - 테마 로직 및 동적 컴포넌트 바인딩은 `/blog/theme.js`를 사용한다.
 
 ---
 
@@ -50,7 +51,7 @@ pam-frontend/public/blog/
 <body>
 
   <header class="blog-header glass">
-    <h1>🎰 pick-a-meme Dev Blog</h1>
+    <h1>[Gacha] pick-a-meme Dev Blog</h1>
     <div class="theme-dots">
       <button class="theme-dot" data-t="dark"  onclick="applyTheme('dark')"  title="다크"  style="background:#1e1e30;"></button>
       <button class="theme-dot" data-t="light" onclick="applyTheme('light')" title="라이트" style="background:#ede9fe;"></button>
@@ -60,11 +61,20 @@ pam-frontend/public/blog/
 
   <div class="nav-buttons">
     <a href="/blog" class="btn-nav">← 목록으로</a>
-    <a href="/" class="btn-nav">🏠 메인으로</a>
+    <a href="/" class="btn-nav">홈으로</a>
   </div>
 
   <main class="blog-content glass">
-    <!-- 콘텐츠 -->
+    <!-- 1 ~ 5. 본문 및 TOC 콘텐츠가 들어가는 영역 -->
+    
+    <!-- 6. 공통 프로필 카드 동적 플레이스홀더 (하드코딩 절대 금지) -->
+    <div id="profile-card-placeholder"></div>
+
+    <!-- 7. 포스트 푸터 (이전/다음 글 네비게이션) -->
+    <div class="post-footer">
+      <a href="/blog/post{n-1}.html" class="btn-post-nav btn-prev">← 이전 글</a>
+      <a href="/blog/post{n+1}.html" class="btn-post-nav btn-next">다음 글 →</a>
+    </div>
   </main>
 
   <script src="/blog/theme.js"></script>
@@ -77,6 +87,7 @@ pam-frontend/public/blog/
 - `<head>` 내 테마 플래시 방지 인라인 스크립트 (`pam-theme` 키, 기본값 `'dark'`)
 - `<body>` 끝의 `<script src="/blog/theme.js"></script>`
 - `.blog-header` 안의 테마 도트 버튼 3개 (dark / light / neon)
+- **공통 프로필 카드용 플레이스홀더 `<div id="profile-card-placeholder"></div>`**
 - **pet-pass와 다른 점**: 기본 테마가 `'dark'`이므로, 플래시 방지 스크립트에서 `'dark'`일 때는 `data-theme` 속성을 붙이지 않는다.
 
 ---
@@ -123,7 +134,7 @@ pam-frontend/public/blog/
   <!-- 1. 메타 정보 -->
   <div class="post-meta">
     <span class="post-series-tag">{시리즈 태그}</span>
-    <span class="read-time">📖 약 {N}분</span>
+    <span class="read-time">약 {N}분</span>
   </div>
 
   <!-- 2. 제목 (날짜 없음 — 절대 추가하지 말 것) -->
@@ -147,7 +158,10 @@ pam-frontend/public/blog/
   <h2 id="id1">섹션 제목</h2>
   <p>내용</p>
 
-  <!-- 6. 포스트 푸터 (이전/다음 글 네비게이션) -->
+  <!-- 6. 공통 프로필 아카이브 카드 동적 주입 영역 -->
+  <div id="profile-card-placeholder"></div>
+
+  <!-- 7. 포스트 푸터 (이전/다음 글 네비게이션) -->
   <div class="post-footer">
     <a href="/blog/post{n-1}.html" class="btn-post-nav btn-prev">← 이전 글: {이전 글 요약 제목}</a>
     <a href="/blog/post{n+1}.html" class="btn-post-nav btn-next">다음 글: {다음 글 요약 제목} →</a>
@@ -195,15 +209,16 @@ pam-frontend/public/blog/
 
 ---
 
-## 7. 비주얼 컴포넌트 목록
+## 7. 비주얼 컴포넌트 및 동적 모듈 목록
 
 공통 CSS(`blog_post.css`)에 정의된 컴포넌트는 어떤 포스트에서도 바로 사용 가능하다.  
 포스트 고유 컴포넌트는 해당 포스트의 `<style>` 블록에 선언한다.
 
-### 7-1. 공통 컴포넌트 (blog_post.css에 있음)
+### 7-1. 공통 컴포넌트 및 프래그먼트 (blog_post.css / theme.js에 있음)
 
-| 컴포넌트 | 클래스 | 용도 |
+| 컴포넌트 | 선택자 / 플레이스홀더 | 용도 |
 |---|---|---|
+| 공통 프로필 아카이브 | `#profile-card-placeholder` | 류대성 엔지니어 Identity 카드 동적 Fetch 바인딩 (profile.html 로드) |
 | 하이라이트 박스 | `.highlight-box > p` | 핵심 문장 강조, 이탤릭 인용 |
 | 레슨 박스 | `.lesson-box > h3 + p` | 포스트 말미 교훈 정리 |
 | 타임라인 | `.timeline > .timeline-item[.fail]` | 시도/실패 과정 나열 |
@@ -218,7 +233,7 @@ pam-frontend/public/blog/
 |---|---|---|
 | 조건 카드 | post1 | `.condition-grid`, `.condition-card` — 3가지 조건 시각화 |
 | 레이어 스택 다이어그램 | post2 | `.layer-stack`, `.layer-item[.domain]`, `.layer-arrow` — 아키텍처 계층 |
-| 코드 블록 | post2 | `.code-block` + 신택스 하이라이트 스팬 |
+| 코드 블록 | post2 | `.code-block` + 신택스 하이라이트 스팬 (중복 CSS는 blog_post.css 최하단 통합 완료) |
 | 하트 비교 카드 | post3 | `.heart-compare`, `.heart-col`, `.heart-col-header[.basic/.special]` |
 | 흐름 박스 | post3 | `.flow-box`, `.flow-step`, `.flow-num` — 순서 있는 흐름 설명 |
 | 시리즈 예고 | post1 | `.series-preview` — 다음 글 예고 목록 |
@@ -228,11 +243,6 @@ pam-frontend/public/blog/
 - **같은 컴포넌트를 연속된 두 포스트에서 반복하지 않는다.**
 - 텍스트만 이어지는 구간이 길어지면 비주얼 컴포넌트를 하나 삽입해 리듬을 끊는다.
 - 새 컴포넌트를 만들 때는 이 목록(7-2)에 추가한다.
-- 향후 새로 만들 수 있는 컴포넌트 예시:
-  - 비교 표 (before/after 2열)
-  - API 요청/응답 스니펫
-  - 가챠 확률 시각화
-  - 사용자 플로우 다이어그램
 
 ---
 
@@ -258,6 +268,7 @@ pam-frontend/public/blog/
 ## 9. index.html 업데이트 규칙
 
 새 포스트를 추가할 때 반드시 `index.html`의 `<main class="blog-container">` 안에 카드를 **최상단에** 추가한다.
+또한 `index.html` 내에서도 공통 프로필 카드가 동적으로 로드되도록 최상단이나 최하단에 `<div id="profile-card-placeholder"></div>`가 명시되어 있는지 확인한다.
 
 ```html
 <a href="/blog/post{n}.html" class="blog-post-card glass">
@@ -270,8 +281,6 @@ pam-frontend/public/blog/
 </a>
 ```
 
-- `.blog-post-date`에는 날짜 대신 시리즈 카테고리를 넣는다.
-- 요약문은 "~했습니다" 체가 아니라 "~했다" 체로 끝낸다.
 - 카드 순서는 최신 글이 위로 온다.
 
 ---
@@ -280,28 +289,19 @@ pam-frontend/public/blog/
 
 ### 공통 CSS (`blog_post.css`)
 
-이 파일에는 **CSS 테마 변수 선언**이 포함되어 있다. pet-pass와 달리 외부 `/style.css`에 의존하지 않으므로,  
-이 파일 하나가 변수 정의부터 레이아웃까지 모든 것을 담당한다.
-
-이 파일을 수정하면 전체 포스트에 영향을 주므로 주의한다.
+이 파일에는 **CSS 테마 변수 선언**이 포함되어 있다. pet-pass와 달리 외부 `/style.css`에 의존하지 않으므로, 이 파일 하나가 변수 정의부터 레이아웃까지 모든 것을 담당한다.
 
 주요 포함 항목:
 - `:root`, `[data-theme="light"]`, `[data-theme="neon"]` CSS 변수
 - `.glass`, `body`, `.blog-header`, `.nav-buttons`, `.btn-nav`
-- `.blog-content`, `.post-meta`, `.post-series-tag`, `.read-time`
-- `.post-main-title`, `.post-tags`, `.tag-chip`
-- `.toc`, `.toc-title`
-- `.blog-content h2/p/strong/code`
-- `.highlight-box`, `.lesson-box`, `.divider`
-- `.timeline`, `.timeline-item`, `.timeline-label`
-- `.stats-grid`, `.stat-card`
-- `.post-footer`, `.btn-post-nav`, `.btn-prev`, `.btn-next`
-- 반응형 미디어 쿼리
+- `.blog-content`, `.post-meta`, `.post-series-tag`, `.read-time`, `.profile-card` (프로필 카드 공통 스타일 일체)
+- `.post-main-title`, `.post-tags`, `.tag-chip`, `.toc`
+- `.blog-content h2/p/strong/code`, `.highlight-box`, `.lesson-box`, `.divider`
+- `.timeline`, `.stats-grid`, `.post-footer`
 
 ### 포스트 고유 CSS (`<style>` 블록)
 
-해당 포스트에서만 사용하는 비주얼 컴포넌트 CSS만 선언한다.  
-공통 CSS에 이미 있는 클래스를 중복 선언하지 않는다.
+해당 포스트에서만 사용하는 비주얼 컴포넌트 CSS만 선언한다. 공통 CSS에 이미 있는 클래스를 중복 선언하지 않는다.
 
 ---
 
@@ -328,8 +328,9 @@ feat(blog): add post{n} — {한 줄 요약}
 - [ ] 이전 포스트의 "다음 글" 링크를 추가했는지 확인
 - [ ] `index.html`에 새 카드를 최상단에 추가했는지 확인
 - [ ] `<script src="/blog/theme.js"></script>`가 `</body>` 직전에 있는지 확인
+- [ ] **프로필 카드 마크업을 하드코딩하지 않고 `<div id="profile-card-placeholder"></div>` 플레이스홀더를 삽입했는지 확인**
 - [ ] 테마 플래시 방지 스크립트가 `<head>` 안에 있는지, `pam-theme` 키와 `'dark'` 기본값을 쓰는지 확인
-- [ ] 헤더 타이틀이 `🎰 pick-a-meme Dev Blog`인지, 테마 도트가 dark/light/neon 순서인지 확인
+- [ ] 헤더 타이틀이 `[Gacha] pick-a-meme Dev Blog` 등 테마 도트와 일치하는지 확인
 - [ ] 같은 비주얼 컴포넌트를 직전 포스트와 중복 사용하지 않았는지 확인
 - [ ] 고유 CSS를 `<style>` 블록에 선언했고, 공통 CSS와 중복되지 않는지 확인
-- [ ] `blog_post.css` 경로가 `/blog/blog_post.css`인지 확인 (pet-pass의 `/blog/blog_post.css`와 동일하나 `/style.css` 참조가 없어야 함)
+- [ ] `blog_post.css` 경로가 `/blog/blog_post.css`인지 확인
