@@ -33,6 +33,7 @@ pam-api (Delivery) → pam-application (UseCase) → pam-domain (Core)
 ### 동시성 제어
 - **Redisson Distributed Lock:** 하트 차감/충전 Race Condition 방지 필수 적용
 - **Redis as SSOT:** BASIC 하트는 Redis 단일 진실 공급원
+- **회원가입 하트 초기화 트랜잭션:** 회원가입 시 하트 초기화 및 웰컴 보상 지급은 비동기(@Async) 처리를 지양하고, 동기식 트랜잭션 범위에 묶어 가입 완료 즉시 100% 영속화 및 화면 반영을 보장한다. (2026-05-20 합의)
 
 ---
 
