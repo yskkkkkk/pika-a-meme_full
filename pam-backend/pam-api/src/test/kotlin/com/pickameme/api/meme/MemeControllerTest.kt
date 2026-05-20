@@ -41,6 +41,7 @@ class MemeControllerTest {
     @MockBean lateinit var memeComposeService: com.pickameme.application.meme.MemeComposeService
     @MockBean lateinit var userMemeRepository: com.pickameme.domain.meme.UserMemeRepository
     @MockBean lateinit var jwtProvider: JwtProvider
+    @MockBean lateinit var saveCompositionService: com.pickameme.application.meme.SaveCompositionService
 
     private val userId = UUID.randomUUID()
     private val auth = UsernamePasswordAuthenticationToken(

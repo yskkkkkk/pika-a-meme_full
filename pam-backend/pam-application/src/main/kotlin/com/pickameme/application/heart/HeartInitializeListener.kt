@@ -17,8 +17,8 @@ class HeartInitializeListener(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    // 회원가입 트랜잭션 커밋 후 BASIC 하트 5개 + SPECIAL 하트 1개 지급
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    // 회원가입 트랜잭션 커밋 직전 BASIC 하트 5개 + SPECIAL 하트 1개 지급
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     fun onUserRegistered(event: UserRegisteredEvent) {
         val basicHeart = Heart.createBasic(event.userId)
         heartRepository.save(basicHeart)

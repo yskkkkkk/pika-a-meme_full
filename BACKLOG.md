@@ -22,7 +22,7 @@
 | TASK-260429-03 | [회원/인증] | [x] | pam-application 모듈 구현 (회원가입 서비스, 하트 리스너) | - | - | 260429 / 260429 |
 | TASK-260429-04 | [인프라/공통] | [x] | pam-infrastructure 모듈 구현 (JPA 어댑터, Redis 기본 설정) | - | - | 260429 / 260429 |
 | TASK-260429-05 | [인프라/공통] | [x] | pam-api 모듈 구현 (Spring Boot 앱 진입점) | - | - | 260429 / 260429 |
-| TASK-260429-06 | [인프라/공통] | [x] | jOOQ Codegen Gradle 설정 및 인프라 레이어 연동 | - | Spring Data JPA + 네이티브 쿼리로 현재 요구사항 충족. 현 규모에서 오버엔지니어링으로 판단, 도입 철회 | 260429 / 260505 |
+| TASK-260429-06 | [인프라/공통] | [ ] | jOOQ Codegen Gradle 설정 및 인프라 레이어 연동 | - | 공부 목적의 완벽한 CQRS 아키텍처 분리를 위해 jOOQ 재도입 결정 (260520 수립) | 260429 / - |
 | TASK-260429-07 | [하트/스테미나] | [x] | Redisson 분산 락 구현 및 하트 충전/소모 로직 적용 | TASK-260429-03 | - | 260429 / 260429 |
 | TASK-260429-08 | [밈/이미지] | [x] | Meme 도메인 엔티티 및 영속성 레이어 구현 (JSONB 매핑) | - | - | 260429 / 260430 |
 | TASK-260429-09 | [밈/이미지] | [x] | 밈 생성 및 전체/개별 조회 REST API 구현 | - | TASK-260429-20에서 POST /api/memes, GET /api/memes 구현으로 완전 대체 | 260429 / 260501 |
@@ -113,6 +113,8 @@
 | TASK-260519-01 | [인프라/공통] | [x] | GlobalExceptionHandler의 NoResourceFoundException 잘못된 매핑 수정 | BUG-08 | NoResourceFoundException을 밈 리소스 에러가 아닌 일반 404로 수정 | 260519 / 260519 |
 | TASK-260519-02 | [회원/인증] | [x] | AuthController 내 OAuth2 URI 파싱 예외 은닉(Swallowing) 수정 및 로깅 추가 | BUG-09 | 예외 발생 시 에러 로그 추가하여 디버깅 용이성 확보 | 260519 / 260519 |
 | TASK-260519-03 | [프론트엔드] | [x] | 프론트엔드 비동기 통신 언마운트 상태 업데이트(메모리 누수) 방지 처리 | BUG-10 | useEffect 내 AbortController를 도입하여 언마운트 시 실제 네트워크 요청(apiFetch) 취소 적용 | 260519 / 260519 |
+| TASK-260520-01 | [회원/인증] | [x] | HeartInitializeListener 트랜잭션 동기 통합 (BEFORE_COMMIT으로 즉시 반영 보장) | - | 가입 커밋 직전 하트 초기화를 완료하여 레이스 컨디션 및 화면 깜빡임 예방 | 260520 / 260520 |
+| TASK-260520-02 | [인프라/공통] | [ ] | Sentry 연동 시 DomainException 필터링 및 로깅 정책 정의 | TASK-260502-01 | 도메인 예외(Warn)와 시스템 예외(Critical Error)의 슬랙 알림 감도 조율 | 260520 / - |
 
 ---
 
@@ -132,6 +134,7 @@
 - **SPECIAL 하트:** JPA(DB) SSOT, 조건/이벤트 기반 지급, 시간 제한 없음
 - **HeartRepository 라우팅:** BASIC → Redis, SPECIAL → JPA (CompositeHeartRepositoryAdapter)
 - **이력:** heart_histories 테이블 (CONSUME/CHARGE/GRANT 모두 기록 — 운영 핵심 지표)
+- **회원가입 하트 초기화 트랜잭션:** 회원가입 성공 시 하트 생성 및 웰컴 보상 지급은 비동기(@Async)로 처리하지 않고, 동기식 트랜잭션 범위에 묶어 가입 완료 즉시 100% 반영과 화면 깜빡임 차단 보장 (2026-05-20 합의)
 
 ### 명명 규칙 및 도메인 언어 (Naming Convention)
 - **도메인 객체 분리 원칙:** 백엔드/프론트엔드의 기술적 코드(변수, API, DB)는 **'밈(Meme)'**으로 명칭을 통일하여 유지보수성을 극대화한다. 사용자 노출용 브랜딩 명칭인 **'미미카드(MimiCard)'**는 프론트엔드의 화면 표시 계층 및 i18n 번역 리소스(`ko.json`) 수준에서만 엄격하게 한정하여 적용한다.
