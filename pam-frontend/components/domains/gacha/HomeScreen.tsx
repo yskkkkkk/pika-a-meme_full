@@ -2,6 +2,7 @@
 
 import { RecentMemeCarousel } from "@/components/domains/gacha/RecentMemeCarousel";
 import { useLanguage } from "@/hooks/useLanguage";
+import { Footer } from "@/components/Footer";
 
 interface Props {
   onBasicDraw: () => void;
@@ -81,6 +82,10 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
           </div>
         </button>
       </div>
+
+      {/* 모바일 화면 스크롤 아래 잉여 여백 영역에 은근히 심겨지는 푸터 */}
+      <Footer insideShell={true} />
     </div>
   );
 }
+
