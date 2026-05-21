@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모든 밈을 R2에 저장하지 않기로 한 이유 | pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ─── Before / After 비교 카드 ─── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 28px 0;
+    }
+    .compare-col {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .compare-col-header {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .compare-col-header.before {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .compare-col-header.after {
+      background: rgba(168, 85, 247, 0.1);
+      color: var(--primary);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    }
+    .compare-row {
+      display: flex;
+      flex-direction: column;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      gap: 2px;
+    }
+    .compare-row:last-child { border-bottom: none; }
+    .compare-row .label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    @media (max-width: 600px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <div id="blog-header-placeholder"></div>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">피카밈 개발기 · 기획 &amp; 설계 #1</span>
+      <span class="read-time">📖 약 7분</span>
+    </div>
+
+    <h1 class="post-main-title">모든 밈을 R2에<br>저장하지 않기로 한 이유</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#CloudflareR2</span>
+      <span class="tag-chip">#JSONB</span>
+      <span class="tag-chip">#설계결정</span>
+      <span class="tag-chip">#트레이드오프</span>
+      <span class="tag-chip">#OG이미지</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#first-design">처음 설계는 단순했다</a></li>
+        <li><a href="#problem">고아 파일이라는 유령</a></li>
+        <li><a href="#rethink">사용자에게 필요한 건 이미지가 아니었다</a></li>
+        <li><a href="#new-design">JSONB 한 컬럼으로</a></li>
+        <li><a href="#tradeoff">트레이드오프</a></li>
+        <li><a href="#og">그럼 OG 이미지는?</a></li>
+      </ol>
+    </div>
+
+    <h2 id="first-design">처음 설계는 단순했다</h2>
+
+    <p>밈을 뽑으면 이미지가 완성된다. 완성된 이미지는 저장해야 한다. 이게 처음 생각이었다.</p>
+
+    <p>Cloudflare R2에 S3 호환 SDK로 업로드하는 어댑터를 짰다. 밈 뽑기 유스케이스 흐름은 이랬다. 이미지와 문구를 조합하고, 완성된 결과물을 R2에 올리고, 그 URL을 DB에 기록한다. TASK-260429-19가 완료 처리됐다. 그런데 뭔가 계속 걸렸다.</p>
+
+    <div class="code-block"><span class="code-comment">// 초기 설계 — 뽑기마다 R2에 합성 이미지 업로드</span>
+<span class="code-keyword">val</span> image = imageRepo.<span class="code-type">findRandom</span>()
+<span class="code-keyword">val</span> phrase = phraseRepo.<span class="code-type">findRandom</span>()
+<span class="code-keyword">val</span> composedUrl = r2Storage.<span class="code-type">upload</span>(renderMeme(image, phrase))  <span class="code-comment">// R2 PUT</span>
+<span class="code-keyword">val</span> userMeme = UserMeme(imageUrl = composedUrl, ...)
+userMemeRepo.<span class="code-type">save</span>(userMeme)                                     <span class="code-comment">// DB INSERT</span></div>
+
+    <h2 id="problem">고아 파일이라는 유령</h2>
+
+    <p>R2 업로드가 성공한 직후 DB 저장이 실패하면 어떻게 되는가.</p>
+
+    <p>R2에는 이미지가 있다. DB에는 레코드가 없다. 이 이미지는 누구의 것인가. 어떻게 지울 수 있는가. 트랜잭션 안에 R2 업로드를 넣을 수 없다 — R2는 외부 HTTP 호출이고, 롤백이 없다.</p>
+
+    <p>해결책은 보상 트랜잭션이었다. DB 저장 실패 시 R2에 올라간 파일을 다시 삭제하는 로직을 만든다. 하지만 보상 트랜잭션도 실패할 수 있다. 그러면 정리 배치가 필요하다. 정리 배치가 실수로 살아 있는 파일을 지우면 감사 로그가 필요하다.</p>
+
+    <p>고아 파일 하나를 해결하려다 시스템이 불어나고 있었다. TASK-260501-01을 열었다가, 멈췄다. 이게 진짜 필요한 복잡성인지를 먼저 물어야 했다.</p>
+
+    <div class="highlight-box">
+      <p>외부 시스템 호출은 트랜잭션 경계 밖에 있다. DB는 롤백할 수 있어도 R2는 롤백할 수 없다.</p>
+    </div>
+
+    <h2 id="rethink">사용자에게 필요한 건 이미지가 아니었다</h2>
+
+    <p>요구사항으로 돌아갔다. 사용자가 실제로 하는 행동은 세 가지다. 밈을 뽑는다. 결과 카드를 본다. 마음에 들면 저장하거나 공유한다.</p>
+
+    <p>"결과 카드를 다시 본다"는 건 무슨 뜻인가. 이미 만들어진 이미지 파일이 필요한 게 아니다. 그 카드를 똑같이 다시 그릴 수 있으면 된다. 이미지가 아니라 <strong>재현에 필요한 재료</strong>가 필요한 것이다.</p>
+
+    <p>재료는 세 가지다. 어떤 동물 이미지를 썼는가, 말풍선 위치가 어디였는가, 문구가 무엇이었는가. 이 셋을 저장하면 언제든 동일한 카드를 다시 렌더링할 수 있다. 그리고 소스 이미지(동물 사진)는 이미 R2에 있다 — 재사용하면 된다.</p>
+
+    <h2 id="new-design">JSONB 한 컬럼으로</h2>
+
+    <p>R2 업로드 코드를 전부 지웠다. <code>user_memes.composition</code> JSONB 컬럼 하나가 그 자리를 대신했다.</p>
+
+    <div class="code-block"><span class="code-comment">// 새 설계 — 재현 재료만 JSONB로 저장</span>
+<span class="code-keyword">data class</span> <span class="code-type">MemeComposition</span>(
+    <span class="code-keyword">val</span> imageUrl: <span class="code-type">String</span>,         <span class="code-comment">// 소스 이미지 URL (img.pick-a-me.me)</span>
+    <span class="code-keyword">val</span> subjectPosition: <span class="code-type">String</span>,  <span class="code-comment">// 말풍선 위치 (TOP_LEFT 등)</span>
+    <span class="code-keyword">val</span> phraseText: <span class="code-type">String</span>        <span class="code-comment">// 문구 텍스트 스냅샷</span>
+)</div>
+
+    <p>DB 저장이 실패하면 아무것도 남지 않는다. 고아 파일이 없다. 보상 트랜잭션도 없고, 정리 배치도 없다. 아무것도 지울 게 없으니까.</p>
+
+    <div class="compare-grid">
+      <div class="compare-col">
+        <div class="compare-col-header before">이전 — 뽑기마다 R2 업로드</div>
+        <div class="compare-row"><span class="label">저장 대상</span>합성된 결과 이미지 파일</div>
+        <div class="compare-row"><span class="label">고아 파일</span>DB 저장 실패 시 R2에 잔존</div>
+        <div class="compare-row"><span class="label">복구 방법</span>보상 트랜잭션 + 정리 배치</div>
+        <div class="compare-row"><span class="label">뽑기 비용</span>R2 PUT 요청 매번</div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-col-header after">이후 — JSONB 재료 저장</div>
+        <div class="compare-row"><span class="label">저장 대상</span>재현 재료 3개 (JSONB)</div>
+        <div class="compare-row"><span class="label">고아 파일</span>구조상 발생 불가</div>
+        <div class="compare-row"><span class="label">복구 방법</span>필요 없음</div>
+        <div class="compare-row"><span class="label">뽑기 비용</span>DB 쓰기 1회</div>
+      </div>
+    </div>
+
+    <h2 id="tradeoff">트레이드오프</h2>
+
+    <p>이 결정의 약점은 두 가지다.</p>
+
+    <p>첫째, 이미지 다운로드가 클라이언트 렌더링이다. html2canvas가 브라우저에서 카드를 그려 저장한다. 폰트 로딩 타이밍에 따라 결과물에 차이가 생길 수 있고, 서버에서 완성 이미지를 만들어 내려주는 방식보다 품질 제어가 어렵다. 지금은 허용 가능한 수준이라고 판단했다.</p>
+
+    <p>둘째, 소스 이미지가 R2에서 삭제되면 카드를 재현할 수 없다. 소스 이미지 URL이 SSOT다. 이건 운영상 소스 이미지를 함부로 지우지 않는 것으로 해결한다 — 지금 규모에서 이미지 수백 장의 보관 비용은 사실상 0에 가깝다.</p>
+
+    <h2 id="og">그럼 OG 이미지는?</h2>
+
+    <p>링크를 카카오톡에 붙여넣으면 미리보기 이미지가 떠야 한다. SNS 크롤러는 JavaScript를 실행하지 않으므로 서버사이드 HTML에 <code>&lt;meta property="og:image"&gt;</code>가 있어야 한다. 클라이언트 렌더링으로는 해결이 안 된다.</p>
+
+    <p>여기서 다시 R2가 필요해 보인다. 그런데 뽑기할 때마다 모든 결과를 R2에 올릴 이유는 없다. 실제로 공유하는 사람만, 공유하는 그 순간에만 올리면 된다.</p>
+
+    <div class="flow-box">
+      <div class="flow-step"><div class="flow-num">1</div><strong>공유하기 클릭</strong> — <code>og_image_url</code>이 이미 있으면 바로 공유 URL 전달</div>
+      <div class="flow-step"><div class="flow-num">2</div><strong>없으면</strong> — 클라이언트에서 카드 캡처 → <code>POST /api/memes/{id}/og-image</code></div>
+      <div class="flow-step"><div class="flow-num">3</div><strong>백엔드</strong> — R2 <code>og/{memeId}.png</code> 업로드 → <code>og_image_url</code> 저장 → URL 반환</div>
+      <div class="flow-step"><div class="flow-num">4</div><strong>/share/{memeId}</strong> — <code>generateMetadata()</code>에서 SSR로 OG 태그 주입</div>
+    </div>
+
+    <p>결과를 보고 버리는 사용자에게는 R2 비용이 발생하지 않는다. 공유 의사가 생긴 사람에게만, 그 시점에만 비용이 발생한다. 뽑기마다 전부 저장하던 초기 설계와 비교하면 같은 기능을 훨씬 적은 비용으로 구현한다.</p>
+
+    <p>이 흐름은 아직 구현 전이다. <code>html2canvas</code>를 <code>html-to-image</code>로 교체하는 작업이 선행되어야 한다. 하지만 설계는 확정됐고, "모든 결과를 R2에 저장하지 않는다"는 결정과 충돌하지 않는다.</p>
+
+    <hr class="divider">
+
+    <div class="lesson-box">
+      <h3>이 결정에서 배운 것</h3>
+      <p>처음 설계는 "필요할지 모른다"는 가정 위에 쌓이기 쉽다. "지금 필요한가"를 먼저 물어야 한다. 아니라면 git이 기억하게 두면 된다.</p>
+      <p>그리고 정말 필요해졌을 때도 처음부터 전부 저장할 필요는 없다. 비용이 발생하는 시점을 늦출 수 있다면 — 실제 필요가 발생한 그 순간으로 미루는 것이 더 나은 설계일 수 있다.</p>
+    </div>
+
+    <div id="profile-card-placeholder"></div>
+
+    <div class="post-footer">
+      <a href="/blog/post4.html" class="btn-post-nav btn-prev">← 이전 글: 로그아웃이 5번 깨졌다</a>
+    </div>
+  </main>
+
+  <script src="/blog/config.js"></script>
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>
