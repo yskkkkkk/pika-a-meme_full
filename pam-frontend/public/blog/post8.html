@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>미션 시스템이 무너진 곳은 미션이 아니었다 | pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ─── fix-diff: before/after 4줄 수정 비교 ─── */
+    .fix-diff {
+      margin: 28px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .fix-diff-header {
+      display: flex;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .fix-diff-header-before {
+      flex: 1;
+      padding: 8px 14px;
+      background: rgba(239,68,68,0.12);
+      color: #f87171;
+      border-bottom: 1px solid var(--border);
+    }
+    .fix-diff-header-after {
+      flex: 1;
+      padding: 8px 14px;
+      background: rgba(34,197,94,0.12);
+      color: #4ade80;
+      border-bottom: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+    }
+    .fix-diff-body {
+      display: flex;
+    }
+    .fix-diff-col {
+      flex: 1;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      white-space: pre;
+    }
+    .fix-diff-col.before {
+      background: rgba(239,68,68,0.06);
+      border-right: 1px solid var(--border);
+    }
+    .fix-diff-col.after {
+      background: rgba(34,197,94,0.06);
+    }
+    .diff-removed { color: #f87171; }
+    .diff-added   { color: #4ade80; }
+    .diff-context { color: var(--text-tertiary); }
+  </style>
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <div id="blog-header-placeholder"></div>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">피카밈 개발기 · 이슈 #5</span>
+      <span class="read-time">📖 약 7분</span>
+    </div>
+
+    <h1 class="post-main-title">미션 시스템이<br>무너진 곳은<br>미션이 아니었다</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#미션시스템</span>
+      <span class="tag-chip">#버그</span>
+      <span class="tag-chip">#인증가드</span>
+      <span class="tag-chip">#접점버그</span>
+      <span class="tag-chip">#Kotlin</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#mission-done">미션 시스템 완성</a></li>
+        <li><a href="#bug1">버그 ① — 비로그인 유저도 SPECIAL 뽑기가 됐다</a></li>
+        <li><a href="#bug2">버그 ② — 하트가 없어도 뽑기 진입이 됐다</a></li>
+        <li><a href="#bug3">버그 ③ — 충전량이 항상 0으로 기록됐다</a></li>
+        <li><a href="#bug4">버그 ④ — 미사용 변수</a></li>
+        <li><a href="#pattern">4개 버그의 공통점</a></li>
+      </ol>
+    </div>
+
+    <h2 id="mission-done">미션 시스템 완성</h2>
+
+    <p>미션 시스템은 피카밈의 스페셜 하트 공급 루트다. 출석 체크, 연속 방문, 첫 공유, 주간 공유, 보관함 10개 · 30개 달성, 숨겨진 테마 발견. 각 미션을 달성하면 SPECIAL 하트가 지급된다.</p>
+
+    <p><code>MissionService</code>를 완성했을 때 내부 로직은 깔끔했다. <code>trigger()</code> 하나로 모든 진입점을 받고, 중복 지급 방지, 주간/일간 period 키, streak 추적까지 테스트를 거쳐서 작동했다.</p>
+
+    <div class="highlight-box">
+      <p>배포 직후 점검 중에 버그 4개가 연달아 나왔다. 전부 MissionService 바깥에서 터진 문제들이었다.</p>
+    </div>
+
+    <h2 id="bug1">버그 ① — 비로그인 유저도 SPECIAL 뽑기가 됐다</h2>
+
+    <div class="timeline">
+      <div class="tl-item fail">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-title">증상</div>
+          <div class="tl-desc">로그인하지 않은 상태에서 heartType=SPECIAL로 뽑기 API를 직접 호출하면 400/401이 아닌 200이 반환됐다.</div>
+        </div>
+      </div>
+      <div class="tl-item fail">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-title">원인</div>
+          <div class="tl-desc">SPECIAL 하트는 로그인 전용이다. 그런데 <code>MemeController</code>에서 heartType이 SPECIAL일 때 userId가 null인 경우를 차단하는 가드가 없었다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fix-diff">
+      <div class="fix-diff-header">
+        <div class="fix-diff-header-before">Before</div>
+        <div class="fix-diff-header-after">After</div>
+      </div>
+      <div class="fix-diff-body">
+        <div class="fix-diff-col before"><span class="diff-context">fun compose(</span>
+<span class="diff-context">  @AuthUser userId: UUID?,</span>
+<span class="diff-context">  heartType: HeartType</span>
+<span class="diff-context">): ResponseEntity&lt;*&gt; {</span>
+<span class="diff-removed">  // 인증 가드 없음</span>
+<span class="diff-context">  return service.compose(</span>
+<span class="diff-context">    userId, heartType</span>
+<span class="diff-context">  )</span>
+<span class="diff-context">}</span></div>
+        <div class="fix-diff-col after"><span class="diff-context">fun compose(</span>
+<span class="diff-context">  @AuthUser userId: UUID?,</span>
+<span class="diff-context">  heartType: HeartType</span>
+<span class="diff-context">): ResponseEntity&lt;*&gt; {</span>
+<span class="diff-added">  if (userId == null &amp;&amp;</span>
+<span class="diff-added">      heartType == SPECIAL)</span>
+<span class="diff-added">    return unauthorized()</span>
+<span class="diff-context">  return service.compose(</span>
+<span class="diff-context">    userId, heartType</span>
+<span class="diff-context">  )</span>
+<span class="diff-context">}</span></div>
+      </div>
+    </div>
+
+    <p>SPECIAL 하트를 지급하는 로직은 MissionService에서 정확하게 작동했다. 소비하는 로직은 HeartService에서 잔액을 확인했다. 그런데 API 진입 직전에 "SPECIAL은 로그인 필수"라는 규칙을 강제하는 코드가 없었다.</p>
+
+    <h2 id="bug2">버그 ② — 하트가 없어도 뽑기 진입이 됐다</h2>
+
+    <div class="timeline">
+      <div class="tl-item fail">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-title">증상</div>
+          <div class="tl-desc">스페셜 하트가 0개인 상태에서도 UI상 뽑기 버튼이 활성화되어 눌렸다. 백엔드에서 잔액 부족으로 오류가 반환되지만 UX가 깨졌다.</div>
+        </div>
+      </div>
+      <div class="tl-item fail">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-title">원인</div>
+          <div class="tl-desc">프론트엔드 <code>page.tsx</code>의 <code>executeSpecialDraw()</code> 함수가 진입 전에 잔액을 확인하지 않았다. 잔액 체크는 API 호출 이후 오류 응답에서만 이루어졌다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fix-diff">
+      <div class="fix-diff-header">
+        <div class="fix-diff-header-before">Before</div>
+        <div class="fix-diff-header-after">After</div>
+      </div>
+      <div class="fix-diff-body">
+        <div class="fix-diff-col before"><span class="diff-context">async function</span>
+<span class="diff-context">  executeSpecialDraw() {</span>
+<span class="diff-removed">  // 잔액 체크 없음</span>
+<span class="diff-context">  await drawMeme(</span>
+<span class="diff-context">    { heartType: 'SPECIAL' }</span>
+<span class="diff-context">  )</span>
+<span class="diff-context">}</span></div>
+        <div class="fix-diff-col after"><span class="diff-context">async function</span>
+<span class="diff-context">  executeSpecialDraw() {</span>
+<span class="diff-added">  if (special.count &lt;= 0) {</span>
+<span class="diff-added">    showInsufficientToast()</span>
+<span class="diff-added">    return</span>
+<span class="diff-added">  }</span>
+<span class="diff-context">  await drawMeme(</span>
+<span class="diff-context">    { heartType: 'SPECIAL' }</span>
+<span class="diff-context">  )</span>
+<span class="diff-context">}</span></div>
+      </div>
+    </div>
+
+    <p>백엔드는 잔액이 없으면 오류를 반환한다. 그러나 사용자 경험 관점에서 잔액 체크는 UI 레이어에서 먼저 이루어져야 한다. 서버 왕복 없이 즉시 피드백을 주는 것이 맞다.</p>
+
+    <h2 id="bug3">버그 ③ — 충전량이 항상 0으로 기록됐다</h2>
+
+    <div class="timeline">
+      <div class="tl-item fail">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-title">증상</div>
+          <div class="tl-desc">미션 달성 시 SPECIAL 하트가 정상 지급됐지만, DB의 <code>HeartHistory</code>에 기록된 <code>chargedAmount</code>가 항상 0이었다.</div>
+        </div>
+      </div>
+      <div class="tl-item fail">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-title">원인</div>
+          <div class="tl-desc"><code>beforeCount</code>를 캡처하는 시점이 문제였다. <code>chargeIfNeeded()</code>를 먼저 호출하고 나서 <code>beforeCount</code>를 캡처했기 때문에, 이미 충전된 이후의 값이 "충전 전 값"으로 기록됐다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fix-diff">
+      <div class="fix-diff-header">
+        <div class="fix-diff-header-before">Before — 순서가 뒤집힌 코드</div>
+        <div class="fix-diff-header-after">After — 충전 전에 캡처</div>
+      </div>
+      <div class="fix-diff-body">
+        <div class="fix-diff-col before"><span class="diff-context">fun grantSpecialHeart(</span>
+<span class="diff-context">  userId: UUID, amount: Int</span>
+<span class="diff-context">) {</span>
+<span class="diff-removed">  chargeIfNeeded(userId, amount)</span>
+<span class="diff-removed">  val beforeCount =  // 이미 충전됨</span>
+<span class="diff-removed">    getCount(userId)</span>
+<span class="diff-context">  recordHistory(</span>
+<span class="diff-context">    userId, beforeCount, amount</span>
+<span class="diff-context">  )</span>
+<span class="diff-context">}</span></div>
+        <div class="fix-diff-col after"><span class="diff-context">fun grantSpecialHeart(</span>
+<span class="diff-context">  userId: UUID, amount: Int</span>
+<span class="diff-context">) {</span>
+<span class="diff-added">  val preChargeCount =</span>
+<span class="diff-added">    getCount(userId)  // 충전 전</span>
+<span class="diff-added">  chargeIfNeeded(userId, amount)</span>
+<span class="diff-context">  recordHistory(</span>
+<span class="diff-context">    userId, preChargeCount, amount</span>
+<span class="diff-context">  )</span>
+<span class="diff-context">}</span></div>
+      </div>
+    </div>
+
+    <p><code>chargedAmount = currentCount - beforeCount</code>. <code>beforeCount</code>를 충전 이후에 읽으면 둘의 차이는 항상 0이다. 코드가 틀린 게 아니라 실행 순서가 틀렸다.</p>
+
+    <h2 id="bug4">버그 ④ — 미사용 변수</h2>
+
+    <p>③을 수정하는 과정에서 이전 코드에서 사용하던 <code>charged</code> 변수가 리팩토링 후 아무 데서도 참조되지 않는 채 남아 있었다. 컴파일 경고가 발생했다. 변수 제거로 해결했다.</p>
+
+    <p>규모는 가장 작지만 ③을 고칠 때 놓쳤으면 정적 분석 경고가 쌓였을 문제다.</p>
+
+    <h2 id="pattern">4개 버그의 공통점</h2>
+
+    <p>MissionService 내부 로직은 올바르게 작동했다. 버그들은 전부 미션 시스템이 기존 시스템과 만나는 접점에서 발생했다.</p>
+
+    <p>① — MemeController: API 레이어에서 심어야 할 인증 가드 누락<br>
+    ② — page.tsx: 프론트 UI 레이어에서 잔액 사전 확인 누락<br>
+    ③ — HeartService: 기존 메서드에 로직 추가 시 실행 순서 오류<br>
+    ④ — HeartService: 리팩토링 후 정리되지 않은 잔재</p>
+
+    <div class="highlight-box">
+      <p>새 기능 자체가 아니라, 새 기능이 기존 코드와 연결되는 접점이 버그의 진원지였다. MissionService를 아무리 정교하게 짜도, 그것을 호출하는 쪽과 그것이 의존하는 쪽의 계약이 맞지 않으면 시스템은 깨진다.</p>
+    </div>
+
+    <hr class="divider">
+
+    <div class="lesson-box">
+      <h3>이 경험에서 배운 것</h3>
+      <p>새 기능을 완성한 후 테스트는 그 기능 내부만 검증하기 쉽다. 그런데 버그는 새 기능과 기존 시스템의 경계, 즉 호출 방향과 의존 방향 양쪽에서 함께 터진다.</p>
+      <p>미션 시스템을 배포한 뒤 가장 먼저 체크했어야 했던 것은 "미션이 정상 달성되는가"가 아니라 "SPECIAL 뽑기 진입 경로 전체가 올바르게 통제되는가"였다. 기능 경계 밖의 흐름을 함께 점검하는 습관이 접점 버그를 줄인다.</p>
+    </div>
+
+    <div id="profile-card-placeholder"></div>
+
+    <div class="post-footer">
+      <a href="/blog/post7.html" class="btn-post-nav btn-prev">← 이전 글: 느린 DDoS는 어떻게 막는가</a>
+    </div>
+  </main>
+
+  <script src="/blog/config.js"></script>
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>
