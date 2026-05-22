@@ -1,5 +1,6 @@
 package com.pickameme.api.auth
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
@@ -7,16 +8,13 @@ import org.springframework.http.ResponseCookie
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository
 import org.springframework.stereotype.Component
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
 import java.util.Base64
 
 @Component
 class CookieOAuth2AuthorizationRequestRepository(
     @Value("\${cookie.secure:true}") private val cookieSecure: Boolean,
     @Value("\${cookie.domain:}") private val cookieDomain: String,
+    private val objectMapper: ObjectMapper,
 ) : AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
     companion object {
@@ -66,15 +64,29 @@ class CookieOAuth2AuthorizationRequestRepository(
     private fun getCookieValue(request: HttpServletRequest, name: String): String? =
         request.cookies?.find { it.name == name }?.value
 
-    private fun serialize(obj: OAuth2AuthorizationRequest): String {
-        val baos = ByteArrayOutputStream()
-        ObjectOutputStream(baos).use { it.writeObject(obj) }
-        return Base64.getUrlEncoder().encodeToString(baos.toByteArray())
-    }
+    private fun serialize(obj: OAuth2AuthorizationRequest): String =
+        Base64.getUrlEncoder().encodeToString(objectMapper.writeValueAsBytes(mapOf(
+            "authorizationUri" to obj.authorizationUri,
+            "clientId" to obj.clientId,
+            "redirectUri" to obj.redirectUri,
+            "scopes" to obj.scopes,
+            "state" to obj.state,
+            "additionalParameters" to obj.additionalParameters,
+            "attributes" to obj.attributes,
+        )))
 
+    @Suppress("UNCHECKED_CAST")
     private fun deserialize(value: String): OAuth2AuthorizationRequest? = try {
-        val bytes = Base64.getUrlDecoder().decode(value)
-        ObjectInputStream(ByteArrayInputStream(bytes)).use { it.readObject() as OAuth2AuthorizationRequest }
+        val m = objectMapper.readValue(Base64.getUrlDecoder().decode(value), Map::class.java)
+        OAuth2AuthorizationRequest.authorizationCode()
+            .authorizationUri(m["authorizationUri"] as String)
+            .clientId(m["clientId"] as String)
+            .redirectUri(m["redirectUri"] as? String)
+            .scopes((m["scopes"] as? Collection<*>)?.filterIsInstance<String>()?.toSet() ?: emptySet())
+            .state(m["state"] as? String)
+            .additionalParameters((m["additionalParameters"] as? Map<String, Any>) ?: emptyMap())
+            .attributes((m["attributes"] as? Map<String, Any>) ?: emptyMap())
+            .build()
     } catch (e: Exception) {
         null
     }
