@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>느린 DDoS는 어떻게 막는가 — Rate Limiting 전략 | pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ─── 엔드포인트 리스크 테이블 ─── */
+    .rule-table {
+      margin: 28px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .rule-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .rule-table th {
+      background: var(--bg-secondary);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rule-table td {
+      padding: 11px 14px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+    .rule-table tr:last-child td { border-bottom: none; }
+    .rule-table td.endpoint { font-family: 'Courier New', monospace; font-size: 12px; color: var(--primary); font-weight: 700; }
+    .rule-table td.limit { font-weight: 800; color: var(--text-primary); text-align: center; }
+    .risk-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .risk-high   { background: rgba(239,68,68,0.15);  color: #f87171; }
+    .risk-mid    { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .risk-low    { background: rgba(34,197,94,0.15);  color: #4ade80; }
+  </style>
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <div id="blog-header-placeholder"></div>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">피카밈 개발기 · 기획 &amp; 설계 #2</span>
+      <span class="read-time">📖 약 7분</span>
+    </div>
+
+    <h1 class="post-main-title">느린 DDoS는<br>어떻게 막는가</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#RateLimiting</span>
+      <span class="tag-chip">#Redis</span>
+      <span class="tag-chip">#DDoS</span>
+      <span class="tag-chip">#Cloudflare</span>
+      <span class="tag-chip">#토큰버킷</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#cloudflare-enough">Cloudflare가 있으면 충분한가</a></li>
+        <li><a href="#cost-bomb">비용 폭탄의 실체</a></li>
+        <li><a href="#endpoint-risk">엔드포인트별 위험도</a></li>
+        <li><a href="#token-bucket">토큰 버킷 — Redis INCR 하나로</a></li>
+        <li><a href="#fail-closed">fail-closed 정책</a></li>
+        <li><a href="#ip-trap">IP 식별의 함정</a></li>
+      </ol>
+    </div>
+
+    <h2 id="cloudflare-enough">Cloudflare가 있으면 충분한가</h2>
+
+    <p>피카밈의 모든 트래픽은 Cloudflare Proxy를 통과한다. L3/L4 대역폭 공격, 대규모 HTTP Flood — 이런 공격은 Cloudflare가 흡수한다. 백엔드 서버 IP는 외부에 노출되지 않는다.</p>
+
+    <p>그런데도 Redis Rate Limiting을 별도로 구현한 이유가 있다. Cloudflare가 막는 건 <strong>규모의 공격</strong>이다. 하지만 비용 폭탄을 만드는 건 규모가 아니라 <strong>빈도</strong>다.</p>
+
+    <div class="highlight-box">
+      <p>초당 10만 요청은 Cloudflare가 막는다. 분당 50회의 정교한 반복 요청은 Cloudflare를 통과하고, Railway 컨테이너와 Neon DB와 Upstash Redis에 비용을 발생시킨다.</p>
+    </div>
+
+    <h2 id="cost-bomb">비용 폭탄의 실체</h2>
+
+    <p>피카밈 뽑기 한 번(<code>/api/memes/compose</code>)이 실행될 때 일어나는 일을 따라가 보자.</p>
+
+    <p>Neon PostgreSQL에서 이미지 목록 랜덤 조회, 문구 목록 랜덤 조회. Upstash Redis에서 BASIC 하트 잔량 확인 + 분산 락 획득. 뽑기 결과 DB 저장. 하트 차감 후 락 해제. 한 번의 클릭에 DB 쿼리 3~4회, Redis 연산 4~5회가 발생한다.</p>
+
+    <p>이 흐름을 분당 수백 회 반복하면 Neon 연산 쿼터가 빠르게 소진되고, Upstash 명령 수 요금이 발생하며, Railway 컨테이너가 과부하 상태가 된다. Cloudflare가 원본 서버를 보호하더라도, 통과한 요청이 충분히 많으면 비용은 발생한다.</p>
+
+    <h2 id="endpoint-risk">엔드포인트별 위험도</h2>
+
+    <p>모든 엔드포인트에 동일한 제한을 적용하면 실제 사용자가 불편해진다. 위험도에 따라 독립적인 규칙을 적용했다.</p>
+
+    <div class="rule-table">
+      <table>
+        <thead>
+          <tr>
+            <th>엔드포인트</th>
+            <th>제한</th>
+            <th>키</th>
+            <th>위험도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="endpoint">POST /api/memes</td>
+            <td class="limit">5 / 분</td>
+            <td>USER + IP</td>
+            <td><span class="risk-badge risk-high">HIGH</span></td>
+          </tr>
+          <tr>
+            <td class="endpoint">GET /api/memes/compose</td>
+            <td class="limit">10 / 분</td>
+            <td>USER or IP</td>
+            <td><span class="risk-badge risk-high">HIGH</span></td>
+          </tr>
+          <tr>
+            <td class="endpoint">GET /oauth2/authorization/</td>
+            <td class="limit">10 / 분</td>
+            <td>IP</td>
+            <td><span class="risk-badge risk-mid">MID</span></td>
+          </tr>
+          <tr>
+            <td class="endpoint">GET /login/oauth2/code/</td>
+            <td class="limit">20 / 분</td>
+            <td>IP</td>
+            <td><span class="risk-badge risk-mid">MID</span></td>
+          </tr>
+          <tr>
+            <td class="endpoint">GET /api/auth/me</td>
+            <td class="limit">60 / 분</td>
+            <td>USER + IP</td>
+            <td><span class="risk-badge risk-low">LOW</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>키 전략도 엔드포인트마다 다르다. 뽑기처럼 로그인 여부가 중요한 곳은 <code>USER_OR_IP</code> — 로그인 사용자는 userId로, 비로그인은 IP로 추적한다. 저장처럼 로그인 필수인 곳은 <code>USER_AND_IP</code> — 두 식별자를 조합해 계정 공유를 통한 우회도 막는다.</p>
+
+    <h2 id="token-bucket">토큰 버킷 — Redis INCR 하나로</h2>
+
+    <p>구현은 의외로 단순하다. Redis의 원자적 증가 연산(INCR) 하나면 된다.</p>
+
+    <div class="flow-box">
+      <div class="flow-step"><div class="flow-num">1</div>요청 도착 → 매칭 rule 찾기 (path + method)</div>
+      <div class="flow-step"><div class="flow-num">2</div>Redis <code>INCR pam:rate-limit:{rule}:{actor}</code> → 현재 카운터 반환</div>
+      <div class="flow-step"><div class="flow-num">3</div>카운터 == 1이면 <code>EXPIRE</code>로 윈도우 TTL 설정 (자동 리셋)</div>
+      <div class="flow-step"><div class="flow-num">4</div>카운터 > capacity → 429 + <code>Retry-After</code> 헤더 응답</div>
+    </div>
+
+    <div class="code-block"><span class="code-comment">// Redis INCR + EXPIRE 조합 — 카운터와 윈도우를 원자적으로 관리</span>
+<span class="code-keyword">private fun</span> <span class="code-type">consume</span>(key: <span class="code-type">String</span>, window: <span class="code-type">Duration</span>): <span class="code-type">Long</span> {
+    <span class="code-keyword">val</span> count = redisTemplate.opsForValue().<span class="code-type">increment</span>(key) ?: 1L
+    <span class="code-keyword">if</span> (count == 1L) {
+        redisTemplate.<span class="code-type">expire</span>(key, window)  <span class="code-comment">// 첫 요청 시에만 TTL 설정</span>
+    }
+    <span class="code-keyword">return</span> count
+}</div>
+
+    <p>카운터가 1이 되는 순간(윈도우 첫 요청)에만 TTL을 설정한다. 이후 요청들은 카운터만 증가시킨다. TTL이 만료되면 키 자체가 사라지고 다음 요청이 새 윈도우를 시작한다. 별도 만료 로직이 없다.</p>
+
+    <h2 id="fail-closed">fail-closed 정책</h2>
+
+    <p>Redis가 장애 상태일 때 Rate Limiting 체크가 실패하면 어떻게 해야 하는가. 두 가지 선택지가 있다.</p>
+
+    <p><strong>fail-open</strong>: 체크 실패 시 요청을 통과시킨다. 사용자 경험은 보호되지만 Redis가 죽은 동안 제한이 없어진다. <strong>fail-closed</strong>: 체크 실패 시 요청을 차단한다. Redis가 죽으면 모든 Rate Limit 대상 엔드포인트가 429를 반환한다.</p>
+
+    <p>피카밈은 fail-closed를 기본으로 선택했다. Redis 장애가 발생할 확률보다 비용 폭탄이 발생할 확률이 높고, 비용 폭탄의 피해가 더 크다고 판단했기 때문이다.</p>
+
+    <div class="code-block"><span class="code-comment">// failClosed = true → Redis 장애 시 Long.MAX_VALUE 반환 → 즉시 429</span>
+<span class="code-keyword">val</span> result = runCatching { consume(rateLimitKey, rule.window) }
+    .getOrElse { e ->
+        log.warn(<span class="code-string">"Rate limit check failed"</span>, e)
+        <span class="code-keyword">if</span> (properties.failClosed) <span class="code-type">Long</span>.MAX_VALUE <span class="code-keyword">else</span> 0L
+    }</div>
+
+    <h2 id="ip-trap">IP 식별의 함정</h2>
+
+    <p>Rate Limiting의 핵심은 누가 보낸 요청인지를 정확히 식별하는 것이다. 그런데 Cloudflare Proxy 환경에서는 함정이 있다.</p>
+
+    <p>백엔드 서버가 보는 <code>request.remoteAddr</code>은 실제 사용자 IP가 아니라 <strong>Cloudflare의 엣지 서버 IP</strong>다. 같은 Cloudflare 노드를 거친 모든 사용자가 같은 IP로 묶여 버린다. IP 기반 Rate Limiting이 제대로 작동하지 않는다.</p>
+
+    <p>해결책은 Cloudflare가 실제 클라이언트 IP를 담아 전달하는 <code>CF-Connecting-IP</code> 헤더를 읽는 것이다. 이 설정이 <code>useForwardedHeaders</code>다.</p>
+
+    <p>현재 이 값은 <code>false</code>가 기본이다. Cloudflare를 거치지 않고 직접 Railway 컨테이너에 접근하는 경우(예: Railway 기본 도메인 직접 접근)에는 이 헤더가 없거나 조작될 수 있어서다. 커스텀 도메인으로만 접근을 강제하는 Origin Shielding이 적용된 후 <code>true</code>로 전환할 예정이다.</p>
+
+    <hr class="divider">
+
+    <div class="lesson-box">
+      <h3>이 결정에서 배운 것</h3>
+      <p>외부 방어막(Cloudflare)과 내부 방어막(Rate Limiting)은 막는 위협의 종류가 다르다. Cloudflare는 규모의 공격을 막고, Redis Rate Limiting은 비용이 발생하는 빈도를 제어한다. 둘은 대체 관계가 아니라 계층 관계다.</p>
+      <p>엔드포인트별로 위험도가 다르면 규칙도 달라야 한다. 뽑기와 인증 정보 조회에 같은 한도를 적용하면 어느 쪽도 제대로 보호하지 못한다.</p>
+    </div>
+
+    <div id="profile-card-placeholder"></div>
+
+    <div class="post-footer">
+      <a href="/blog/post6.html" class="btn-post-nav btn-prev">← 이전 글: OAuth2 state가 사라진다</a>
+      <a href="/blog/post8.html" class="btn-post-nav btn-next">다음 글: 미션 시스템이 무너진 곳은 미션이 아니었다 →</a>
+    </div>
+  </main>
+
+  <script src="/blog/config.js"></script>
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>

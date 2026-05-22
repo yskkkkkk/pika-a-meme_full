@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth2 state가 사라진다 — STATELESS의 함정 | pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ─── OAuth2 시퀀스 다이어그램 ─── */
+    .seq-diagram {
+      margin: 28px 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .seq-title {
+      background: var(--bg-secondary);
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .seq-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      font-size: 13px;
+    }
+    .seq-row:last-child { border-bottom: none; }
+    .seq-actor {
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+      padding: 4px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .seq-actor.browser  { background: rgba(59,130,246,0.12);  color: #60a5fa; }
+    .seq-actor.backend  { background: rgba(168,85,247,0.12);  color: var(--primary); }
+    .seq-actor.kakao    { background: rgba(250,204,21,0.15);  color: #fbbf24; }
+    .seq-actor.empty    { visibility: hidden; }
+    .seq-msg {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.5;
+    }
+    .seq-msg .arrow     { color: var(--primary); font-weight: 700; margin: 0 4px; }
+    .seq-msg .state-tag {
+      display: inline-block;
+      background: rgba(168,85,247,0.15);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+      margin-left: 4px;
+    }
+    .seq-msg .state-tag.stored {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+    }
+    .seq-msg .state-tag.fail {
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+    }
+  </style>
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <div id="blog-header-placeholder"></div>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">피카밈 개발기 · 이슈 #4</span>
+      <span class="read-time">📖 약 8분</span>
+    </div>
+
+    <h1 class="post-main-title">OAuth2 state가<br>사라진다</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#OAuth2</span>
+      <span class="tag-chip">#STATELESS</span>
+      <span class="tag-chip">#SpringSecurity</span>
+      <span class="tag-chip">#쿠키</span>
+      <span class="tag-chip">#CSRF</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#symptom">사건의 발단</a></li>
+        <li><a href="#what-is-state">OAuth2 state란</a></li>
+        <li><a href="#spring-default">Spring의 기본 동작</a></li>
+        <li><a href="#conflict">STATELESS와의 충돌</a></li>
+        <li><a href="#wrong-fix">잘못된 복구 — IF_REQUIRED</a></li>
+        <li><a href="#solution">해결 — 쿠키가 세션을 대신한다</a></li>
+        <li><a href="#hidden-trap">숨은 함정 — 절반만 연결된 설정</a></li>
+      </ol>
+    </div>
+
+    <h2 id="symptom">사건의 발단</h2>
+
+    <p>카카오, 구글 소셜 로그인을 구현했다. 로컬 환경에서 양쪽 다 잘 됐다. 배포 후 며칠간은 문제없었다. 그러다 갑자기 로그인 버튼을 눌렀을 때 카카오 인증 화면까지 넘어갔다가 돌아오면 에러 페이지로 떨어졌다.</p>
+
+    <p>Spring Security 로그에 찍힌 메시지는 딱 한 줄이었다.</p>
+
+    <div class="code-block"><span class="code-string">[authorization_request_not_found]</span></div>
+
+    <p>요청이 발견되지 않았다는 게 무슨 뜻인가. 로그인 버튼을 분명히 눌렀는데, 요청이 없다고 한다.</p>
+
+    <h2 id="what-is-state">OAuth2 state란</h2>
+
+    <p>OAuth2 인가 코드 흐름에는 <code>state</code>라는 파라미터가 있다. 짧은 랜덤 문자열이다. CSRF 공격을 막기 위한 장치다.</p>
+
+    <div class="seq-diagram">
+      <div class="seq-title">OAuth2 인가 코드 흐름 — state의 이동</div>
+      <div class="seq-row">
+        <div class="seq-actor browser">브라우저</div>
+        <div class="seq-msg">로그인 요청 <span class="arrow">→</span></div>
+        <div class="seq-actor backend">백엔드</div>
+      </div>
+      <div class="seq-row">
+        <div class="seq-actor empty"></div>
+        <div class="seq-msg">state 생성 + 어딘가에 저장 <span class="state-tag stored">state=abc123</span></div>
+        <div class="seq-actor backend">백엔드</div>
+      </div>
+      <div class="seq-row">
+        <div class="seq-actor backend">백엔드</div>
+        <div class="seq-msg"><span class="arrow">→</span> 카카오로 리다이렉트 (state 포함)</div>
+        <div class="seq-actor kakao">카카오</div>
+      </div>
+      <div class="seq-row">
+        <div class="seq-actor browser">브라우저</div>
+        <div class="seq-msg"><span class="arrow">←</span> 인증 완료 후 콜백 (code + state)</div>
+        <div class="seq-actor kakao">카카오</div>
+      </div>
+      <div class="seq-row">
+        <div class="seq-actor empty"></div>
+        <div class="seq-msg">저장했던 state와 콜백 state 비교 → 일치하면 통과</div>
+        <div class="seq-actor backend">백엔드</div>
+      </div>
+    </div>
+
+    <p>핵심은 두 번째 행이다. 백엔드가 state를 생성한 뒤 <strong>어딘가에 저장</strong>해둬야 한다. 카카오에서 콜백이 돌아왔을 때 그걸 꺼내서 비교해야 하니까. 그 "어딘가"가 문제였다.</p>
+
+    <h2 id="spring-default">Spring의 기본 동작</h2>
+
+    <p>Spring Security의 기본 구현인 <code>HttpSessionOAuth2AuthorizationRequestRepository</code>는 이름 그대로 state를 <strong>HTTP 세션</strong>에 저장한다. 로그인 요청 시 세션에 넣고, 콜백에서 세션에서 꺼낸다.</p>
+
+    <p>세션 기반 앱에서는 자연스러운 선택이다. 그런데 피카밈은 세션을 쓰지 않는다.</p>
+
+    <h2 id="conflict">STATELESS와의 충돌</h2>
+
+    <p>피카밈은 JWT HttpOnly 쿠키로 인증한다. 서버 사이드 세션이 없다. SecurityConfig에 명시적으로 선언되어 있다.</p>
+
+    <div class="code-block"><span class="code-comment">// 세션을 완전히 끄는 선언</span>
+http.sessionManagement {
+    it.sessionCreationPolicy(<span class="code-type">SessionCreationPolicy</span>.<span class="code-keyword">STATELESS</span>)
+}</div>
+
+    <p>이 한 줄이 문제의 근원이었다. STATELESS 정책 하에서 Spring Security는 세션을 생성하지 않는다. state를 저장할 세션이 없으니, 콜백에서 꺼낼 state도 없다. <code>[authorization_request_not_found]</code>는 이 상황을 그대로 표현한 것이다.</p>
+
+    <div class="highlight-box">
+      <p>OAuth2는 인가 요청과 콜백 사이에 상태(state)를 보존해야 하는 흐름이다. 무상태 서버에 상태가 필요한 흐름이 들어오면, 그 상태를 어디에 둘지부터 정해야 한다.</p>
+    </div>
+
+    <h2 id="wrong-fix">잘못된 복구 — IF_REQUIRED</h2>
+
+    <div class="timeline">
+      <div class="timeline-item fail">
+        <div class="timeline-label">1차 시도 · 실패</div>
+        <p>가장 빠른 해결책처럼 보인 것은 세션 정책을 <code>IF_REQUIRED</code>로 완화하는 것이었다. OAuth2 흐름에서만 세션을 허용하자는 의도였다. state 저장 에러는 사라졌다. 로그인이 됐다.</p>
+      </div>
+    </div>
+
+    <p>그런데 이 수정에는 대가가 있었다. <code>IF_REQUIRED</code>는 Spring이 필요하다고 판단할 때마다 세션을 만든다. OAuth2 핸드셰이크 과정에서 <code>JSESSIONID</code> 쿠키가 생겼다. 그리고 이 세션은 JWT가 만료되거나 삭제되어도 살아남아 사용자를 계속 인증 상태로 유지시켰다.</p>
+
+    <p>post4에서 로그아웃이 5번 깨진 원인 중 마지막 하나가 바로 이것이었다. JWT를 지워도 JSESSIONID가 남아서 백엔드가 세션으로 사용자를 재인증했다. 잘못된 복구가 다른 버그의 원인이 되어 있었다.</p>
+
+    <h2 id="solution">해결 — 쿠키가 세션을 대신한다</h2>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-label">해결 · CookieOAuth2AuthorizationRequestRepository</div>
+        <p>세션 대신 <strong>단기 HttpOnly 쿠키</strong>에 state를 직렬화해서 저장한다. 세션을 생성하지 않으면서도 요청-콜백 사이에 state를 전달할 수 있다.</p>
+      </div>
+    </div>
+
+    <p><code>CookieOAuth2AuthorizationRequestRepository</code>를 직접 구현했다. 동작은 단순하다. 로그인 요청 시 <code>OAuth2AuthorizationRequest</code> 객체를 Java 직렬화 + Base64로 인코딩해서 <code>oauth2_auth_request</code> 쿠키에 담는다. TTL은 180초 — OAuth2 흐름이 3분을 넘기는 일은 없다. 콜백에서 쿠키를 읽어 역직렬화하고, 검증 후 즉시 쿠키를 지운다.</p>
+
+    <div class="code-block"><span class="code-comment">// CookieOAuth2AuthorizationRequestRepository — 핵심 저장 로직</span>
+<span class="code-keyword">override fun</span> <span class="code-type">saveAuthorizationRequest</span>(
+    authorizationRequest: <span class="code-type">OAuth2AuthorizationRequest</span>?,
+    request: <span class="code-type">HttpServletRequest</span>,
+    response: <span class="code-type">HttpServletResponse</span>
+) {
+    <span class="code-keyword">val</span> cookie = ResponseCookie.from(<span class="code-string">"oauth2_auth_request"</span>, serialize(authorizationRequest))
+        .httpOnly(<span class="code-keyword">true</span>)
+        .secure(<span class="code-keyword">true</span>)
+        .sameSite(<span class="code-string">"Lax"</span>)
+        .maxAge(<span class="code-annotation">180</span>)   <span class="code-comment">// 3분 TTL — 흐름 완료 후 자동 소멸</span>
+        .build()
+    response.addHeader(<span class="code-string">"Set-Cookie"</span>, cookie.toString())
+}</div>
+
+    <p>쿠키가 세션의 역할을 대신하지만 서버 사이드 상태는 없다. 완전한 STATELESS를 유지하면서 OAuth2 흐름이 요구하는 임시 상태를 브라우저 측에서 관리하는 방식이다.</p>
+
+    <h2 id="hidden-trap">숨은 함정 — 절반만 연결된 설정</h2>
+
+    <p><code>CookieOAuth2AuthorizationRequestRepository</code>를 만들고 SecurityConfig에 연결했다. 그런데 여전히 간헐적으로 <code>[authorization_request_not_found]</code>가 터졌다.</p>
+
+    <p>OAuth2 로그인 흐름에는 두 개의 필터가 관여한다. 로그인 요청을 처리해서 카카오/구글로 리다이렉트하는 <code>OAuth2AuthorizationRequestRedirectFilter</code>, 그리고 콜백을 받아서 토큰을 교환하는 <code>OAuth2LoginAuthenticationFilter</code>다.</p>
+
+    <p><code>authorizationEndpoint</code>에만 저장소를 설정하면 리다이렉트 필터에는 쿠키 저장소가 연결되지만, <code>OAuth2LoginAuthenticationFilter</code>는 여전히 기본 세션 저장소를 바라본다. state를 쿠키에 저장했는데 콜백에서는 세션에서 꺼내려 하니 당연히 찾지 못한다.</p>
+
+    <div class="code-block"><span class="code-comment">// SecurityConfig — 두 필터 모두에 쿠키 저장소를 연결해야 한다</span>
+.oauth2Login { oauth2 ->
+    <span class="code-comment">// ① 리다이렉트 필터에 연결</span>
+    oauth2.authorizationEndpoint {
+        it.authorizationRequestRepository(cookieAuthorizationRequestRepository)
+    }
+    <span class="code-comment">// ② 콜백 필터에도 직접 주입 — 이걸 빠뜨리면 절반만 연결된다</span>
+    .withObjectPostProcessor(
+        <span class="code-keyword">object</span> : ObjectPostProcessor&lt;<span class="code-type">OAuth2LoginAuthenticationFilter</span>&gt; {
+            <span class="code-keyword">override fun</span> &lt;O : <span class="code-type">OAuth2LoginAuthenticationFilter</span>&gt; <span class="code-type">postProcess</span>(filter: O): O {
+                filter.setAuthorizationRequestRepository(cookieAuthorizationRequestRepository)
+                <span class="code-keyword">return</span> filter
+            }
+        }
+    )
+}</div>
+
+    <p><code>ObjectPostProcessor</code>로 <code>OAuth2LoginAuthenticationFilter</code>가 생성된 직후에 저장소를 교체 주입했다. 이 한 줄이 추가되고 나서야 에러가 완전히 사라졌다.</p>
+
+    <hr class="divider">
+
+    <div class="lesson-box">
+      <h3>이 경험에서 배운 것</h3>
+      <p>라이브러리의 "기본 동작"은 당신 서비스의 "기본 가정"과 항상 일치하지 않는다. Spring Security의 OAuth2 구현은 세션 기반 앱을 가정한다. JWT + STATELESS 서비스에서 그대로 쓰면 충돌한다.</p>
+      <p>그리고 설정이 "연결된 것처럼 보이는 것"과 "실제로 연결된 것" 사이에는 차이가 있다. OAuth2 흐름에 필터가 두 개라는 사실을 알기 전까지는 왜 간헐적으로 터지는지 이해할 수 없었다. 프레임워크 코드를 한 번 직접 따라가 본 시간이 두 번째 이후의 같은 종류의 문제를 빠르게 해결하게 해줬다.</p>
+    </div>
+
+    <div id="profile-card-placeholder"></div>
+
+    <div class="post-footer">
+      <a href="/blog/post5.html" class="btn-post-nav btn-prev">← 이전 글: 모든 밈을 R2에 저장하지 않기로 한 이유</a>
+      <a href="/blog/post7.html" class="btn-post-nav btn-next">다음 글: 느린 DDoS는 어떻게 막는가 →</a>
+    </div>
+  </main>
+
+  <script src="/blog/config.js"></script>
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>
