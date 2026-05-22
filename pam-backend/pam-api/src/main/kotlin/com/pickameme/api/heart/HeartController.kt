@@ -16,9 +16,9 @@ class HeartController(
 
     @GetMapping
     fun getHearts(
-        @AuthenticationPrincipal userId: UUID
-    ): ApiResponse<HeartsResponse> {
-        val hearts = heartService.getHearts(userId)
-        return ApiResponse.ok(HeartsResponse.from(hearts))
+        @AuthenticationPrincipal userId: UUID?
+    ): ApiResponse<HeartsResponse?> {
+        if (userId == null) return ApiResponse.ok(null)
+        return ApiResponse.ok(HeartsResponse.from(heartService.getHearts(userId)))
     }
 }
