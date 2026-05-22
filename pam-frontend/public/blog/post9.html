@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>i18n의 갈림길 — 백엔드가 번역할 것인가, 프론트가 할 것인가 | pick-a-meme Dev Blog</title>
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <div id="blog-header-placeholder"></div>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">피카밈 개발기 · 기획 &amp; 설계 #3</span>
+      <span class="read-time">📖 약 7분</span>
+    </div>
+
+    <h1 class="post-main-title">i18n의 갈림길<br>— 백엔드가 번역할 것인가,<br>프론트가 할 것인가</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#i18n</span>
+      <span class="tag-chip">#다국어</span>
+      <span class="tag-chip">#설계결정</span>
+      <span class="tag-chip">#에러코드</span>
+      <span class="tag-chip">#트레이드오프</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#trigger">한국어 전용으로 시작했다가</a></li>
+        <li><a href="#antipattern">발견된 안티패턴</a></li>
+        <li><a href="#error-decision">결정 1 — 에러 메시지는 프론트가 번역한다</a></li>
+        <li><a href="#phrase-decision">결정 2 — 밈 문구는 행을 분리한다</a></li>
+        <li><a href="#lang-param">결정 3 — 언어 전달은 쿼리 파라미터로</a></li>
+        <li><a href="#i18n-infra">i18n 인프라가 지금 하는 일</a></li>
+      </ol>
+    </div>
+
+    <h2 id="trigger">한국어 전용으로 시작했다가</h2>
+
+    <p>피카밈은 처음부터 한국어 서비스로 시작했다. 모든 에러 메시지, 토스트, 문구 데이터가 한글이었다. 프로젝트 중반에 영어권 사용자도 쓸 수 있게 하자는 결정이 생겼다.</p>
+
+    <p>이미 프론트엔드에는 언어 전환 인프라가 있었다. <code>LanguageProvider</code>로 현재 언어를 관리하고, <code>createTranslator(lang)</code>로 사전을 주입하는 구조다. UI 텍스트는 모두 <code>t.home.title</code>, <code>t.gacha.drawWithTag</code> 같은 키로 접근한다.</p>
+
+    <p>문제는 두 가지였다. 첫째, 백엔드에서 내려오는 에러 메시지를 어떻게 다국어로 만들 것인가. 둘째, DB의 밈 문구 데이터를 어떻게 다국어로 확장할 것인가.</p>
+
+    <h2 id="antipattern">발견된 안티패턴</h2>
+
+    <p>코드를 점검하다가 이 부분을 발견했다.</p>
+
+    <div class="code-block"><span class="code-comment">// app/page.tsx — classifyDrawError()의 실제 분기 방식</span>
+<span class="code-keyword">function</span> <span class="code-type">classifyDrawError</span>(error: <span class="code-type">Error</span>): <span class="code-type">DrawErrorType</span> {
+    <span class="code-keyword">if</span> (error.message.<span class="code-type">includes</span>(<span class="code-string">"하트가 부족"</span>)) {
+        <span class="code-keyword">return</span> <span class="code-string">"INSUFFICIENT_HEART"</span>
+    }
+    <span class="code-keyword">if</span> (error.message.<span class="code-type">includes</span>(<span class="code-string">"재료를 찾을 수"</span>)) {
+        <span class="code-keyword">return</span> <span class="code-string">"MEME_SOURCE_NOT_FOUND"</span>
+    }
+    <span class="code-keyword">return</span> <span class="code-string">"UNKNOWN"</span>
+}</div>
+
+    <p>백엔드에서 내려온 한글 메시지를 프론트가 문자열 포함 여부로 분기하고 있었다. 여기서 영어 모드를 지원하는 게 무슨 의미가 있나. 백엔드가 한글 메시지를 그대로 내려보내는 한, 분기 코드도 영어로 번역될 수 없다.</p>
+
+    <div class="highlight-box">
+      <p>문제는 백엔드 메시지 언어가 아니었다. 프론트가 백엔드의 메시지 <em>내용</em>에 의존하고 있다는 것이었다. 메시지는 사람을 위한 설명이고, 분기는 코드를 위한 식별자여야 한다.</p>
+    </div>
+
+    <h2 id="error-decision">결정 1 — 에러 메시지는 프론트가 번역한다</h2>
+
+    <p>두 가지 선택지가 있었다.</p>
+
+    <div class="compare-grid">
+      <div class="compare-col">
+        <div class="compare-col-header before">A. 백엔드가 번역</div>
+        <div class="compare-row"><strong>방법:</strong> Spring MessageSource + Accept-Language 헤더, 백엔드가 직접 언어별 메시지 반환</div>
+        <div class="compare-row"><strong>장점:</strong> 메시지 소스가 한 곳에 있음, 백엔드 로그도 다국어</div>
+        <div class="compare-row"><strong>단점:</strong> 사전 파일이 백엔드/프론트 양쪽에 생김. 새 언어 추가 시 두 곳 수정. 캐시 키에 언어 영향</div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-col-header after">B. 프론트가 번역 (선택)</div>
+        <div class="compare-row"><strong>방법:</strong> 백엔드는 안정적인 <code>error.code</code>만 반환, 프론트 <code>t.errors.*</code> 사전이 메시지 생성</div>
+        <div class="compare-row"><strong>장점:</strong> 사전이 프론트 한 곳에만. 언어 추가 시 수정 지점 단일. 백엔드 코드 불변</div>
+        <div class="compare-row"><strong>단점:</strong> 백엔드 로그 메시지는 영문 고정 (디버그용으로는 오히려 좋음)</div>
+      </div>
+    </div>
+
+    <p>프론트 번역을 선택했다. 이미 프론트에 <code>t.errors.*</code> 사전이 있고, 백엔드 메시지는 사용자에게 직접 노출되지 않아도 된다. 중요한 건 <code>error.code</code>가 안정적이어야 한다는 것이다 — 이건 계약이므로 변경 금지다.</p>
+
+    <div class="code-block"><span class="code-comment">// API 응답 구조 — 변경 금지 계약</span>
+{
+  <span class="code-string">"success"</span>: <span class="code-keyword">false</span>,
+  <span class="code-string">"error"</span>: {
+    <span class="code-string">"code"</span>: <span class="code-string">"INSUFFICIENT_HEART"</span>,       <span class="code-comment">// 프론트가 분기에 사용하는 식별자</span>
+    <span class="code-string">"message"</span>: <span class="code-string">"Insufficient heart balance."</span> <span class="code-comment">// 운영 로그/디버그 전용 — 사용자 노출 안 함</span>
+  }
+}
+
+<span class="code-comment">// 프론트에서의 분기 — 이전 문자열 매칭을 대체</span>
+<span class="code-keyword">if</span> (error <span class="code-keyword">instanceof</span> <span class="code-type">ApiError</span> &amp;&amp; error.code === <span class="code-string">"INSUFFICIENT_HEART"</span>) {
+    showToast(t.errors.insufficientHeart) <span class="code-comment">// 현재 언어로 번역된 토스트</span>
+}</div>
+
+    <h2 id="phrase-decision">결정 2 — 밈 문구는 행을 분리한다</h2>
+
+    <p>밈 문구 데이터는 다르다. DB에 저장된 실제 텍스트를 언어별로 가져와야 한다. 세 가지 스키마 방식을 검토했다.</p>
+
+    <div class="compare-grid">
+      <div class="compare-col">
+        <div class="compare-col-header before">B. JSONB 단일 행</div>
+        <div class="compare-row"><code>text_i18n: {"ko": "...", "en": "..."}</code> 방식</div>
+        <div class="compare-row">장점: 한 문구의 ko/en 쌍 관리 편함</div>
+        <div class="compare-row">단점: 부분 인덱스 불가, 언어별 가중치 조정 어려움, NULL 처리 복잡</div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-col-header after">A. language 컬럼 + 행 분리 (선택)</div>
+        <div class="compare-row"><code>language VARCHAR(8) NOT NULL DEFAULT 'ko'</code> 컬럼 추가, 동일 의미 문구를 ko/en 두 행으로 저장</div>
+        <div class="compare-row">장점: 단순 스키마, 인덱스 효율, 언어별 문구 수 비대칭 허용</div>
+        <div class="compare-row">단점: 한 문구의 ko/en 묶음 필요 시 그룹핑 로직 필요 (현재 요구사항 없음)</div>
+      </div>
+    </div>
+
+    <p>세 번째 옵션인 별도 <code>meme_phrase_translations</code> 테이블은 정규화가 깔끔하지만, 매번 JOIN이 필요하고 현재 문구 수(50건)에 과설계다. 행 분리를 선택했다.</p>
+
+    <p>한국어와 영어 문구를 1:1로 대응시키지 않아도 된다는 점이 중요했다. 영어권 사용자에게 자연스러운 밈 문구는 한국어를 직역한 것이 아니라 영어권 문화에 맞게 별도 큐레이션한 것이어야 한다. 행 분리 방식은 이 비대칭을 허용한다.</p>
+
+    <h2 id="lang-param">결정 3 — 언어 전달은 쿼리 파라미터로</h2>
+
+    <p>밈 문구를 언어별로 가져오려면 서버가 현재 언어를 알아야 한다. <code>Accept-Language</code> 헤더, <code>pam_lang</code> 쿠키, 명시적 쿼리 파라미터 세 가지를 검토했다.</p>
+
+    <p><code>Accept-Language</code> 헤더는 캐시 키 분리가 까다롭고 디버깅이 불편하다. 쿠키는 SSR과 캐시 키 관리가 복잡해진다. 쿼리 파라미터가 가장 명시적이고 추적 가능하다. 뽑기 API에만 한정해서 적용하면 범위도 최소화된다.</p>
+
+    <div class="code-block"><span class="code-comment">// GET /api/memes/compose — lang 파라미터 추가</span>
+@GetMapping(<span class="code-string">"/compose"</span>)
+<span class="code-keyword">fun</span> <span class="code-type">compose</span>(
+    @AuthenticationPrincipal userId: <span class="code-type">UUID</span>?,
+    @RequestParam heartType: <span class="code-type">HeartType</span>,
+    @RequestParam(required = <span class="code-keyword">false</span>) tags: <span class="code-type">List</span>&lt;<span class="code-type">String</span>&gt;?,
+    @RequestParam(required = <span class="code-keyword">false</span>, defaultValue = <span class="code-string">"ko"</span>) lang: <span class="code-type">String</span>,
+): <span class="code-type">ApiResponse</span>&lt;<span class="code-type">MemeComposeResult</span>&gt;
+
+<span class="code-comment">// Fallback 정책: 요청 언어 문구 0건 → ko 재조회</span>
+<span class="code-comment">// 언어 화이트리스트: ["ko", "en"] 외 → ko fallback (SQL 인젝션 방어)</span></div>
+
+    <p><code>@Cacheable("recent-matched-memes")</code>의 캐시 키에 <code>language</code>가 포함되어야 한다는 게 이 결정의 숨은 함정이다. 포함하지 않으면 한국어 요청이 캐시한 결과를 영어 요청이 그대로 받아가는 오염이 생긴다. 캐시 키 설계는 post10에서 따로 다룬다.</p>
+
+    <h2 id="i18n-infra">i18n 인프라가 지금 하는 일</h2>
+
+    <p><code>createTranslator(language)</code>는 얇은 래퍼다. 사전 객체를 그대로 반환하면서 형식화된 문자열이 필요한 곳만 <code>format</code> 함수로 감쌌다.</p>
+
+    <div class="code-block"><span class="code-comment">// lib/i18n.ts — createTranslator 핵심 부분</span>
+<span class="code-keyword">export function</span> <span class="code-type">createTranslator</span>(language: <span class="code-type">Language</span>) {
+    <span class="code-keyword">const</span> messages = translations[language]
+
+    <span class="code-keyword">return</span> {
+        ...messages,
+        format: {
+            homeSubtitleUser: (name: <span class="code-type">string</span>) =>
+                format(messages.home.subtitleUser, { name }),
+            totalCount: (count: <span class="code-type">number</span>) =>
+                format(messages.gallery.totalCount, { count }),
+            drawWithTag: (tag: <span class="code-type">string</span>) =>
+                format(messages.gacha.drawWithTag, { tag }),
+        },
+        memeWithParticle: (particle: <span class="code-type">KoreanParticle</span>) => {
+            <span class="code-keyword">if</span> (language !== <span class="code-string">"ko"</span>) <span class="code-keyword">return</span> <span class="code-string">"a Meme"</span>
+            <span class="code-comment">// 한국어 조사 처리: 받침 유무에 따라 을/를, 이/가, 은/는</span>
+            <span class="code-keyword">const</span> meme = messages.brand.meme
+            <span class="code-keyword">return</span> `${meme}${resolveParticle(meme, particle)}`
+        },
+    }
+}</div>
+
+    <p><code>memeWithParticle</code>은 흥미로운 부분이다. 한국어는 앞 단어의 받침 유무에 따라 조사가 달라진다. "밈을" vs "밈을" — 이 경우는 같지만, 브랜드명이 바뀌면 달라진다. 받침 여부를 유니코드 범위로 계산해서 처리한다. 영어는 간단히 "a Meme"으로 고정한다.</p>
+
+    <hr class="divider">
+
+    <div class="lesson-box">
+      <h3>이 결정에서 배운 것</h3>
+      <p>i18n을 나중에 끼워 넣으려면 먼저 설계를 점검해야 한다. 코드베이스 어딘가에 "백엔드 한글 메시지를 프론트가 문자열 비교로 분기하는" 코드가 있다면, 표면만 번역해봤자 내부 로직은 여전히 단일 언어에 묶여 있다.</p>
+      <p>에러 코드와 에러 메시지는 독자가 다르다. 코드는 코드가 읽는다. 메시지는 사람이 읽는다. 이 두 역할이 섞이면 언어 전환도, 에러 분류도 모두 어려워진다.</p>
+    </div>
+
+    <div id="profile-card-placeholder"></div>
+
+    <div class="post-footer">
+      <a href="/blog/post8.html" class="btn-post-nav btn-prev">← 이전 글: 미션 시스템이 무너진 곳은 미션이 아니었다</a>
+    </div>
+  </main>
+
+  <script src="/blog/config.js"></script>
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>
