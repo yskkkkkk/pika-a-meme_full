@@ -61,31 +61,30 @@
 
 ## SECURITY-01 · 보안 취약점 점검 결과 (260522) — GitHub Issue #122
 
-- **상태**: OPEN
 - **연관**: GitHub Issue #122
 
-### P1 — 즉시 수정
+### P1 — FIXED (PR #124)
 
 | # | 파일 | 내용 |
 |---|------|------|
-| 1 | `CookieOAuth2AuthorizationRequestRepository.kt` | Java `ObjectInputStream`으로 OAuth2 state 쿠키 역직렬화 중. 쿠키 위조 시 RCE 가능. → Jackson JSON 직렬화로 교체 필요 |
-| 2 | `HeartController.kt` + `SecurityConfig.kt` | `GET /api/hearts`가 `permitAll()`이나 `@AuthenticationPrincipal userId: UUID`에 null 체크 없음. 비로그인 요청 시 NPE → `UUID?` + null 반환 또는 `authenticated()` 변경 |
-| 3 | `JwtAuthenticationFilter.kt` | `isValid()` 통과 후 `extractUserId()` 호출 시 예외 throw 가능 → null 반환으로 처리 필요 |
+| 1 | `CookieOAuth2AuthorizationRequestRepository.kt` | Java 역직렬화 RCE → Jackson JSON으로 교체 ✅ |
+| 2 | `HeartController.kt` | 비로그인 NPE → UUID? + null guard 추가 ✅ |
+| 3 | `JwtAuthenticationFilter.kt` | extractUserId 예외 → runCatching 처리 ✅ |
 
-### P2 — 1주일 내
+### P2 — 부분 완료 (PR #124)
+
+| # | 상태 | 파일 | 내용 |
+|---|------|------|------|
+| 4 | ✅ FIXED | `GlobalExceptionHandler.kt` | Bean Validation 응답에서 내부 필드명 제거 |
+| 5 | ✅ FIXED | `SecurityConfig.kt` | CORS allowedHeaders 와일드카드 → Content-Type, Authorization 명시 |
+| 6 | ⏳ OCI 이관 시 | `RateLimitFilter.kt` | `useForwardedHeaders=true` 전환 시 `X-Forwarded-For` 위조 우회 가능. OCI+Nginx 구성 확정 후 `CF-Connecting-IP` 전용으로 수정 필요. 현재 `false`이므로 안전. |
+
+### P3 — OPEN
 
 | # | 파일 | 내용 |
 |---|------|------|
-| 4 | `RateLimitFilter.kt` | OCI 이관 후 `useForwardedHeaders=true` 전환 시 `X-Forwarded-For` 위조로 Rate Limit 우회 가능 → `CF-Connecting-IP` 헤더 전용으로 제한 |
-| 5 | `GlobalExceptionHandler.kt` | Bean Validation 실패 시 `"imageId: must not be null"` 형태로 내부 필드명 노출 → 고정 메시지로 교체 |
-| 6 | `SecurityConfig.kt` | `allowedHeaders = listOf("*")` + `allowCredentials = true` 조합 → 필요한 헤더만 명시 |
-
-### P3 — 중기
-
-| # | 파일 | 내용 |
-|---|------|------|
-| 7 | `app/page.tsx` | `pam_show_welcome` 플래그를 `localStorage`에 저장 중. XSS 발생 시 조작 가능 → `sessionStorage`로 교체 |
-| 8 | `RefreshTokenService.kt` | `findByJti()` null 케이스(레코드 없음)에서 만료된 탈취 토큰 재사용 감지 불가 → family chain 개선 고려 |
+| 7 | `app/page.tsx` | `pam_show_welcome` 플래그 localStorage → sessionStorage 교체 |
+| 8 | `RefreshTokenService.kt` | `findByJti()` null(만료 레코드 없음) 케이스에서 탈취 토큰 재사용 감지 불가. family chain 개선 고려 |
 
 ---
 

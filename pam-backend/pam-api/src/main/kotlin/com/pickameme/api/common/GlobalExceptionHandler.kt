@@ -56,13 +56,8 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(e: MethodArgumentNotValidException): ApiResponse<Nothing> {
-        val message = e.bindingResult.fieldErrors
-            .joinToString(", ") { "${it.field}: ${it.defaultMessage}" }
-        log.warn("Validation failed: {}", message)
-        return ApiResponse(
-            success = false,
-            error = ErrorDetail(ErrorCode.INVALID_REQUEST.name, message)
-        )
+        log.warn("Validation failed: {}", e.bindingResult.fieldErrors.joinToString(", ") { "${it.field}: ${it.defaultMessage}" })
+        return ApiResponse.fail(ErrorCode.INVALID_REQUEST)
     }
 
     // 400 — 그 외 DomainException (명시적으로 매핑되지 않은 비즈니스 예외)
