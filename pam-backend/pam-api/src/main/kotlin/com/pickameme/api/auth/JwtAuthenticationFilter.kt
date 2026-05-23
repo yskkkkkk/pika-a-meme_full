@@ -22,12 +22,11 @@ class JwtAuthenticationFilter(
     ) {
         resolveToken(request)
             ?.takeIf { jwtProvider.isValid(it) }
-            ?.let { token ->
-                val userId = jwtProvider.extractUserId(token)
-                val auth = UsernamePasswordAuthenticationToken(
+            ?.let { token -> runCatching { jwtProvider.extractUserId(token) }.getOrNull() }
+            ?.let { userId ->
+                SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(
                     userId, null, listOf(SimpleGrantedAuthority("ROLE_USER"))
                 )
-                SecurityContextHolder.getContext().authentication = auth
             }
 
         filterChain.doFilter(request, response)
