@@ -287,7 +287,7 @@ body {
 /* ─── 구분선 ─── */
 .divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
 
-/* ─── 타임라인 ─── */
+/* ─── 화살표형 타임라인 ─── */
 .timeline {
   border-left: 2px solid var(--border);
   padding-left: 24px;
@@ -325,6 +325,41 @@ body {
 .timeline-item.fail .timeline-label { color: #ef4444; }
 .timeline-item p { margin: 0; font-size: 15px; color: var(--text-secondary); }
 
+/* ─── 불릿 타임라인 (tl-*) ─── */
+.tl-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.tl-item:last-child { margin-bottom: 0; }
+
+.tl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.tl-item.fail .tl-dot { background: #ef4444; }
+
+.tl-body { flex: 1; }
+
+.tl-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.tl-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
 /* ─── 통계 카드 ─── */
 .stats-grid {
   display: grid;
@@ -353,6 +388,73 @@ body {
   font-size: 13px;
   color: var(--text-tertiary);
   font-weight: 600;
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* ─── 비교 카드 ─── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.compare-col {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.compare-col-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.compare-col-header.before {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.compare-col-header.after {
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--primary);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.compare-row {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  gap: 2px;
+}
+
+.compare-row:last-child { border-bottom: none; }
+
+.compare-row .label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+  .compare-grid { grid-template-columns: 1fr; }
 }
 
 /* ─── 포스트 푸터 / 이전·다음 글 ─── */
@@ -498,7 +600,7 @@ body {
   .profile-links { justify-content: center; }
 }
 
-/* ─── 포스트 상세: 프로필 카드 콤팩트 ─── */
+/* ─── 포스트 상세: 프로필 카드 컴팩트 ─── */
 .blog-content .profile-card {
   padding: 14px 18px;
   gap: 14px;
