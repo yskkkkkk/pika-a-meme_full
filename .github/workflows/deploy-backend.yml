@@ -1,0 +1,31 @@
+name: Deploy Backend to OCI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pam-backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/pika-a-meme_full
+            git pull origin main
+            docker build -t pam-backend ./pam-backend
+            docker stop pam-backend 2>/dev/null || true
+            docker rm pam-backend 2>/dev/null || true
+            docker run -d \
+              --name pam-backend \
+              --restart unless-stopped \
+              --env-file ~/pam.env \
+              -p 8080:8080 \
+              pam-backend
