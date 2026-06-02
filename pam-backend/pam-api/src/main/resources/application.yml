@@ -83,8 +83,7 @@ app:
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     fail-closed: ${RATE_LIMIT_FAIL_CLOSED:true}
-    # Cloudflare Proxy 적용 및 Origin 우회 차단 후 true 전환
-    use-forwarded-headers: ${RATE_LIMIT_USE_FORWARDED_HEADERS:false}
+    use-forwarded-headers: ${RATE_LIMIT_USE_FORWARDED_HEADERS:true}
     rules:
       - name: meme-compose
         path: /api/memes/compose
