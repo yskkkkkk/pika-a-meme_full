@@ -87,8 +87,8 @@
 | TASK-260511-02 | [프론트엔드] | [x] | AuthContext 전역 상태 도입 (/api/auth/me 중복 호출 제거) | TASK-260429-29 | AuthProvider + useAuth Context 패턴. 6개 컴포넌트 → 앱 루트 1회 호출로 통합 | 260511 / 260511 |
 | TASK-260511-03 | [인프라/공통] | [x] | Redis Rate Limiting 구현 (RateLimitFilter, 엔드포인트별 토큰 버킷) | - | ConditionalOnBean(RedisTemplate), failClosed 정책, compose/meme-create/oauth2/auth-me 규칙 적용 | 260511 / 260511 |
 | TASK-260511-04 | [인프라/공통] | [x] | R2 커스텀 도메인 전환 (pub-*.r2.dev → img.pick-a-me.me, V13 마이그레이션) | - | Cloudflare R2 커스텀 도메인 연결 + meme_images.image_url 일괄 교체 | 260511 / 260511 |
-| TASK-260511-05 | [인프라/공통] | [ ] | Origin Shielding 구현 (Railway 기본 도메인 직접 접근 차단) | TASK-260511-03 | X-Origin-Verify 헤더 검증 또는 Cloudflare Tunnel 검토 필요 | 260511 / - |
-| TASK-260511-06 | [인프라/공통] | [ ] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | Cloudflare Proxy 우회 검증 후 활성화. RATE_LIMIT_USE_FORWARDED_HEADERS=true 환경변수 전환 필요 | 260511 / - |
+| TASK-260511-05 | [인프라/공통] | [x] | Origin Shielding 구현 (OCI 인바운드 Cloudflare IP 15개 대역만 허용) | TASK-260511-03 | OCI Security List에서 Cloudflare IPv4 대역만 포트 80/443 인바운드 허용. 직접 IP 접근 차단 완료 | 260511 / 260602 |
+| TASK-260511-06 | [인프라/공통] | [x] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | OCI+Nginx 구성 확정 후 CF-Connecting-IP 전용 헤더 적용 완료. PR#135 | 260511 / 260602 |
 | TASK-260511-07 | [회원/인증] | [~] | ~~JWT Refresh Token 회전 구현~~ | TASK-260511-01 | TASK-260517-01로 통합 대체 | 260511 / - |
 | TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
 | TASK-260512-01 | [하트/스테미나] | [x] | 하트 소모 버그 전면 수정 (로그인/비회원 모두) | TASK-260429-07 | (1) MemeComposeService에 HeartService.consumeHeart 호출 누락 → 추가. (2) 비회원 consumeHeart에서 setCurrentHearts 직접 호출로 즉시 UI 반영. (3) useMemeApi mock 폴백을 네트워크 오류 한정으로 축소 — success=false 응답은 throw. (4) HeartDisplay SPINNING 중 display:none 유지로 observer 연속성 보장, refetchQueries로 즉시 갱신 | 260512 / 260512 |
