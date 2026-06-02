@@ -59,6 +59,35 @@
 
 ---
 
+## SECURITY-01 · 보안 취약점 점검 결과 (260522) — GitHub Issue #122
+
+- **연관**: GitHub Issue #122
+
+### P1 — FIXED (PR #124)
+
+| # | 파일 | 내용 |
+|---|------|------|
+| 1 | `CookieOAuth2AuthorizationRequestRepository.kt` | Java 역직렬화 RCE → Jackson JSON으로 교체 ✅ |
+| 2 | `HeartController.kt` | 비로그인 NPE → UUID? + null guard 추가 ✅ |
+| 3 | `JwtAuthenticationFilter.kt` | extractUserId 예외 → runCatching 처리 ✅ |
+
+### P2 — 부분 완료 (PR #124)
+
+| # | 상태 | 파일 | 내용 |
+|---|------|------|------|
+| 4 | ✅ FIXED | `GlobalExceptionHandler.kt` | Bean Validation 응답에서 내부 필드명 제거 |
+| 5 | ✅ FIXED | `SecurityConfig.kt` | CORS allowedHeaders 와일드카드 → Content-Type, Authorization 명시 |
+| 6 | ⏳ OCI 이관 시 | `RateLimitFilter.kt` | `useForwardedHeaders=true` 전환 시 `X-Forwarded-For` 위조 우회 가능. OCI+Nginx 구성 확정 후 `CF-Connecting-IP` 전용으로 수정 필요. 현재 `false`이므로 안전. |
+
+### P3 — OPEN
+
+| # | 파일 | 내용 |
+|---|------|------|
+| 7 | `app/page.tsx` | `pam_show_welcome` 플래그 localStorage → sessionStorage 교체 |
+| 8 | `RefreshTokenService.kt` | `findByJti()` null(만료 레코드 없음) 케이스에서 탈취 토큰 재사용 감지 불가. family chain 개선 고려 |
+
+---
+
 ## BUG-01 · 하트 소모가 실제로 차감되지 않음
 
 - **상태**: FIXED (260512)

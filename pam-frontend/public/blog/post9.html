@@ -6,6 +6,59 @@
   <title>i18n의 갈림길 — 백엔드가 번역할 것인가, 프론트가 할 것인가 | pick-a-meme Dev Blog</title>
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ─── fix-diff: before/after 비교 ─── */
+    .fix-diff {
+      margin: 28px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .fix-diff-header {
+      display: flex;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .fix-diff-header-before {
+      flex: 1;
+      padding: 8px 14px;
+      background: rgba(239,68,68,0.12);
+      color: #f87171;
+      border-bottom: 1px solid var(--border);
+    }
+    .fix-diff-header-after {
+      flex: 1;
+      padding: 8px 14px;
+      background: rgba(34,197,94,0.12);
+      color: #4ade80;
+      border-bottom: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+    }
+    .fix-diff-body {
+      display: flex;
+    }
+    .fix-diff-col {
+      flex: 1;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      white-space: pre;
+    }
+    .fix-diff-col.before {
+      background: rgba(239,68,68,0.06);
+      border-right: 1px solid var(--border);
+    }
+    .fix-diff-col.after {
+      background: rgba(34,197,94,0.06);
+    }
+    .diff-removed { color: #f87171; }
+    .diff-added   { color: #4ade80; }
+    .diff-context { color: var(--text-tertiary); }
+  </style>
   <script>
   (function(){
     var t = localStorage.getItem('pam-theme') || 'dark';
@@ -18,7 +71,7 @@
   <div id="blog-header-placeholder"></div>
 
   <div class="nav-buttons">
-    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/blog" class="btn-nav">&larr; 목록으로</a>
     <a href="/" class="btn-nav">🏠 메인으로</a>
   </div>
 
@@ -77,6 +130,37 @@
 
     <div class="highlight-box">
       <p>문제는 백엔드 메시지 언어가 아니었다. 프론트가 백엔드의 메시지 <em>내용</em>에 의존하고 있다는 것이었다. 메시지는 사람을 위한 설명이고, 분기는 코드를 위한 식별자여야 한다.</p>
+    </div>
+
+    <div class="fix-diff">
+      <div class="fix-diff-header">
+        <div class="fix-diff-header-before">Before — 한글 문자열 매칭</div>
+        <div class="fix-diff-header-after">After — error.code 식별자 사용</div>
+      </div>
+      <div class="fix-diff-body">
+        <div class="fix-diff-col before"><span class="diff-context">function classifyDrawError(</span>
+<span class="diff-context">  error: Error</span>
+<span class="diff-context">): DrawErrorType {</span>
+<span class="diff-removed">  if (error.message</span>
+<span class="diff-removed">      .includes("하트가 부족"))</span>
+<span class="diff-removed">    return "INSUFFICIENT_HEART"</span>
+<span class="diff-removed">  if (error.message</span>
+<span class="diff-removed">      .includes("재료를 찾을 수"))</span>
+<span class="diff-removed">    return "MEME_SOURCE_NOT_FOUND"</span>
+<span class="diff-context">  return "UNKNOWN"</span>
+<span class="diff-context">}</span></div>
+        <div class="fix-diff-col after"><span class="diff-context">function classifyDrawError(</span>
+<span class="diff-context">  error: ApiError</span>
+<span class="diff-context">): DrawErrorType {</span>
+<span class="diff-added">  if (error.code ===</span>
+<span class="diff-added">      "INSUFFICIENT_HEART")</span>
+<span class="diff-added">    return "INSUFFICIENT_HEART"</span>
+<span class="diff-added">  if (error.code ===</span>
+<span class="diff-added">      "MEME_SOURCE_NOT_FOUND")</span>
+<span class="diff-added">    return "MEME_SOURCE_NOT_FOUND"</span>
+<span class="diff-context">  return "UNKNOWN"</span>
+<span class="diff-context">}</span></div>
+      </div>
     </div>
 
     <h2 id="error-decision">결정 1 — 에러 메시지는 프론트가 번역한다</h2>
@@ -168,14 +252,14 @@
     <span class="code-keyword">return</span> {
         ...messages,
         format: {
-            homeSubtitleUser: (name: <span class="code-type">string</span>) =>
+            homeSubtitleUser: (name: <span class="code-type">string</span>) =&gt;
                 format(messages.home.subtitleUser, { name }),
-            totalCount: (count: <span class="code-type">number</span>) =>
+            totalCount: (count: <span class="code-type">number</span>) =&gt;
                 format(messages.gallery.totalCount, { count }),
-            drawWithTag: (tag: <span class="code-type">string</span>) =>
+            drawWithTag: (tag: <span class="code-type">string</span>) =&gt;
                 format(messages.gacha.drawWithTag, { tag }),
         },
-        memeWithParticle: (particle: <span class="code-type">KoreanParticle</span>) => {
+        memeWithParticle: (particle: <span class="code-type">KoreanParticle</span>) =&gt; {
             <span class="code-keyword">if</span> (language !== <span class="code-string">"ko"</span>) <span class="code-keyword">return</span> <span class="code-string">"a Meme"</span>
             <span class="code-comment">// 한국어 조사 처리: 받침 유무에 따라 을/를, 이/가, 은/는</span>
             <span class="code-keyword">const</span> meme = messages.brand.meme
@@ -184,7 +268,41 @@
     }
 }</div>
 
-    <p><code>memeWithParticle</code>은 흥미로운 부분이다. 한국어는 앞 단어의 받침 유무에 따라 조사가 달라진다. "밈을" vs "밈을" — 이 경우는 같지만, 브랜드명이 바뀌면 달라진다. 받침 여부를 유니코드 범위로 계산해서 처리한다. 영어는 간단히 "a Meme"으로 고정한다.</p>
+    <p><code>memeWithParticle</code>은 흥미로운 부분이다. 한국어는 앞 단어의 받침 유무에 따라 조사가 달라진다. 받침 여부를 유니코드 범위로 계산한다. 한글 완성형은 유니코드 <code>0xAC00</code>부터 <code>0xD7A3</code>까지 11,172자로 배열되어 있다. 각 글자는 <code>(초성 × 21 + 중성) × 28 + 종성</code> 순서로 배열되어 종성(받침) 인덱스가 0이면 받침 없음, 1 이상이면 받침 있음이다.</p>
+
+    <p>공식은 <code>(code - 0xAC00) % 28 &gt; 0</code>이면 받침이 있다. 이를 이용해 을/를, 이/가, 은/는 등 조사 쌍을 자동 선택한다.</p>
+
+    <div class="code-block"><span class="code-comment">// lib/i18n.ts — resolveParticle 구현</span>
+<span class="code-keyword">type</span> <span class="code-type">KoreanParticle</span> = <span class="code-string">"을를"</span> | <span class="code-string">"이가"</span> | <span class="code-string">"은는"</span> | <span class="code-string">"으로로"</span>
+
+<span class="code-keyword">function</span> <span class="code-type">hasBatchim</span>(word: <span class="code-type">string</span>): <span class="code-type">boolean</span> {
+    <span class="code-keyword">const</span> lastChar = word[word.length - 1]
+    <span class="code-keyword">const</span> code = lastChar.charCodeAt(0)
+    <span class="code-comment">// 한글 완성형 범위 체크</span>
+    <span class="code-keyword">if</span> (code &lt; 0xAC00 || code &gt; 0xD7A3) <span class="code-keyword">return false</span>
+    <span class="code-comment">// (code - 0xAC00) % 28 &gt; 0 이면 받침 있음</span>
+    <span class="code-keyword">return</span> (code - 0xAC00) % 28 &gt; 0
+}
+
+<span class="code-keyword">function</span> <span class="code-type">resolveParticle</span>(
+    word: <span class="code-type">string</span>,
+    particle: <span class="code-type">KoreanParticle</span>
+): <span class="code-type">string</span> {
+    <span class="code-keyword">const</span> batchim = hasBatchim(word)
+    <span class="code-keyword">switch</span> (particle) {
+        <span class="code-keyword">case</span> <span class="code-string">"을를"</span>: <span class="code-keyword">return</span> batchim ? <span class="code-string">"을"</span> : <span class="code-string">"를"</span>
+        <span class="code-keyword">case</span> <span class="code-string">"이가"</span>: <span class="code-keyword">return</span> batchim ? <span class="code-string">"이"</span> : <span class="code-string">"가"</span>
+        <span class="code-keyword">case</span> <span class="code-string">"은는"</span>: <span class="code-keyword">return</span> batchim ? <span class="code-string">"은"</span> : <span class="code-string">"는"</span>
+        <span class="code-comment">// 으로/로: 받침 있으면 "으로", 없으면 "로" (단, 받침이 'ㄹ'이면 "로")</span>
+        <span class="code-keyword">case</span> <span class="code-string">"으로로"</span>: {
+            <span class="code-keyword">const</span> code = word[word.length - 1].charCodeAt(0)
+            <span class="code-keyword">const</span> jongseong = (code - 0xAC00) % 28
+            <span class="code-keyword">return</span> (batchim &amp;&amp; jongseong !== 8) ? <span class="code-string">"으로"</span> : <span class="code-string">"로"</span>
+        }
+    }
+}</div>
+
+    <p>영어 모드에서는 <code>"a Meme"</code>을 고정 반환하고 이 계산 자체가 생략된다. 조사가 없는 언어에서는 받침 계산이 무의미하기 때문이다.</p>
 
     <hr class="divider">
 
@@ -197,8 +315,8 @@
     <div id="profile-card-placeholder"></div>
 
     <div class="post-footer">
-      <a href="/blog/post8.html" class="btn-post-nav btn-prev">← 이전 글: 미션 시스템이 무너진 곳은 미션이 아니었다</a>
-      <a href="/blog/post10.html" class="btn-post-nav btn-next">다음 글: @Cacheable이 1줄로 보이는 이유 →</a>
+      <a href="/blog/post8.html" class="btn-post-nav btn-prev">&larr; 이전 글: 미션 시스템이 무너진 곳은 미션이 아니었다</a>
+      <a href="/blog/post10.html" class="btn-post-nav btn-next">다음 글: @Cacheable이 1줄로 보이는 이유 &rarr;</a>
     </div>
   </main>
 

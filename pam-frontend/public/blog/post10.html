@@ -74,7 +74,7 @@
   <div id="blog-header-placeholder"></div>
 
   <div class="nav-buttons">
-    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/blog" class="btn-nav">&larr; 목록으로</a>
     <a href="/" class="btn-nav">🏠 메인으로</a>
   </div>
 
@@ -116,11 +116,11 @@
     jpaRepository.<span class="code-type">findRecentTagMatched</span>(limit)
         .map { it.toDomain() }</div>
 
-    <p>겉에서 보면 1줄이다. 하지만 이 줄이 작동하기까지 배경이 생각보다 많다.</p>
+    <p>겹에서 보면 1줄이다. 하지만 이 줄이 작동하기까지 배경이 생각보다 많다.</p>
 
     <h2 id="aop-proxy">AOP 프록시 계층</h2>
 
-    <p>Spring의 <code>@Cacheable</code>은 AOP(Aspect-Oriented Programming) 방식으로 구현된다. 빈 등록 시 Spring이 원본 클래스를 감싸는 프록시 객체를 대신 주입한다. 메서드 호출이 들어오면 프록시가 먼저 가로채서 캐시를 확인하고, 히트이면 실제 메서드를 호출하지 않고 캐시 값을 반환한다.</p>
+    <p>Spring의 <code>@Cacheable</code>은 AOP(Aspect-Oriented Programming) 방식으로 구현된다. 빈 등록 시 Spring이 원본 클래스를 감싸는 프록시 객체를 대신 주입한다. 메서드 호출이 들어오면 프록시가 먼저 가로체서 캐시를 확인하고, 히트이면 실제 메서드를 호출하지 않고 캐시 값을 반환한다.</p>
 
     <div class="layer-stack">
       <div class="layer-item">
@@ -128,21 +128,21 @@
         <div class="layer-label">호출자 (MemeComposeService)</div>
         <div class="layer-desc">의존성 주입받은 빈이 실제로는 프록시임을 모른다</div>
       </div>
-      <div class="layer-arrow">↓ 메서드 호출</div>
+      <div class="layer-arrow">&darr; 메서드 호출</div>
       <div class="layer-item highlight-layer">
         <div class="layer-num">2</div>
         <div class="layer-label">CGLIB 프록시</div>
-        <div class="layer-desc">캐시 키 생성 → Redis 조회 → 히트이면 3번 스킵, 미스이면 3번 실행 후 결과를 Redis에 저장</div>
+        <div class="layer-desc">캐시 키 생성 &rarr; Redis 조회 &rarr; 히트이면 3번 스킵, 미스이면 3번 실행 후 결과를 Redis에 저장</div>
       </div>
-      <div class="layer-arrow">↓ 캐시 미스 시에만</div>
+      <div class="layer-arrow">&darr; 캐시 미스 시에만</div>
       <div class="layer-item">
         <div class="layer-num">3</div>
         <div class="layer-label">JpaUserMemeRepositoryAdapter</div>
-        <div class="layer-desc">실제 메서드 실행 → DB 쿼리 → List&lt;UserMeme&gt; 반환</div>
+        <div class="layer-desc">실제 메서드 실행 &rarr; DB 쿼리 &rarr; List&lt;UserMeme&gt; 반환</div>
       </div>
     </div>
 
-    <p>Spring이 Bean으로 등록할 때 원본 클래스 대신 CGLIB이 생성한 서브클래스를 주입한다. 외부에서 보면 평범한 빈처럼 보이지만, 실제로는 프록시다.</p>
+    <p>Spring이 Bean으로 등록할 때 원본 클래스 대신 CGLIB이 생성한 서브클래스를 주입한다. 외부에서 보면 평범한 빈쳄럼 보이지만, 실제로는 프록시다.</p>
 
     <h2 id="self-invocation">self-invocation 함정</h2>
 
@@ -161,11 +161,13 @@
     }
 }</div>
 
-    <p>프록시는 외부에서 들어오는 호출만 인터셉트한다. 같은 객체에서 <code>this.메서드()</code>로 호출하면 프록시를 건너뛰고 실제 메서드가 바로 실행된다. 캐시가 붙어 있는 것처럼 보이지만 항상 DB 쿼리가 발생한다.</p>
+    <p>프록시는 외부에서 들어오는 호출만 인터셉트한다. 같은 객체에서 <code>this.메서드()</code>로 호출하면 프록시를 건너뛰고 실제 메서드가 바로 실행된다. 캐시가 붙어 있는 것소림 보이지만 항상 DB 쿼리가 발생한다.</p>
 
     <div class="highlight-box">
       <p>피카밈에서는 <code>findRecentTagMatched</code>를 항상 외부 서비스(<code>MemeComposeService</code>)가 호출하므로 self-invocation 문제가 없다. 하지만 인프라 레이어 내부에서 같은 클래스의 캐시 메서드를 호출하는 구조를 만들었다면 조용히 실패했을 것이다.</p>
     </div>
+
+    <p>인프라 레이어 내부에서 <code>findRecentTagMatched</code>를 내부 유틸로 재사용하는 리팩토링을 고려한 적 있었다. self-invocation이면 캐시가 무시된다는 것을 모른 체 그냥 넘어갔다면 DB 쿼리가 항상 발생하면서도 '캐시가 있으니 괴다았지'라 생각했을 것이다.</p>
 
     <h2 id="generic-type">제네릭 타입 직렬화 이슈</h2>
 
@@ -184,22 +186,29 @@
             .build(),
         ObjectMapper.DefaultTyping.NON_FINAL
     )
-    <span class="code-comment">// → 직렬화 시 타입 정보를 JSON에 포함: ["com.pickameme.domain.meme.UserMeme", {...}]</span>
-    <span class="code-comment">// → 역직렬화 시 타입 복원 가능</span></div>
+    <span class="code-comment">// &rarr; 직렬화 시 타입 정보를 JSON에 포함: ["com.pickameme.domain.meme.UserMeme", {...}]</span>
+    <span class="code-comment">// &rarr; 역직렬화 시 타입 복원 가능</span></div>
 
-    <p><code>activateDefaultTyping</code>은 JSON에 타입 정보를 함께 기록한다. <code>["com.pickameme.domain.meme.UserMeme", {…}]</code> 형태로 저장된다. 역직렬화할 때 이 정보를 읽어 정확한 타입으로 복원한다. 보안 측면에서는 <code>allowIfBaseType(Any::class.java)</code>로 허용 타입 범위를 제한했다.</p>
+    <p><code>activateDefaultTyping</code>은 JSON에 타입 정보를 함께 기록한다. <code>["com.pickameme.domain.meme.UserMeme", {&hellip;}]</code> 형태로 저장된다. 역직렬화할 때 이 정보를 읽어 정확한 타입으로 복원한다. 보안 측면에서는 <code>allowIfBaseType(Any::class.java)</code>로 허용 타입 범위를 제한했다.</p>
 
     <h2 id="cache-key">캐시 키에 언어를 포함해야 하는 이유</h2>
 
-    <p>post9에서 다룬 i18n 작업에서 <code>findRecentTagMatched</code>에 <code>language</code> 파라미터를 추가하기로 했다. 이때 캐시 키 설계에 함정이 있다.</p>
+    <p>post9에서 다룬 언어 i18n 작업에서 <code>findRecentTagMatched</code>에 <code>language</code> 파라미터를 추가하기로 했다. 이때 캐시 키 설계에 함정이 있다.</p>
 
     <p>파라미터를 추가하면 Spring은 기본적으로 모든 파라미터를 캐시 키에 포함한다. <code>findRecentTagMatched(limit=10, language="ko")</code>와 <code>findRecentTagMatched(limit=10, language="en")</code>는 다른 키를 갖는다. 이건 원하는 동작이다.</p>
 
-    <p>문제는 언어 파라미터를 추가하지 않고 별도 로직으로 처리하거나, <code>@Cacheable(key = "#limit")</code>처럼 키에서 언어를 명시적으로 제외했을 때다. 한국어 요청이 캐시한 <code>List&lt;UserMeme&gt;</code>에 영어 문구가 섞인 결과를 영어 요청이 받아갈 수 있다.</p>
+    <p>문제는 언어 파라미터를 추가하지 않고 별도 로직으로 처리하거나, <code>@Cacheable(key = "#limit")</code>처럼 키에서 언어를 명시적으로 제외했을 때다. 한국어 요청이 캐시한 <code>List&lt;UserMeme&gt;</code>에 영어 문구가 섯인 결과를 영어 요청이 그대로 받아갈 수 있다.</p>
 
     <div class="highlight-box">
-      <p>캐시 키는 "같은 입력이면 같은 출력"이라는 계약이다. 출력에 영향을 미치는 모든 인자가 키에 포함되어야 한다. 언어가 출력을 바꾼다면, 언어는 키에 들어가야 한다.</p>
+      <p>캐시 키는 "같은 입력이면 같은 출력"이라는 계약이다. 출력에 영향을 미치는 모든 인자가 키에 포함되어야 한다. 언어가 출력을 바꿔다면, 언어는 키에 들어가야 한다.</p>
     </div>
+
+    <div class="code-block"><span class="code-comment">// language를 캐시 키에 포함 — 언어가 다르면 다른 캐시 버킷</span>
+@<span class="code-type">Cacheable</span>(<span class="code-string">"recent-matched-memes"</span>, key = <span class="code-string">"'matched:' + #limit + ':' + #language"</span>)
+<span class="code-keyword">override fun</span> <span class="code-type">findRecentTagMatched</span>(limit: <span class="code-type">Int</span>, language: <span class="code-type">String</span>): <span class="code-type">List</span>&lt;<span class="code-type">UserMeme</span>&gt; =
+    jpaRepository.<span class="code-type">findRecentTagMatched</span>(limit, language)
+        .map { it.toDomain() }
+<span class="code-comment">// key에서 language를 븼면 한국어 캐시가 영어 요청에 그대로 반환된다</span></div>
 
     <h2 id="ttl-strategy">TTL로 invalidation을 회피하다</h2>
 
@@ -220,8 +229,8 @@
     <div id="profile-card-placeholder"></div>
 
     <div class="post-footer">
-      <a href="/blog/post9.html" class="btn-post-nav btn-prev">← 이전 글: i18n의 갈림길</a>
-      <a href="/blog/post11.html" class="btn-post-nav btn-next">다음 글: 코드 한 줄 없이 이미지를 50% 줄인 이야기 →</a>
+      <a href="/blog/post9.html" class="btn-post-nav btn-prev">&larr; 이전 글: i18n의 갈림길</a>
+      <a href="/blog/post11.html" class="btn-post-nav btn-next">다음 글: 코드 한 줄 없이 이미지를 50% 줄인 이야기 &rarr;</a>
     </div>
   </main>
 

@@ -11,11 +11,9 @@ COPY pam-application/build.gradle.kts pam-application/build.gradle.kts
 COPY pam-infrastructure/build.gradle.kts pam-infrastructure/build.gradle.kts
 COPY pam-api/build.gradle.kts pam-api/build.gradle.kts
 
-RUN ./gradlew dependencies --no-daemon -q
-
 COPY . .
 RUN ./gradlew :pam-api:bootJar --no-daemon -x test && \
-    rm -rf /root/.gradle/caches
+    rm -rf /root/.gradle
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
