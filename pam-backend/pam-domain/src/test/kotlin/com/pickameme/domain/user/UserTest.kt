@@ -1,3 +1,4 @@
+// OCI 배포 워크플로우 트리거용 변경
 package com.pickameme.domain.user
 
 import org.assertj.core.api.Assertions.assertThat
