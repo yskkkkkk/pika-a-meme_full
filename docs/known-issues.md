@@ -86,6 +86,22 @@
 | 7 | ✅ FIXED | `app/page.tsx`, `app/oauth2/callback/page.tsx` | `pam_show_welcome` 플래그 localStorage → sessionStorage 교체 (fix/122-localstorage-to-sessionstorage) |
 | 8 | ⏳ 고려중 | `RefreshTokenService.kt` | `findByJti()` null(만료 레코드 없음) 케이스에서 탈취 토큰 재사용 감지 불가. family chain 개선 고려 |
 
+### SSH 포트 22 오픈 현황 (260602 확인)
+
+| 항목 | 현황 |
+|---|---|
+| 포트 22 인바운드 | 전체 오픈 (0.0.0.0/0) |
+| 인증 방식 | SSH 키 전용 (비밀번호 인증 비활성화 확인 필요) |
+| 키 보관 위치 | 개발 로컬 머신 한 곳 |
+| OS | Ubuntu 24.04 (최신 패치 적용, 알려진 SSH 취약점 없음) |
+| 비밀번호 브루트포스 위험 | 없음 (키 인증 전용) |
+
+**현재 위험도: 낮음.** Ubuntu 24.04 + SSH 키 인증 조합으로 실질적 위협 없음.
+
+잔여 위험 및 향후 고려:
+- 키 유출 시 서버 전체 접근 권한 노출 → 키를 단일 로컬 머신에만 보관하는 현 방식 유지
+- 여유 시 개선 옵션: 고정 IP 보유 시 OCI Security List에서 22번 포트를 해당 IP만 허용, 또는 fail2ban 설치로 반복 접속 시도 자동 차단
+
 ---
 
 ## BUG-01 · 하트 소모가 실제로 차감되지 않음
