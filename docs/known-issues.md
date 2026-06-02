@@ -77,14 +77,14 @@
 |---|------|------|------|
 | 4 | ✅ FIXED | `GlobalExceptionHandler.kt` | Bean Validation 응답에서 내부 필드명 제거 |
 | 5 | ✅ FIXED | `SecurityConfig.kt` | CORS allowedHeaders 와일드카드 → Content-Type, Authorization 명시 |
-| 6 | ⏳ OCI 이관 시 | `RateLimitFilter.kt` | `useForwardedHeaders=true` 전환 시 `X-Forwarded-For` 위조 우회 가능. OCI+Nginx 구성 확정 후 `CF-Connecting-IP` 전용으로 수정 필요. 현재 `false`이므로 안전. |
+| 6 | ✅ FIXED | `RateLimitFilter.kt` | CF-Connecting-IP 전용 헤더 적용 완료. PR#135 |
 
-### P3 — OPEN
+### P3
 
-| # | 파일 | 내용 |
-|---|------|------|
-| 7 | `app/page.tsx` | `pam_show_welcome` 플래그 localStorage → sessionStorage 교체 |
-| 8 | `RefreshTokenService.kt` | `findByJti()` null(만료 레코드 없음) 케이스에서 탈취 토큰 재사용 감지 불가. family chain 개선 고려 |
+| # | 상태 | 파일 | 내용 |
+|---|------|------|------|
+| 7 | ✅ FIXED | `app/page.tsx`, `app/oauth2/callback/page.tsx` | `pam_show_welcome` 플래그 localStorage → sessionStorage 교체 (fix/122-localstorage-to-sessionstorage) |
+| 8 | ⏳ 고려중 | `RefreshTokenService.kt` | `findByJti()` null(만료 레코드 없음) 케이스에서 탈취 토큰 재사용 감지 불가. family chain 개선 고려 |
 
 ---
 
