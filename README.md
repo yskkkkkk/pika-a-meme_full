@@ -27,9 +27,9 @@ SPECIAL 하트 → 단일 태그 선택 → 필터링된 이미지/문구 조합
               ┌──────────────────┘        └─────────────────┐
               ▼                                             ▼
    ┌──────────────────┐                        ┌──────────────────────┐
-   │      Vercel       │                        │       Railway         │
+   │      Vercel       │                        │  OCI (Ubuntu 24.04)  │
    │  pick-a-me.me    │ ──── API 호출 ────────▶│  api.pick-a-me.me    │
-   │  (Next.js)        │                        │  (Spring Boot/Docker) │
+   │  (Next.js)        │                        │  Nginx + Spring Boot  │
    └──────────────────┘                        └────────┬─────────────┘
                                                         │
                                    ┌────────────────────┼──────────────┐
@@ -41,7 +41,7 @@ SPECIAL 하트 → 단일 태그 선택 → 필터링된 이미지/문구 조합
 ```
 
 모든 외부 트래픽은 Cloudflare Proxy(주황 구름)를 통과한다.  
-원본 서버(Railway, Vercel) IP는 외부에 노출되지 않는다.
+원본 서버(OCI, Vercel) IP는 외부에 노출되지 않는다.
 
 ### 백엔드 — Clean Architecture + DDD
 
@@ -74,13 +74,13 @@ OAuth2 로그인 성공 후 백엔드가 `pam_token` JWT를 `HttpOnly`, `Secure`
 ### DDoS 방어
 
 - Cloudflare Proxy가 L3/L4/L7 대규모 공격을 흡수한다.
-- 백엔드 Redis Rate Limiting이 Railway 컨테이너·DB·R2 비용 폭탄을 방지한다.
+- 백엔드 Redis Rate Limiting이 OCI 서버·DB·R2 비용 폭탄을 방지한다.
 - 엔드포인트 위험도별 독립 규칙 적용 (compose, meme-create, oauth2, auth-me).
 
-### Origin Shielding (미완 → Roadmap)
+### Origin Shielding
 
-Railway 기본 도메인(`*.up.railway.app`) 직접 접근 시 Cloudflare를 우회한다.  
-`X-Origin-Verify` 커스텀 헤더 검증을 통해 Cloudflare 경유 요청만 수락하는 구조를 검토 중이다.
+OCI Security List에서 80/443 포트를 Cloudflare IP 대역만 허용하여 오리진 직접 접근을 차단한다.  
+`CF-Connecting-IP` 헤더 기반 Rate Limiting으로 Cloudflare를 경유한 요청만 정상 처리된다.
 
 ### CORS
 
@@ -126,7 +126,7 @@ Cloudflare Edge 캐싱으로 이미지 서빙 응답 속도도 개선된다.
 | Auth | Spring Security OAuth2 (Kakao, Google) + JWT HttpOnly Cookie |
 | DNS / WAF | Cloudflare Proxy |
 | Frontend 배포 | Vercel (`pick-a-me.me`) |
-| Backend 배포 | Railway — Docker (`api.pick-a-me.me`) |
+| Backend 배포 | OCI — Docker + Nginx (`api.pick-a-me.me`) |
 | Database | Neon PostgreSQL (Singapore) |
 
 ---
@@ -164,10 +164,8 @@ cd pam-backend
 
 ## Roadmap
 
-- [ ] **IP 기반 Rate Limiting 고도화** — `useForwardedHeaders: true` 전환 후 Cloudflare `CF-Connecting-IP` 실제 IP 식별. 엔드포인트별 일별 quota 추가.
-- [ ] **Origin Shielding** — Railway 기본 도메인 직접 접근 차단 (`X-Origin-Verify` 헤더 또는 Cloudflare Tunnel).
 - [ ] **JWT Refresh Token 회전** — Access Token TTL 단축(15분) + Refresh Token rotation + `jti` Redis denylist.
-- [ ] **인프라 모니터링 강화** — Railway CPU/Memory/429 비율, Neon slow query, Upstash command count, R2 operation count 대시보드 및 임계치 알림.
+- [ ] **인프라 모니터링 강화** — OCI CPU/Memory, Neon slow query, Upstash command count, R2 operation count 대시보드 및 임계치 알림.
 - [ ] **Sentry 에러 트래킹** — 프론트/백엔드 에러 집중 수집 및 Slack 알림 연동.
 - [ ] **헬스체크 엔드포인트** — DB/Redis/R2 외부 의존성 상태 점검 포함.
 

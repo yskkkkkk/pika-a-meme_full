@@ -1,6 +1,6 @@
 # 환경변수 목록
 
-## Backend (Railway)
+## Backend (OCI)
 
 | 변수 | 예시 값 | 설명 |
 |---|---|---|
@@ -35,7 +35,7 @@
 | 프론트엔드 | `pick-a-me.me` |
 | 백엔드 API | `api.pick-a-me.me` |
 
-> Railway에서 `api.pick-a-me.me` 커스텀 도메인 추가 후 DNS CNAME 레코드 설정 필요.
+> OCI 서버: Cloudflare DNS `api.pick-a-me.me` A 레코드 → `158.179.170.129` (Proxied).
 > Vercel에서 `pick-a-me.me` 도메인 추가 후 DNS A/CNAME 레코드 설정 필요.
 
 ## OAuth2 콜백 URL 등록

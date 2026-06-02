@@ -16,7 +16,7 @@
 1. **장애 인지 및 전파**:
    - Sentry 또는 시스템 모니터링 알럿을 통해 인지 시 즉각 대응 채널(Slack 등)에 현황 전파.
 2. **현상 파악 및 격리 (Containment)**:
-   - 외부 요인인지 시스템 내부 결함인지 판단 (Cloudflare 대시보드, Railway 메트릭, Neon DB 메트릭 등).
+   - 외부 요인인지 시스템 내부 결함인지 판단 (Cloudflare 대시보드, OCI 서버 로그/메트릭, Neon DB 메트릭 등).
    - Rate Limit 해제, 일시적인 Feature Flag off 등을 통해 피해 최소화 조치.
 3. **원인 분석 (Investigation)**:
    - 애플리케이션 로그, 에러 트레이스(Sentry), 리소스 사용률 모니터링을 통한 1차 원인 규명.
@@ -42,7 +42,7 @@
 
 ### 2.2 병합 및 긴급 배포
 1. 핫픽스 브랜치 PR(Pull Request) 생성 후 즉각 승인 및 `main` 병합 처리.
-2. Vercel(Frontend), Railway(Backend)에서 GitHub 연동으로 자동 배포 모니터링.
+2. GitHub Actions에서 GHCR 이미지 빌드 → OCI 서버 자동 배포 진행 모니터링.
 3. 배포 완료 후 운영 환경에서의 정상 동작 재검증.
 
 ---
@@ -56,10 +56,15 @@
 - 직전 정상 배포 내역 우측의 메뉴 (점 3개) 클릭 -> **Promote to Production** 또는 **Instant Rollback** 실행.
 - 소요 시간: 1분 이내 (Build 과정 생략).
 
-### 3.2 Backend (Railway) 롤백
-- Railway 대시보드 접속 -> 프로젝트/서비스 진입.
-- **Deployments** 히스토리에서 문제가 발생하기 직전의 정상 빌드/배포 버전을 선택.
-- 해당 버전 컨텍스트 메뉴에서 **Redeploy** 클릭하여 기존 커밋의 컨테이너를 재시작.
+### 3.2 Backend (OCI) 롤백
+- GitHub Actions에서 이전 정상 커밋의 워크플로우 실행 선택 → **Re-run jobs** 클릭.
+- 또는 OCI 서버에서 직접 이전 GHCR 이미지 태그를 지정하여 컨테이너 재시작:
+  ```bash
+  docker stop pam-backend && docker rm pam-backend
+  docker run -d --name pam-backend --restart unless-stopped \
+    --env-file ~/pam.env -p 8080:8080 \
+    ghcr.io/yskkkkkk/pam-backend:<이전-커밋-SHA>
+  ```
 
 ### 3.3 Database 롤백 (Flyway)
 - **주의**: DDL 변경 사항(마이그레이션)을 포함한 배포 후 롤백의 경우, 애플리케이션만 롤백하면 스키마 불일치 에러가 발생할 수 있습니다.
@@ -78,7 +83,7 @@
 | 구성 요소 | 역할 | 점검 내용 및 트러블슈팅 |
 | --- | --- | --- |
 | **Vercel** | Frontend 배포, 서버리스 함수 | - Deployments 탭 빌드 실패 여부 확인 <br> - 실시간 로그 조회하여 5xx 에러 패턴 확인 |
-| **Railway** | Backend (API) Docker 컨테이너 | - Memory / CPU 사용량 스파이크 확인 (OOM 킬 여부) <br> - 애플리케이션 로깅에서 타임아웃, 예외 발생 원인 분석 |
+| **OCI (Ubuntu 24.04)** | Backend (API) Docker + Nginx | - `docker stats pam-backend` 로 메모리/CPU 확인 <br> - `docker logs -f pam-backend` 로 애플리케이션 로그 확인 <br> - `sudo systemctl status nginx` 로 Nginx 상태 확인 |
 | **Neon** | PostgreSQL 메인 데이터베이스 | - 활성 Connection 수 및 Max Connection 도달 여부 <br> - Slow Query 모니터링 및 성능 저하 트랜잭션 식별 |
 | **Upstash** | Redis (캐싱, 락, 하트) | - 메모리 한도 도달 여부 점검 <br> - 명령(Command) 수 제한 도달 시 일시적 요청 실패 점검 |
 | **Cloudflare** | Proxy, WAF, R2 Storage | - R2 스토리지(img.*)의 502/503 에러 여부 점검 <br> - WAF(웹 방화벽) 오탐지에 의한 정상 사용자 블락 기록 점검 |
