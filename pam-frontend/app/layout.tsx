@@ -9,6 +9,19 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
   },
+  openGraph: {
+    title: "pick-a-meme",
+    description: "B급 감성 동물 사진과 킹받는 문구의 조화",
+    url: "https://pick-a-me.me",
+    siteName: "pick-a-meme",
+    images: [{ url: "https://pick-a-me.me/og-image.png", width: 1086, height: 570 }],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["https://pick-a-me.me/og-image.png"],
+  },
 };
 
 export const viewport: Viewport = {
