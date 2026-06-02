@@ -61,8 +61,8 @@ export default function Home() {
   // 최초 로그인 웰컴 알럿
   useEffect(() => {
     if (!isLoggedIn) return;
-    if (localStorage.getItem("pam_show_welcome") !== "1") return;
-    localStorage.removeItem("pam_show_welcome");
+    if (sessionStorage.getItem("pam_show_welcome") !== "1") return;
+    sessionStorage.removeItem("pam_show_welcome");
     queryClient.invalidateQueries({ queryKey: ["hearts"] });
     // 약간의 딜레이 후 표시 (하트 UI가 렌더된 후)
     const t_timer = setTimeout(() => {

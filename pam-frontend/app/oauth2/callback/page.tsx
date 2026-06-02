@@ -15,7 +15,7 @@ function CallbackHandler() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("welcome") === "1") {
-      localStorage.setItem("pam_show_welcome", "1");
+      sessionStorage.setItem("pam_show_welcome", "1");
     }
 
     const raw = sessionStorage.getItem("pam_pending_meme");
