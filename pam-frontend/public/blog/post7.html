@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>느린 DDoS는 어떻게 막는가 — Rate Limiting 전략 | pick-a-meme Dev Blog</title>
+  <meta name="description" content="Cloudflare 뒤에서도 Redis 토큰 버킷으로 Rate Limiting을 구현한 이유. 대량 DDoS가 아닌 내부 비용을 유발하는 저속 공격을 막는 전략과 CF-Connecting-IP 식별 방법.">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="pick-a-meme Dev Blog">
+  <meta property="og:title" content="느린 DDoS는 어떻게 막는가 — Rate Limiting 전략">
+  <meta property="og:description" content="Cloudflare 뒤에서도 Redis 토큰 버킷으로 Rate Limiting을 구현한 이유. 대량 DDoS가 아닌 내부 비용을 유발하는 저속 공격을 막는 전략과 CF-Connecting-IP 식별 방법.">
+  <meta property="og:url" content="https://pick-a-me.me/blog/post7.html">
+  <link rel="canonical" href="https://pick-a-me.me/blog/post7.html">
+  <meta property="og:image" content="https://pick-a-me.me/og-image.png">
+  <meta property="og:image:width" content="1086">
+  <meta property="og:image:height" content="570">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://pick-a-me.me/og-image.png">
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>

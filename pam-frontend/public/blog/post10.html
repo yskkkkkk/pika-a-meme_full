@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@Cacheable이 1줄로 보이는 이유 (와 숨은 함정) | pick-a-meme Dev Blog</title>
+  <meta name="description" content="Redis @Cacheable 어노테이션 한 줄 뒤에 숨은 AOP 프록시, self-invocation 함정, 제네릭 타입 직렬화 문제까지. 추상화가 숨기는 것들.">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="pick-a-meme Dev Blog">
+  <meta property="og:title" content="@Cacheable이 1줄로 보이는 이유 (와 숨은 함정)">
+  <meta property="og:description" content="Redis @Cacheable 어노테이션 한 줄 뒤에 숨은 AOP 프록시, self-invocation 함정, 제네릭 타입 직렬화 문제까지. 추상화가 숨기는 것들.">
+  <meta property="og:url" content="https://pick-a-me.me/blog/post10.html">
+  <link rel="canonical" href="https://pick-a-me.me/blog/post10.html">
+  <meta property="og:image" content="https://pick-a-me.me/og-image.png">
+  <meta property="og:image:width" content="1086">
+  <meta property="og:image:height" content="570">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://pick-a-me.me/og-image.png">
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
