@@ -1,11 +1,11 @@
 # Pick-a-Meme 서비스 아키텍처 보안 및 DDoS 방어 점검
 
-작성일: 2026-05-11
+작성일: 2026-05-11 / 최종 현행화: 2026-06-03
 
 ## 1. 현재 구조 요약
 
 - Frontend: Next.js, Vercel 배포, `pick-a-me.me`.
-- Backend: Spring Boot / Kotlin, Railway 배포, `api.pick-a-me.me`.
+- Backend: Spring Boot / Kotlin, **OCI(Oracle Cloud VM.Standard.A1.Flex, Ubuntu 24.04)** 배포, `api.pick-a-me.me`. (초기 작성 시점에는 Railway였으나 2026-06-02에 OCI로 이관 완료)
 - DB/Cache: Neon PostgreSQL, Upstash Redis 외부 SaaS.
 - Storage: Cloudflare R2.
 - 인증: Google/Kakao OAuth2 로그인 후 백엔드가 `pam_token` JWT를 `HttpOnly`, `SameSite=Lax` 쿠키로 발급한다.
@@ -13,22 +13,22 @@
 
 ## 2. 핵심 결론
 
-1. **최소 비용 최대 방어의 1순위는 Cloudflare Proxy + 백엔드 Rate Limiting 병행**이다. Cloudflare는 대용량 L3/L4/L7 DDoS 흡수를 담당하고, Spring Boot Rate Limiting은 Railway 컨테이너/DB/Redis/R2 비용 폭탄을 막는다.
+1. **최소 비용 최대 방어의 1순위는 Cloudflare Proxy + 백엔드 Rate Limiting 병행**이다. Cloudflare는 대용량 L3/L4/L7 DDoS 흡수를 담당하고, Spring Boot Rate Limiting은 OCI VM/DB/Redis/R2 비용 폭탄을 막는다. **Rate Limiting은 TASK-260511-03(PR#135)으로 구현 완료.**
 2. **Rate Limit은 단일 전역 값이 아니라 엔드포인트 위험도별로 분리**해야 한다. `/api/memes/compose`, `POST /api/memes`, OAuth2 진입점, `/api/auth/me`, 공개 갤러리 조회는 비용 특성이 다르다.
-3. **JWT는 현재 24시간 단일 Access Token 구조로 보이며 Replay Attack에 취약하다.** Access Token TTL 단축, Refresh Token 회전, 서버 측 토큰 버전/블랙리스트, 재사용 탐지를 도입한다.
+3. **JWT Access Token 15분 + Refresh Token 30일 회전 구조가 구현 완료되었다.** Access Token TTL 단축, Refresh Token 회전, DB denylist, 재사용 탐지가 TASK-260517-01(PR#109)으로 배포되었다.
 4. **CORS는 운영 환경에서 `https://pick-a-me.me`와 필요한 Preview Origin만 허용**한다. `allowedHeaders=*`는 동작상 편하지만, 운영에서는 명시 목록으로 줄이는 편이 좋다.
-5. **Cloudflare 전환 시 DNS만 옮기는 것으로는 부족하다.** `pick-a-me.me`, `api.pick-a-me.me`를 Proxied로 두고, Railway 원본 도메인 직접 접근 차단 또는 Cloudflare Access/Workers/Origin 검증을 추가해야 우회 공격을 줄일 수 있다.
+5. **Cloudflare 전환 시 DNS만 옮기는 것으로는 부족하다.** `pick-a-me.me`, `api.pick-a-me.me`를 Proxied로 두고, OCI 원본 IP 직접 접근 차단 또는 Cloudflare Access/Workers/Origin 검증을 추가해야 우회 공격을 줄일 수 있다. **OCI Security List에 Cloudflare IPv4 15개만 80/443 인바운드 허용으로 TASK-260511-05 구현 완료.**
 
 ## 3. 공격 시나리오와 대응 우선순위
 
 | 시나리오 | 영향 | 즉시 대응 | 중장기 대응 |
 | --- | --- | --- | --- |
-| 대량 `GET /api/memes/compose` 호출 | CPU/DB/Redis/R2 호출 증가, Railway 과금 및 성능 저하 | IP+사용자 단위 Rate Limit, 비로그인 더 낮은 한도 | Cloudflare WAF Rate Limiting, Bot Fight/Turnstile |
+| 대량 `GET /api/memes/compose` 호출 | CPU/DB/Redis/R2 호출 증가, OCI VM 과금 및 성능 저하 | IP+사용자 단위 Rate Limit, 비로그인 더 낮은 한도 | Cloudflare WAF Rate Limiting, Bot Fight/Turnstile |
 | 대량 `POST /api/memes` multipart 업로드 | 메모리/네트워크/R2 저장 비용 증가 | 요청 바디 크기 제한, 인증 사용자별 생성 한도 | 이미지 처리 큐 분리, 업로드 사전 서명 URL 정책 강화 |
 | 공개 갤러리 무한 페이지 조회 | DB 커넥션 고갈, Neon 비용/성능 영향 | 최대 `size` 제한, 캐시, IP 단위 완만한 제한 | CDN 캐싱, read replica/edge cache |
 | OAuth2 로그인 플러딩 | OAuth provider 콜백/세션 처리 부하, 계정 생성 남용 | `/oauth2/authorization/*`, `/login/oauth2/code/*` Rate Limit | WAF challenge, provider별 abuse monitoring |
 | JWT 탈취 후 재사용 | 사용자 데이터 조회/밈 생성/하트 소모 | Access Token TTL 단축, 로그아웃 블랙리스트 | Refresh Token rotation + reuse detection |
-| Origin 직접 타격 | Cloudflare 우회, Railway 직접 과금 | Railway 기본 도메인 비공개/미노출, Origin 검증 헤더 | Cloudflare Tunnel 또는 origin allowlist |
+| Origin 직접 타격 | Cloudflare 우회, OCI VM 직접 부하 | OCI Security List로 Cloudflare IP만 허용 (구현 완료), Origin 검증 헤더 | Cloudflare Tunnel 또는 origin allowlist |
 
 ## 4. Quick Win 설정
 
@@ -58,7 +58,7 @@ spring:
 
 - `POST /api/memes`: 이미지 1장 업로드라면 3~5MB를 넘기지 않는다.
 - `GET /api/memes`: `size` 최대 50 이하로 서버에서 clamp한다.
-- DB pool은 Railway 인스턴스 크기와 Neon 플랜에 맞춰 작게 유지한다. 현재 Hikari timeout 계열 설정은 있으므로 `maximum-pool-size`를 명시해 폭주 시 DB를 먼저 보호한다.
+- DB pool은 OCI VM 크기(VM.Standard.A1.Flex)와 Neon 플랜에 맞춰 작게 유지한다. 현재 Hikari timeout 계열 설정은 있으므로 `maximum-pool-size`를 명시해 폭주 시 DB를 먼저 보호한다.
 
 ```yaml
 spring:
@@ -68,11 +68,11 @@ spring:
       minimum-idle: 1
 ```
 
-### 4.2 Backend Rate Limiting 전략
+### 4.2 Backend Rate Limiting 전략 ✅ 구현 완료 (TASK-260511-03, PR#135)
 
-가장 비용 효율적인 방식은 **Redis 기반 토큰 버킷**이다. 이미 Redis를 사용하므로 신규 인프라 없이 적용 가능하다.
+**Redis 기반 토큰 버킷**으로 구현되었다. `RateLimitFilter.kt`가 `CF-Connecting-IP` 헤더를 기준으로 엔드포인트별 한도를 적용한다.
 
-권장 정책:
+적용 정책:
 
 | 대상 | 키 | 권장 한도 | 실패 응답 |
 | --- | --- | --- | --- |
@@ -83,10 +83,10 @@ spring:
 | `/api/auth/me` | IP + userId | 60/min | 429 |
 | 공개 GET 목록 | IP | 120/min | 429, 캐시 우선 |
 
-구현 원칙:
+구현 현황:
 
-- 필터는 Spring Security 앞단 또는 `OncePerRequestFilter`로 둔다.
-- Cloudflare 도입 후에는 `CF-Connecting-IP`를 신뢰하되, 요청이 Cloudflare를 거쳤는지 검증하기 전에는 임의 헤더를 신뢰하지 않는다.
+- `RateLimitFilter.kt`가 `OncePerRequestFilter`로 Spring Security 앞단에서 동작한다.
+- `CF-Connecting-IP` 헤더를 실제 클라이언트 IP로 사용한다 (OCI Security List로 Cloudflare IP만 허용되므로 헤더 위변조 우회 불가).
 - Rate Limit 초과 시 DB 조회 전에 즉시 `429 Too Many Requests`와 `Retry-After`를 반환한다.
 - Redis 장애 시에는 보호 대상 고비용 엔드포인트는 fail-closed, 단순 공개 GET은 짧은 로컬 fallback으로 fail-open을 고려한다.
 
@@ -114,26 +114,30 @@ app:
         refill-period: 1m
 ```
 
-### 4.3 JWT/OAuth2 인증 보안
+### 4.3 JWT/OAuth2 인증 보안 ✅ 핵심 항목 구현 완료 (TASK-260517-01, PR#109)
 
-현재 구조에서 즉시 적용할 설정:
+구현 완료된 설정:
 
 ```yaml
 jwt:
-  expiration-ms: 900000 # 15분
+  expiration-ms: 900000 # 15분 ✅
 
 cookie:
   secure: true
 ```
 
-추가 권장:
+구현 완료:
+
+- ✅ Access Token TTL 15분 적용.
+- ✅ Refresh Token 30일, 매 사용마다 회전(rotation) 구현.
+- ✅ DB denylist: 로그아웃/재사용 감지 시 토큰 무효화.
+- ✅ Refresh Token 재사용 감지 시 해당 사용자 세션 패밀리 전체 폐기.
+- ✅ OAuth2 콜백이 URL이 아닌 `HttpOnly` 쿠키로 토큰을 전달한다.
+
+추가 권장 (미완):
 
 - `JWT_SECRET`은 최소 256-bit 이상 랜덤 값을 사용하고 정기 교체한다.
 - JWT claim에 `iss`, `aud`, `iat`, `exp`, `jti`, `tokenVersion`을 포함한다.
-- 로그아웃 시 `jti`를 Redis에 만료 시각까지 저장해 재사용을 차단한다.
-- Refresh Token은 DB/Redis에 해시로 저장하고 매 사용마다 회전한다.
-- Refresh Token 재사용이 감지되면 해당 사용자 세션 패밀리를 모두 폐기한다.
-- OAuth2 `state` 검증은 Spring Security 기본 흐름을 유지하되, 프론트 콜백 페이지가 URL에 토큰을 노출하지 않도록 현재처럼 쿠키 전달 방식을 유지한다.
 - 민감 작업 추가 시 CSRF 토큰 또는 double-submit cookie를 검토한다. `SameSite=Lax`는 일반적인 cross-site POST CSRF를 줄이지만, 모든 브라우저/리다이렉트 edge case를 완전히 대체하지는 않는다.
 
 ### 4.4 CORS 운영 설정
@@ -196,9 +200,9 @@ CSP는 이미지 합성/외부 이미지/R2 도메인을 확인한 뒤 Report-On
 
 Cloudflare 공식 문서 기준으로 Proxied DNS는 Cloudflare가 HTTP 요청을 프록시하면서 보호/캐시/분석 기능을 제공하고, DNS-only는 원본 IP 노출 및 DDoS/WAF/캐싱 보호 제외 위험이 있다. 또한 Cloudflare DDoS Protection은 모든 플랜에서 항상 켜져 있고 Free 플랜에도 DDoS 보호와 Bot Fight Mode가 포함된다.
 
-따라서 현재 가비아 DNS만 사용하는 상태라면 Cloudflare Proxy 전환 실익은 크다.
+**현재 Cloudflare Proxy가 이미 적용되어 있으며** `api.pick-a-me.me`가 Proxied 상태다. OCI Security List 구성으로 실익이 확인된 구조다.
 
-- 대규모 L3/L4 트래픽을 Railway가 직접 맞지 않게 한다.
+- 대규모 L3/L4 트래픽을 OCI VM이 직접 맞지 않게 한다.
 - 정적 프론트와 공개 GET API에 edge cache를 붙일 수 있다.
 - 공격 중 "Under Attack Mode", Bot Fight Mode, WAF custom rule을 즉시 켤 수 있다.
 - 국가/ASN/URI 기반 차단을 앱 배포 없이 적용할 수 있다.
@@ -209,19 +213,19 @@ Cloudflare 공식 문서 기준으로 Proxied DNS는 Cloudflare가 HTTP 요청�
 | --- | --- | --- | --- |
 | `pick-a-me.me` | Vercel CNAME/Apex | Proxied 가능 여부 검증 후 적용 | Vercel 권장 DNS와 충돌 없는지 확인 |
 | `www.pick-a-me.me` | Vercel | Proxied | canonical redirect |
-| `api.pick-a-me.me` | Railway public domain | Proxied | API 보호 핵심 |
+| `api.pick-a-me.me` | OCI VM 공인 IP | Proxied | API 보호 핵심 |
 | R2 public/custom domain | R2 | Cloudflare 관리 | public asset cache 정책 분리 |
 
-### 5.3 Origin 우회 방지
+### 5.3 Origin 우회 방지 ✅ OCI Security List로 기본 차단 완료
 
-Cloudflare만 앞에 두고 Railway 기본 도메인이 살아 있으면 공격자가 `*.up.railway.app` 또는 노출된 원본으로 직접 때릴 수 있다.
+OCI Security List에 Cloudflare IPv4 15개만 80/443 인바운드로 허용하여 공인 IP 직접 접근이 차단되었다.
 
-권장 순서:
+추가 강화 권장:
 
-1. 앱/문서/로그/프론트 코드에서 Railway 원본 URL 노출 제거.
+1. 앱/문서/로그/프론트 코드에서 OCI VM 공인 IP 노출 제거.
 2. 백엔드에서 `X-Origin-Verify` 같은 secret header를 검사한다. Cloudflare Worker 또는 Transform Rule에서만 해당 헤더를 주입한다.
-3. 가능하면 Cloudflare Tunnel로 Railway 대신 Cloudflare 경유만 허용하는 구조를 검토한다.
-4. `CF-Connecting-IP`는 Cloudflare 경유 검증 후에만 실제 IP로 사용한다.
+3. 가능하면 Cloudflare Tunnel로 OCI VM 공인 IP를 완전히 숨기는 구조를 검토한다.
+4. `CF-Connecting-IP`는 OCI Security List로 Cloudflare 경유가 강제되므로 현재 구조에서 신뢰 가능하다.
 
 ### 5.4 Cloudflare Rules 초안
 
@@ -242,9 +246,9 @@ Cloudflare만 앞에 두고 Railway 기본 도메인이 살아 있으면 공격�
 
 ### 6.1 인증/세션
 
-- Access Token 15분 + Refresh Token 7~30일 구조로 전환한다.
-- Refresh Token rotation과 reuse detection을 구현한다.
-- Redis에 `jti` denylist 및 사용자 `tokenVersion`을 저장한다.
+- ✅ Access Token 15분 + Refresh Token 30일 구조 전환 완료 (PR#109).
+- ✅ Refresh Token rotation과 reuse detection 구현 완료.
+- ✅ DB denylist로 로그아웃/재사용 탐지 시 토큰 무효화 구현.
 - 관리자/민감 기능이 생기면 step-up 인증을 도입한다.
 
 ### 6.2 애플리케이션 방어
@@ -256,27 +260,28 @@ Cloudflare만 앞에 두고 Railway 기본 도메인이 살아 있으면 공격�
 
 ### 6.3 관측/알림
 
-- Railway CPU/Memory/Network, 429 비율, 5xx 비율, endpoint별 p95 latency 알림을 만든다.
+- OCI VM CPU/Memory/Network, 429 비율, 5xx 비율, endpoint별 p95 latency 알림을 만든다.
 - Neon connection count와 slow query, Upstash command count, R2 operation count를 대시보드화한다.
-- 공격 대응 runbook을 만든다. 예: Cloudflare Under Attack Mode 활성화, compose 임시 차단, 비로그인 compose 비활성화, Railway scale 상한 확인.
+- 공격 대응 runbook을 만든다. 예: Cloudflare Under Attack Mode 활성화, compose 임시 차단, 비로그인 compose 비활성화, OCI VM 리소스 상한 확인.
 
 ### 6.4 인프라
 
 - Cloudflare WAF Managed Rules와 API Shield는 트래픽/매출이 커질 때 도입한다.
 - Cloudflare Turnstile을 비로그인 고비용 작업 또는 의심 트래픽에만 조건부 적용한다.
 - Cloudflare Workers를 API 앞단 validation/rate-limit 계층으로 둘 수 있으나, 초기에는 Spring+Redis와 Cloudflare Rules가 비용 대비 효율적이다.
-- 서비스가 커지면 Railway의 spending limit/usage alert, Neon/Upstash/R2 예산 알림을 모두 설정한다.
+- 서비스가 커지면 OCI 비용/리소스 모니터링, Neon/Upstash/R2 예산 알림을 모두 설정한다.
 
 ## 7. 즉시 실행 체크리스트
 
 - [ ] 운영 `CORS_ALLOWED_ORIGINS`를 `https://pick-a-me.me,https://www.pick-a-me.me`로 제한한다.
 - [ ] 운영 `COOKIE_SECURE=true`, `NEXT_PUBLIC_API_URL=https://api.pick-a-me.me`를 확인한다.
-- [ ] JWT 만료를 15분으로 줄이고 Refresh Token rotation 작업을 우선순위에 올린다.
+- [x] JWT 만료를 15분으로 줄이고 Refresh Token rotation을 구현한다. (완료: PR#109, TASK-260517-01)
 - [x] `POST /api/memes`, `GET /api/memes/compose`, OAuth2 시작점에 Redis Rate Limit을 붙인다. 기본 Redis 토큰 버킷 필터를 구현했다.
 - [ ] multipart max size, page size clamp, Hikari max pool size를 명시한다.
-- [ ] Cloudflare로 DNS를 이전하고 `api.pick-a-me.me`를 Proxied로 둔다.
-- [ ] Railway 원본 도메인 직접 접근을 막기 위한 Origin 검증 헤더 또는 Tunnel을 검토한다.
+- [x] Cloudflare DNS 이전 및 `api.pick-a-me.me` Proxied 적용. (완료: TASK-260511-05와 함께 확인됨)
+- [x] OCI 원본 직접 접근 차단: OCI Security List에 Cloudflare IPv4 15개만 80/443 허용. (완료: TASK-260511-05)
 - [ ] Cloudflare WAF/Rate Limit/Cache Rule 초안을 적용하고 공격 시 임시 룰을 runbook에 적는다.
+- [ ] Cloudflare Tunnel을 검토해 OCI VM 공인 IP를 완전히 숨기는 구조로 강화한다.
 
 ## 8. 참고한 공식 문서
 
