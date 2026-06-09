@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { captureEvent } from "@/lib/analytics";
 import { useTheme } from "@/hooks/useTheme";
 import { X, LogOut, Zap, Diamond, Cloud, Images, Languages } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -18,6 +19,13 @@ export function LoginSlideMenu({ isOpen, onClose }: LoginSlideMenuProps) {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (isOpen) {
+      captureEvent({ event: 'login_menu_open' });
+    }
+  }, [isOpen]);
+
   return (
     <div
       className={cn(

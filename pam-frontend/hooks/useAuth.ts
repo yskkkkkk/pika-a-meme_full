@@ -3,11 +3,13 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getLoginUrl } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
+import { identifyUser, captureEvent } from "@/lib/analytics";
 
 interface MeResponse {
   id: string;
   username: string;
   email: string;
+  provider: 'kakao' | 'google';
 }
 
 export interface AuthContextValue {
@@ -30,9 +32,16 @@ export function useAuthState() {
     apiFetch<MeResponse>("/api/auth/me", { signal: controller.signal }).then((res) => {
       // AbortError인 경우 res가 {success: false, error: {code: "TIMEOUT"...}} 로 반환되거나 undefined일 수 있음
       if (controller.signal.aborted) return;
-      setLoggedIn(!!res?.data);
+      
+      const isLog = !!res?.data;
+      setLoggedIn(isLog);
       setUsername(res?.data?.username ?? null);
       setIsLoaded(true);
+
+      if (isLog && res?.data) {
+        identifyUser(res.data.id, res.data.provider);
+        captureEvent({ event: 'login_success', userId: res.data.id, provider: res.data.provider });
+      }
     });
     return () => {
       controller.abort();

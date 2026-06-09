@@ -2,6 +2,7 @@ package com.pickameme.api.auth
 
 import com.pickameme.api.common.ApiResponse
 import com.pickameme.api.common.ErrorCode
+import com.pickameme.domain.user.OAuthProvider
 import com.pickameme.domain.user.UserRepository
 import com.pickameme.infrastructure.auth.JwtProvider
 import jakarta.servlet.http.HttpServletRequest
@@ -37,7 +38,7 @@ class AuthController(
     fun me(@AuthenticationPrincipal userId: UUID?): ApiResponse<MeResponse?> {
         if (userId == null) return ApiResponse.ok(null)
         val user = userRepository.findById(userId) ?: return ApiResponse.ok(null)
-        return ApiResponse.ok(MeResponse(id = user.id, username = user.username, email = user.email))
+        return ApiResponse.ok(MeResponse(id = user.id, username = user.username, email = user.email, provider = user.provider))
     }
 
     @PostMapping("/refresh")
@@ -108,4 +109,4 @@ class AuthController(
     }
 }
 
-data class MeResponse(val id: UUID, val username: String, val email: String)
+data class MeResponse(val id: UUID, val username: String, val email: String, val provider: OAuthProvider)

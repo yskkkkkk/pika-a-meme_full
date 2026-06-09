@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
 import { TranslationMessages } from "@/lib/i18n";
+import { captureEvent } from "@/lib/analytics";
 
 const AVAILABLE_TAGS = [
   "피곤", "직장인", "기쁨", "주말", "귀여움",
@@ -97,7 +98,12 @@ export function TagSelectScreen({ selectedTag, onSelectTag, onBack, onConfirm, r
         })}
       </div>
       <button
-        onClick={onConfirm}
+        onClick={() => {
+          if (selectedTag) {
+            captureEvent({ event: 'tag_selected', tag_name: selectedTag });
+            onConfirm();
+          }
+        }}
         disabled={!selectedTag}
         className="w-full text-white font-black active:scale-[0.98] transition-transform"
         style={{

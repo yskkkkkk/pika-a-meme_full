@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Footer } from "@/components/Footer";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 
 export const metadata: Metadata = {
   title: "pick-a-meme",
@@ -57,7 +58,8 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans font-bold antialiased" style={{ backgroundColor: "var(--pam-bg-outer)" }}>
-        <Providers>
+        <AnalyticsProvider>
+          <Providers>
           <div className="flex justify-center min-h-[100dvh] relative">
             <div
               className="w-full max-w-[500px] shadow-2xl relative flex flex-col overflow-hidden"
@@ -77,6 +79,7 @@ export default function RootLayout({
             <Footer insideShell={false} />
           </div>
         </Providers>
+        </AnalyticsProvider>
       </body>
     </html>
   );

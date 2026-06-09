@@ -16,6 +16,7 @@
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.363.0",
     "next": "14",
+    "posthog-js": "^1.383.1",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.2.2"

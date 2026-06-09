@@ -10,6 +10,7 @@ import { Toast } from "@/components/ui/Toast";
 import { recordShare } from "@/hooks/useMissions";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 import { captureElement, saveImage } from "@/lib/imageSave";
+import { captureEvent } from "@/lib/analytics";
 
 // SVG 아이콘 컴포넌트
 function IconHome() {
@@ -73,6 +74,11 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
   const router = useRouter();
 
   useEffect(() => {
+    captureEvent({ event: 'result_viewed', heart_type: heartType });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (!isLoaded || isLoggedIn) return;
     const timer = setTimeout(() => setShowNudge(true), 2000);
     return () => clearTimeout(timer);
@@ -102,6 +108,7 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
     try {
       const blob = await captureElement(cardRef.current, "image/jpeg", 0.92);
       await saveImage(blob, "pick-a-meme.jpg");
+      captureEvent({ event: 'meme_saved' });
       showToast(t.toast.imageSaved);
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") return;
@@ -115,6 +122,7 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
         document.body.appendChild(a);
         a.click();
         a.remove();
+        captureEvent({ event: 'meme_saved' });
         showToast(t.toast.imageSaved);
       } catch {
         showToast(t.errors.saveFailed);
@@ -133,12 +141,15 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "PICK-A-MEME", text: result.phrase });
+        captureEvent({ event: 'meme_shared', share_platform: 'file' });
         recordShare("OTHER");
       } else if (navigator.share) {
         await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: window.location.origin });
+        captureEvent({ event: 'meme_shared', share_platform: 'url' });
         recordShare("OTHER");
       } else {
         await navigator.clipboard.writeText(window.location.origin);
+        captureEvent({ event: 'meme_shared', share_platform: 'clipboard' });
         showToast(t.toast.linkCopied);
       }
     } catch (e: unknown) {
@@ -147,9 +158,11 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
       try {
         if (navigator.share) {
           await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: window.location.origin });
+          captureEvent({ event: 'meme_shared', share_platform: 'url' });
           recordShare("OTHER");
         } else {
           await navigator.clipboard.writeText(window.location.origin);
+          captureEvent({ event: 'meme_shared', share_platform: 'clipboard' });
           showToast(t.toast.linkCopied);
         }
       } catch {
