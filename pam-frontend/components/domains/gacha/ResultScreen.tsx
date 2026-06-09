@@ -9,8 +9,10 @@ import { useToast } from "@/hooks/useToast";
 import { Toast } from "@/components/ui/Toast";
 import { recordShare } from "@/hooks/useMissions";
 import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
+import { ShareTemplate } from "@/components/domains/gacha/ShareTemplate";
 import { captureElement, saveImage } from "@/lib/imageSave";
 import { captureEvent } from "@/lib/analytics";
+import api from "@/lib/axios";
 
 // SVG 아이콘 컴포넌트
 function IconHome() {
@@ -64,6 +66,7 @@ interface Props {
 
 export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome, onLoginClick }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const shareTemplateRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [confirmingRedraw, setConfirmingRedraw] = useState(false);
@@ -133,35 +136,55 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
   };
 
   const handleShare = async () => {
-    if (!cardRef.current || sharing) return;
+    if (!shareTemplateRef.current || sharing) return;
     setSharing(true);
     try {
-      const blob = await captureElement(cardRef.current, "image/jpeg", 0.92);
+      // 1. 1:1 비율 공유 템플릿(ShareTemplate) 캡처 (파일 공유 및 OG 이미지용)
+      const blob = await captureElement(shareTemplateRef.current, "image/jpeg", 0.92);
       const file = new File([blob], "pick-a-meme.jpg", { type: "image/jpeg" });
 
+      let shareUrl = window.location.origin;
+
+      // 2. 로그인 유저 && DB에 저장된 밈(memeId 존재)인 경우 R2 지연 업로드
+      if (isLoggedIn && result.memeId) {
+        try {
+          const formData = new FormData();
+          formData.append("file", blob, "og.jpg");
+          await api.post(`/api/memes/${result.memeId}/og-image`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+          });
+          shareUrl = `${window.location.origin}/share/${result.memeId}`;
+        } catch (uploadError) {
+          console.error("OG 이미지 지연 업로드 실패:", uploadError);
+          // 실패해도 본래 공유 로직은 fallback URL로 진행
+        }
+      }
+
+      // 3. 네이티브 공유 트리거
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "PICK-A-MEME", text: result.phrase });
+        await navigator.share({ files: [file], title: "PICK-A-MEME", text: result.phrase, url: shareUrl });
         captureEvent({ event: 'meme_shared', share_platform: 'file' });
         recordShare("OTHER");
       } else if (navigator.share) {
-        await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: window.location.origin });
+        await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: shareUrl });
         captureEvent({ event: 'meme_shared', share_platform: 'url' });
         recordShare("OTHER");
       } else {
-        await navigator.clipboard.writeText(window.location.origin);
+        await navigator.clipboard.writeText(shareUrl);
         captureEvent({ event: 'meme_shared', share_platform: 'clipboard' });
         showToast(t.toast.linkCopied);
       }
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") return;
-      // 캡처 실패 시 URL 공유로 fallback
+      
+      const fallbackUrl = isLoggedIn && result.memeId ? `${window.location.origin}/share/${result.memeId}` : window.location.origin;
       try {
         if (navigator.share) {
-          await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: window.location.origin });
+          await navigator.share({ title: "PICK-A-MEME", text: result.phrase, url: fallbackUrl });
           captureEvent({ event: 'meme_shared', share_platform: 'url' });
           recordShare("OTHER");
         } else {
-          await navigator.clipboard.writeText(window.location.origin);
+          await navigator.clipboard.writeText(fallbackUrl);
           captureEvent({ event: 'meme_shared', share_platform: 'clipboard' });
           showToast(t.toast.linkCopied);
         }
@@ -335,6 +358,9 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
           </button>
         </div>
       )}
+      
+      {/* 화면 외부에 렌더링되는 1:1 비율 공유 템플릿 */}
+      <ShareTemplate ref={shareTemplateRef} result={result} />
     </div>
   );
 }
