@@ -9,6 +9,7 @@ interface MeResponse {
   id: string;
   username: string;
   email: string;
+  provider: 'kakao' | 'google';
 }
 
 export interface AuthContextValue {
@@ -38,8 +39,8 @@ export function useAuthState() {
       setIsLoaded(true);
 
       if (isLog && res?.data) {
-        identifyUser(res.data.id, 'kakao');
-        captureEvent({ event: 'login_success', userId: res.data.id, provider: 'kakao' });
+        identifyUser(res.data.id, res.data.provider);
+        captureEvent({ event: 'login_success', userId: res.data.id, provider: res.data.provider });
       }
     });
     return () => {
