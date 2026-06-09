@@ -6,6 +6,7 @@ import com.pickameme.application.meme.MemeComposeService
 import com.pickameme.application.meme.MemeComposeResult
 import com.pickameme.application.meme.SaveCompositionService
 import com.pickameme.application.meme.SaveCompositionCommand
+import com.pickameme.application.meme.UploadOgImageService
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.UserMemeRepository
 import org.springframework.http.HttpStatus
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
@@ -27,6 +29,7 @@ class MemeController(
     private val memeQueryService: MemeQueryService,
     private val memeComposeService: MemeComposeService,
     private val saveCompositionService: SaveCompositionService,
+    private val uploadOgImageService: UploadOgImageService,
     private val userMemeRepository: UserMemeRepository
 ) {
 
@@ -151,6 +154,43 @@ class MemeController(
             )
         )
         return ApiResponse.ok(SaveCompositionResponse(memeId))
+    }
+
+    /**
+     * POST /api/memes/{memeId}/og-image
+     * 밈 공유용 OG 이미지 업로드 (로그인 필수)
+     */
+    @PostMapping("/{memeId}/og-image", consumes = ["multipart/form-data"])
+    fun uploadOgImage(
+        @AuthenticationPrincipal userId: UUID,
+        @PathVariable memeId: UUID,
+        @RequestParam("file") file: MultipartFile
+    ): ApiResponse<Map<String, String>> {
+        val userMeme = userMemeRepository.findByUserIdAndId(userId, memeId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없거나 권한이 없습니다")
+            
+        val url = uploadOgImageService.upload(
+            memeId = memeId,
+            bytes = file.bytes,
+            contentType = file.contentType ?: "image/png"
+        )
+        return ApiResponse.ok(mapOf("ogImageUrl" to url))
+    }
+
+    /**
+     * GET /api/memes/share/{memeId}
+     * 공유용 밈 조회 (공개 접근)
+     */
+    @GetMapping("/share/{memeId}")
+    fun getSharedMeme(
+        @PathVariable memeId: UUID
+    ): ApiResponse<UserMemeResponse> {
+        val userMeme = userMemeRepository.findById(memeId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+        if (!userMeme.enabled) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "삭제되거나 비공개된 밈입니다")
+        }
+        return ApiResponse.ok(UserMemeResponse.from(userMeme))
     }
 }
 

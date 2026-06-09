@@ -20,5 +20,6 @@ data class UserMeme(
     val selectedTag: String?,
     val matchedTags: List<String> = emptyList(),
     val createdAt: LocalDateTime,
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+    val ogImageUrl: String? = null
 )

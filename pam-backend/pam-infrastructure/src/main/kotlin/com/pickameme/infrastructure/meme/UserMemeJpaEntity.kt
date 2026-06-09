@@ -44,7 +44,10 @@ class UserMemeJpaEntity(
     val createdAt: LocalDateTime,
 
     @Column(name = "enabled", nullable = false)
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+
+    @Column(name = "og_image_url", nullable = true, length = 255)
+    val ogImageUrl: String? = null
 ) {
     fun toDomain() = UserMeme(
         id = id,
@@ -56,6 +59,7 @@ class UserMemeJpaEntity(
         selectedTag = selectedTag,
         matchedTags = matchedTags,
         createdAt = createdAt,
-        enabled = enabled
+        enabled = enabled,
+        ogImageUrl = ogImageUrl
     )
 }

@@ -43,12 +43,15 @@ class MemeComposeService(
             heartService.consumeHeart(userId, heartType)
         }
 
+        var generatedMemeId: UUID? = null
+
         // 3단계: DB 저장
         if (userId != null) {
             val matchedTags = image.tags.intersect(phrase.tags.toSet()).toList()
+            generatedMemeId = UUID.randomUUID()
             userMemeRepository.save(
                 UserMeme(
-                    id = UUID.randomUUID(),
+                    id = generatedMemeId,
                     userId = userId,
                     imageId = image.id,
                     phraseId = phrase.id,
@@ -68,6 +71,7 @@ class MemeComposeService(
         }
 
         return MemeComposeResult(
+            memeId = generatedMemeId,
             imagePresignedUrl = image.imageUrl,
             subjectPosition = image.subjectPosition.name,
             phrase = phrase.text,
@@ -78,6 +82,7 @@ class MemeComposeService(
 }
 
 data class MemeComposeResult(
+    val memeId: UUID?,
     val imagePresignedUrl: String,
     val subjectPosition: String,
     val phrase: String,

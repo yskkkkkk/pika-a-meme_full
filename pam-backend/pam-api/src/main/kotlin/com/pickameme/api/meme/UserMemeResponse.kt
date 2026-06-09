@@ -13,7 +13,8 @@ data class UserMemeResponse(
     val selectedTag: String?,
     val matchedTags: List<String>,
     val createdAt: LocalDateTime,
-    val enabled: Boolean
+    val enabled: Boolean,
+    val ogImageUrl: String?
 ) {
     companion object {
         fun from(userMeme: UserMeme) = UserMemeResponse(
@@ -25,7 +26,8 @@ data class UserMemeResponse(
             selectedTag = userMeme.selectedTag,
             matchedTags = userMeme.matchedTags,
             createdAt = userMeme.createdAt,
-            enabled = userMeme.enabled
+            enabled = userMeme.enabled,
+            ogImageUrl = userMeme.ogImageUrl
         )
     }
 }
