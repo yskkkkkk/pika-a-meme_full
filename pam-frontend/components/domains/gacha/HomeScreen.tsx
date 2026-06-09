@@ -3,6 +3,7 @@
 import { RecentMemeCarousel } from "@/components/domains/gacha/RecentMemeCarousel";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Footer } from "@/components/Footer";
+import { captureEvent } from "@/lib/analytics";
 
 interface Props {
   onBasicDraw: () => void;
@@ -33,7 +34,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
       <div className="flex flex-col w-full" style={{ gap: 10 }}>
         <RecentMemeCarousel />
         <button
-          onClick={onBasicDraw}
+          onClick={() => { captureEvent({ event: 'gacha_started', type: 'BASIC' }); onBasicDraw(); }}
           className="w-full flex items-center justify-between active:scale-[0.98] transition-transform"
           style={{ background: "var(--pam-text)", borderRadius: 20, padding: "16px 20px", border: "none", color: "var(--pam-bg)" }}
         >
@@ -60,7 +61,7 @@ export function HomeScreen({ onBasicDraw, onSpecialDraw, username, guestHeartCou
         </button>
 
         <button
-          onClick={onSpecialDraw}
+          onClick={() => { captureEvent({ event: 'gacha_started', type: 'SPECIAL' }); onSpecialDraw(); }}
           className="w-full flex items-center justify-between text-white active:scale-[0.98] transition-transform neon-glow-accent"
           style={{
             background: "linear-gradient(135deg, var(--pam-btn-special-from), var(--pam-btn-special-to))",

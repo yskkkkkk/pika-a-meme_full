@@ -16,6 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/useToast";
 import { Toast } from "@/components/ui/Toast";
 import { recordVisit } from "@/hooks/useMissions";
+import { captureEvent } from "@/lib/analytics";
 
 type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
 
@@ -106,8 +107,11 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
       queryClient.invalidateQueries({ queryKey: ["recent-matched-memes"] });
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
-    } catch (e) {
+    } catch (e: any) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
+      const msg = e instanceof Error ? e.message : String(e);
+      const reason = msg === "TIMEOUT" ? 'timeout' : (msg.toLowerCase().includes("insufficient") || msg.includes("하트가 부족")) ? 'insufficient_heart' : 'unknown';
+      captureEvent({ event: 'gacha_failed', reason });
       showToast(classifyDrawError(e, t));
       setAppState("HOME");
     }
@@ -146,8 +150,11 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["my-memes"] });
       queryClient.invalidateQueries({ queryKey: ["recent-matched-memes"] });
       queryClient.refetchQueries({ queryKey: ["hearts"] }); // 서버 실제값으로 보정
-    } catch (e) {
+    } catch (e: any) {
       queryClient.invalidateQueries({ queryKey: ["hearts"] }); // 롤백: 서버 재조회
+      const msg = e instanceof Error ? e.message : String(e);
+      const reason = msg === "TIMEOUT" ? 'timeout' : (msg.toLowerCase().includes("insufficient") || msg.includes("하트가 부족")) ? 'insufficient_heart' : 'unknown';
+      captureEvent({ event: 'gacha_failed', reason });
       showToast(classifyDrawError(e, t));
       setAppState("HOME");
     }
