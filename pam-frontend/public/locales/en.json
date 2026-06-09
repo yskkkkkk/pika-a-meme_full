@@ -95,8 +95,8 @@
   "result": {
     "viewGallery": "View My Gallery →",
     "resultAlt": "Meme Result",
-    "loginNudge": "Log in to save this meme",
-    "loginNudgeAction": "Log in",
+    "loginNudge": "Log in — this meme saves instantly",
+    "loginNudgeAction": "Save & Start",
     "memeSaved": "Meme saved to your gallery!"
   },
   "errors": {
