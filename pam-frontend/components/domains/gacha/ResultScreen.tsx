@@ -300,7 +300,7 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
           style={{
             backgroundColor: "var(--pam-surface)",
             border: "1.5px solid var(--pam-border)",
-            whiteSpace: "nowrap",
+            maxWidth: "calc(100% - 48px)",
           }}
         >
           <span className="text-sm font-semibold" style={{ color: "var(--pam-text)" }}>

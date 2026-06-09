@@ -95,8 +95,8 @@
   "result": {
     "viewGallery": "내 갤러리 보기 →",
     "resultAlt": "미미카드 결과",
-    "loginNudge": "로그인하면 이 밈을 저장할 수 있어요",
-    "loginNudgeAction": "로그인하기",
+    "loginNudge": "이 밈, 로그인하면 갤러리에 바로 저장돼요",
+    "loginNudgeAction": "저장하고 시작하기",
     "memeSaved": "밈이 갤러리에 저장됐어요!"
   },
   "errors": {
@@ -117,7 +117,10 @@
   "heart": {
     "getSpecialHeart": "스페셜 하트 획득",
     "missionRewardDesc": "미션 완료 시 지급돼요",
-    "noActiveMissions": "진행 가능한 미션이 없어요"
+    "noActiveMissions": "진행 가능한 미션이 없어요",
+    "refillCountdown": "{time} 후 충전",
+    "refillCountdownMins": "{m}분 {s}초",
+    "refillCountdownSecs": "{s}초"
   },
   "missions": {
     "firstLogin": { "name": "최초 로그인", "desc": "로그인하면 즉시 완료돼요" },

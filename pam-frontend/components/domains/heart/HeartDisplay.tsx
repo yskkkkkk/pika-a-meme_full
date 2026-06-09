@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHeart } from "@/hooks/useHeart";
 import { useMissions, type Mission, type MissionType } from "@/hooks/useMissions";
@@ -24,6 +24,22 @@ export function HeartDisplay({ onMenuOpen }: Props) {
   const basicMax = serverHearts?.basic.max ?? 5;
   const specialCount = serverHearts?.special.count ?? 0;
   const hasUnfinishedMissions = missions.some((m) => m.status === "ACTIVE" || m.status === "PROGRESS");
+
+  const [countdownSecs, setCountdownSecs] = useState<number | null>(null);
+  useEffect(() => {
+    const nextChargeAt = serverHearts?.basic.nextChargeAt;
+    if (!nextChargeAt || basicCount >= basicMax) {
+      setCountdownSecs(null);
+      return;
+    }
+    const update = () => {
+      const diff = Math.max(0, new Date(nextChargeAt).getTime() - Date.now());
+      setCountdownSecs(diff > 0 ? Math.ceil(diff / 1000) : null);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [serverHearts?.basic.nextChargeAt, basicCount, basicMax]);
 
   function missionIcon(type: MissionType): string {
     switch (type) {
@@ -75,6 +91,11 @@ export function HeartDisplay({ onMenuOpen }: Props) {
                   }}
                 />
               </div>
+              {countdownSecs !== null && (
+                <div className="font-bold" style={{ fontSize: 9, color: "var(--pam-pink)", lineHeight: 1 }}>
+                  {t.format.refillCountdown(countdownSecs)}
+                </div>
+              )}
             </div>
             <div className="font-black leading-none flex-shrink-0" style={{ fontSize: 19, color: "var(--pam-text)" }}>
               {heartsReady ? basicCount : <span style={{ color: "var(--pam-text-disabled)" }}>—</span>}
