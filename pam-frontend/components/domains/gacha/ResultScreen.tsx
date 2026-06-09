@@ -309,30 +309,39 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
 
       {!isLoggedIn && showNudge && (
         <div
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl z-[100] animate-fade-in"
-          style={{
-            backgroundColor: "var(--pam-surface)",
-            border: "1.5px solid var(--pam-border)",
-            maxWidth: "calc(100% - 48px)",
-          }}
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] animate-fade-in"
+          style={{ width: "calc(min(100vw - 32px, 452px))" }}
         >
-          <span className="text-sm font-semibold" style={{ color: "var(--pam-text)" }}>
-            {t.result.loginNudge}
-          </span>
-          <button
-            onClick={handleLoginNudge}
-            className="text-sm font-black px-3 py-1.5 rounded-xl text-white"
-            style={{ background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))" }}
+          <div
+            className="rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ backgroundColor: "var(--pam-surface)", border: "1.5px solid var(--pam-border)" }}
           >
-            {t.result.loginNudgeAction}
-          </button>
-          <button
-            onClick={() => setShowNudge(false)}
-            className="text-xs"
-            style={{ color: "var(--pam-text-muted)" }}
-          >
-            ✕
-          </button>
+            <div className="flex items-start justify-between gap-2 px-4 pt-3 pb-2">
+              <span className="text-sm font-semibold leading-snug" style={{ color: "var(--pam-text)" }}>
+                {t.result.loginNudge}
+              </span>
+              <button
+                onClick={() => setShowNudge(false)}
+                className="flex-shrink-0 text-xs mt-0.5"
+                style={{ color: "var(--pam-text-muted)" }}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-4 pb-3">
+              <button
+                onClick={handleLoginNudge}
+                className="w-full font-black text-white text-sm rounded-xl active:scale-95 transition-transform"
+                style={{
+                  padding: "10px 0",
+                  background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+                  border: "none",
+                }}
+              >
+                {t.result.loginNudgeAction}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
