@@ -20,7 +20,7 @@ function PostHogPageView() {
         session_recording: {
           maskAllInputs: true,
           maskTextSelector: '*[data-ph-mask="true"]',
-          // 10% 유저만 녹화 (Vercel Egress 절감) - 현재는 테스트를 위해 활성화 유지 또는 조절
+          sampleRate: 0.1, // 10% 유저만 녹화 (Vercel Egress 절감)
         },
         loaded: (ph) => {
           if (process.env.NODE_ENV === 'development') ph.debug()
