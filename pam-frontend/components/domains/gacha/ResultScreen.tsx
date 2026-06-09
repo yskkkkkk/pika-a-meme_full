@@ -226,9 +226,9 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
             className="font-black active:scale-95 transition-all text-white flex items-center justify-center"
             style={{
               gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
-              background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+              background: "linear-gradient(135deg, var(--pam-btn-special-from), var(--pam-btn-special-to))",
               border: "none",
-              boxShadow: "0 4px 16px var(--pam-shadow-pink-btn)",
+              boxShadow: "0 4px 16px var(--pam-btn-special-shadow)",
             }}
           >
             <IconRefresh />
@@ -243,7 +243,7 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
               backgroundColor: "var(--pam-btn-redraw-bg)",
               border: "1.5px solid var(--pam-btn-redraw-border)",
               color: "var(--pam-btn-redraw-text)",
-              boxShadow: "0 1px 8px var(--pam-shadow-pink-btn)",
+              boxShadow: "0 1px 8px var(--pam-btn-special-shadow)",
             }}
           >
             <IconRefresh />
@@ -284,9 +284,9 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
             gap: 6, padding: 15, borderRadius: 16, fontSize: 14,
             background: sharing
               ? "var(--pam-text-disabled)"
-              : "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+              : "linear-gradient(135deg, var(--pam-btn-special-from), var(--pam-btn-special-to))",
             border: "none",
-            boxShadow: sharing ? "none" : "0 4px 16px var(--pam-shadow-pink-btn)",
+            boxShadow: sharing ? "none" : "0 4px 16px var(--pam-btn-special-shadow)",
             cursor: sharing ? "not-allowed" : "pointer",
           }}
         >
@@ -334,7 +334,7 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
                 className="w-full font-black text-white text-sm rounded-xl active:scale-95 transition-transform"
                 style={{
                   padding: "10px 0",
-                  background: "linear-gradient(135deg, var(--pam-pink), var(--pam-purple))",
+                  background: "linear-gradient(135deg, var(--pam-btn-special-from), var(--pam-btn-special-to))",
                   border: "none",
                 }}
               >
