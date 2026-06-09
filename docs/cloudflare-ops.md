@@ -52,11 +52,11 @@ Cloudflare 설정이 늘어나면서 IaC(Infrastructure as Code) 도입을 검�
 
 ---
 
-### 3. Polish (Lossy) 활성화
+### 3. Polish — 비활성 (Free 플랜 미지원)
 
-**변경:** Cloudflare Polish — Lossy 모드 활성화
+**현재 상태:** 비활성. Cloudflare Polish는 Pro 플랜($20/월) 이상에서만 작동하며, 현재 Free 플랜 운영 중이므로 설정값과 무관하게 적용되지 않음.
 
-**이유:** 원본 PNG/JPEG를 클라이언트 지원에 따라 WebP/AVIF로 자동 변환·압축. 이미지 전송 용량 감소 및 모바일 로딩 속도 개선.
+**원래 의도:** 원본 PNG/JPEG를 WebP/AVIF로 자동 변환·압축하여 이미지 전송 용량 절감. Pro 플랜 전환 시 재활성화 검토.
 
 ---
 
@@ -80,7 +80,7 @@ Cloudflare 설정이 늘어나면서 IaC(Infrastructure as Code) 도입을 검�
 
 **이유:** R2 오리진 부하 감소 및 글로벌 엣지 노드에서의 응답 속도 향상. 이미지는 변경 빈도가 낮아 긴 TTL이 적합함.
 
-캐시 규칙 적용 후 Polish 설정이 즉시 반영되도록 **전체 캐시 퍼지(Purge Everything)** 실행.
+캐시 규칙 적용 후 **전체 캐시 퍼지(Purge Everything)** 실행.
 
 ---
 
