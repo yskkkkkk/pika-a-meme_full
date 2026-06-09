@@ -75,7 +75,8 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
 
   useEffect(() => {
     captureEvent({ event: 'result_viewed', heart_type: heartType });
-  }, [heartType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || isLoggedIn) return;
