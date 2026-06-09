@@ -36,6 +36,14 @@ export function createTranslator(language: Language) {
       homeSubtitleUser: (name: string) => format(messages.home.subtitleUser, { name }),
       totalCount: (count: number) => format(messages.gallery.totalCount, { count }),
       drawWithTag: (tag: string) => format(messages.gacha.drawWithTag, { tag }),
+      refillCountdown: (totalSecs: number) => {
+        const m = Math.floor(totalSecs / 60);
+        const s = totalSecs % 60;
+        const timeStr = m > 0
+          ? format(messages.heart.refillCountdownMins, { m, s: String(s).padStart(2, '0') })
+          : format(messages.heart.refillCountdownSecs, { s });
+        return format(messages.heart.refillCountdown, { time: timeStr });
+      },
     },
     memeWithParticle: (particle: KoreanParticle) => {
       if (language !== "ko") return "a Meme";

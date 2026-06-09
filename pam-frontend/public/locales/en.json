@@ -117,7 +117,10 @@
   "heart": {
     "getSpecialHeart": "Get Special Hearts",
     "missionRewardDesc": "Earn by completing missions",
-    "noActiveMissions": "No active missions"
+    "noActiveMissions": "No active missions",
+    "refillCountdown": "Refills in {time}",
+    "refillCountdownMins": "{m}m {s}s",
+    "refillCountdownSecs": "{s}s"
   },
   "missions": {
     "firstLogin": { "name": "First Login", "desc": "Completed immediately upon login" },

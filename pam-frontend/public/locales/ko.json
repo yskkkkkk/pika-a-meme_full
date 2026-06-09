@@ -117,7 +117,10 @@
   "heart": {
     "getSpecialHeart": "스페셜 하트 획득",
     "missionRewardDesc": "미션 완료 시 지급돼요",
-    "noActiveMissions": "진행 가능한 미션이 없어요"
+    "noActiveMissions": "진행 가능한 미션이 없어요",
+    "refillCountdown": "{time} 후 충전",
+    "refillCountdownMins": "{m}분 {s}초",
+    "refillCountdownSecs": "{s}초"
   },
   "missions": {
     "firstLogin": { "name": "최초 로그인", "desc": "로그인하면 즉시 완료돼요" },
