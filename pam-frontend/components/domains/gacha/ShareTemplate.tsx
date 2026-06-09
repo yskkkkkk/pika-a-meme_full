@@ -31,7 +31,7 @@ export const ShareTemplate = forwardRef<HTMLDivElement, ShareTemplateProps>(
         {/* 중앙 375x375 밈 영역 */}
         <div style={{ width: 375, height: 375, overflow: "hidden", position: "relative" }}>
           <MemeCanvasCard
-            imagePresignedUrl={result.imagePresignedUrl}
+            imageUrl={result.imagePresignedUrl}
             subjectPosition={result.subjectPosition}
             phrase={result.phrase}
           />

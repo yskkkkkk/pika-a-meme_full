@@ -31,7 +31,8 @@ class R2MemeImageStorage(
     }
 
     override fun uploadOgImage(memeId: String, bytes: ByteArray, contentType: String): String {
-        val key = "og/$memeId.png"
+        val extension = if (contentType == "image/jpeg") "jpg" else "png"
+        val key = "og/$memeId.$extension"
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(r2Properties.bucketName)
             .key(key)
