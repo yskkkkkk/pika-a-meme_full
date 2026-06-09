@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { GACHA_ANIMALS } from "@/lib/gacha";
 
 export interface MockMemeResponse {
+  memeId?: string;
   imagePresignedUrl: string;
   subjectPosition: string;
   phrase: string;

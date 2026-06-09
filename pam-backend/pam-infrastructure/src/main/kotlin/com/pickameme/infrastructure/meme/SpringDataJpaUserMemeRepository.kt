@@ -56,4 +56,11 @@ interface SpringDataJpaUserMemeRepository : JpaRepository<UserMemeJpaEntity, UUI
 
     @Query(value = "SELECT count(*) FROM user_memes WHERE user_id = :userId", nativeQuery = true)
     fun countAllByUserId(@Param("userId") userId: UUID): Long
+
+    @Modifying
+    @Query(
+        value = "UPDATE user_memes SET og_image_url = :url WHERE id = :id",
+        nativeQuery = true
+    )
+    fun updateOgImageUrl(@Param("id") id: UUID, @Param("url") url: String)
 }

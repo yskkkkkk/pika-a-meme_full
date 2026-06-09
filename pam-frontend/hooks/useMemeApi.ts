@@ -4,6 +4,7 @@ import { getMockMeme, MockMemeResponse } from '@/hooks/useMockMemeApi';
 export type MemeResult = MockMemeResponse; // reuse same shape
 
 export interface PendingMeme {
+  memeId?: string;
   imagePresignedUrl: string;
   subjectPosition: string;
   phrase: string;
