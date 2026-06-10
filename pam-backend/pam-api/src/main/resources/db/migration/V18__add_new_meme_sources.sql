@@ -1,4 +1,4 @@
--- V18: 신규 밈 소스 이미지 10종 추가
+﻿-- V18: 신규 밈 소스 이미지 10종 추가
 INSERT INTO meme_images (id, image_url, subject_position, tags) VALUES
 ('8dab2534-2ba2-42c1-9fbe-ebf864817dfd', 'https://img.pick-a-me.me/meme-sources/corner_cat.png', 'CENTER', '["고양이","귀여움","피곤"]'::jsonb),
 ('6f98536f-512f-482c-b33d-69ff47846f45', 'https://img.pick-a-me.me/meme-sources/pillow_dog.png', 'TOP', '["강아지","귀여움"]'::jsonb),
@@ -12,15 +12,15 @@ INSERT INTO meme_images (id, image_url, subject_position, tags) VALUES
 ('9d029b7e-da7c-4e54-af8b-9264d9e16fb6', 'https://img.pick-a-me.me/meme-sources/thumbs_up_sloth.png', 'CENTER', '["의지","기쁨"]'::jsonb);
 
 -- ============================================================
--- ���� �⺻ ������(V5, V6 ��)�� �±� �ϰ� �߰� �۾�
+-- 기존 기본 데이터(V5, V6 등)에 태그 일괄 추가 작업
 -- ============================================================
 
--- "dog"�� ���Ե� URL�� "������" �±� �߰� (��, �̹� "������"�� ���� ���)
+-- "dog"가 포함된 URL에 "강아지" 태그 추가 (단, 이미 "강아지"가 없을 경우)
 UPDATE meme_images
-SET tags = tags || '["������"]'::jsonb
-WHERE image_url LIKE '%dog%' AND NOT tags @> '["������"]'::jsonb;
+SET tags = tags || '["강아지"]'::jsonb
+WHERE image_url LIKE '%dog%' AND NOT tags @> '["강아지"]'::jsonb;
 
--- "cat" �Ǵ� "kitty"�� ���Ե� URL�� "������" �±� �߰� (��, �̹� "������"�� ���� ���)
+-- "cat" 또는 "kitty"가 포함된 URL에 "고양이" 태그 추가 (단, 이미 "고양이"가 없을 경우)
 UPDATE meme_images
-SET tags = tags || '["������"]'::jsonb
-WHERE (image_url LIKE '%cat%' OR image_url LIKE '%kitty%') AND NOT tags @> '["������"]'::jsonb;
+SET tags = tags || '["고양이"]'::jsonb
+WHERE (image_url LIKE '%cat%' OR image_url LIKE '%kitty%') AND NOT tags @> '["고양이"]'::jsonb;
