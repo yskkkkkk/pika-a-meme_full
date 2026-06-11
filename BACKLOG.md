@@ -120,6 +120,9 @@
 | TASK-260520-05 | [프론트엔드] | [x] | 블로그 공통 리소스(CSS/HTML) 중복 제거 및 프로필 카드 동기화 | - | post2/post4 CSS 공통화, profile.html/header.html 조각 분리 및 config.js 글로벌 상수 동적 로드 완공 | 260520 / 260520 |
 | TASK-260520-06 | [프론트엔드] | [x] | 블로그 SEO(검색엔진 최적화) 고도화 및 유입 채널 다각화 | TASK-260520-04 | 정적 블로그 문서 meta/OG 태그 개편, robots.txt 및 sitemap.xml 작성 배포 완료 | 260520 / 260609 |
 | TASK-260520-07 | [프론트엔드] | [ ] | 블로그 포스트 하단 Giscus 댓글 위젯 동적 연동 | TASK-260520-05 | 독자 소통 강화를 위한 GitHub Issue 기반 Giscus 댓글창 플레이스홀더 주입 및 실시간 테마 토글 연동 로더 | 260520 / - |
+| TASK-260611-01 | [보안] | [x] | SaveCompositionRequest 입력 검증 추가 (@Valid + 필드 제약) | - | imageUrl/phrase/subjectPosition NotBlank+Size, selectedTag Size(max=20), starter-validation 의존성 추가, MemeControllerTest 7개 케이스 GREEN | 260611 / 260611 |
+| TASK-260611-02 | [보안] | [x] | next.config.js 보안 HTTP 헤더 추가 | - | X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy — security-ddos-review §4.5 구현 | 260611 / 260611 |
+| TASK-260611-03 | [인프라/공통] | [x] | /ingest 리라이트 대역폭 모니터링 런북 작성 | - | docs/runbook-ingest-bandwidth.md 추가: 임계값 기준, 이상 탐지 절차, 즉각 대응 가이드 | 260611 / 260611 |
 
 
 
