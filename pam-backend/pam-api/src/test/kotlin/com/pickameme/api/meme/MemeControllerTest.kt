@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -130,6 +131,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest()))
             )
@@ -144,6 +146,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest().copy(imageUrl = "")))
             )
@@ -157,6 +160,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest().copy(imageUrl = "https://img.pick-a-me.me/" + "a".repeat(481))))
             )
@@ -170,6 +174,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest().copy(phrase = "")))
             )
@@ -183,6 +188,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest().copy(phrase = "가".repeat(201))))
             )
@@ -196,6 +202,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest().copy(subjectPosition = "")))
             )
@@ -209,6 +216,7 @@ class MemeControllerTest {
             mockMvc.perform(
                 post("/api/memes/save-composition")
                     .with(authentication(auth))
+                    .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest().copy(selectedTag = "a".repeat(21))))
             )

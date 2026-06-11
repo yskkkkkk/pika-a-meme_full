@@ -9,6 +9,7 @@ import com.pickameme.application.meme.SaveCompositionCommand
 import com.pickameme.application.meme.UploadOgImageService
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.UserMemeRepository
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -139,7 +140,7 @@ class MemeController(
     @PostMapping("/save-composition")
     fun saveComposition(
         @AuthenticationPrincipal userId: UUID,
-        @RequestBody body: SaveCompositionRequest
+        @Valid @RequestBody body: SaveCompositionRequest
     ): ApiResponse<SaveCompositionResponse> {
         val memeId = saveCompositionService.save(
             SaveCompositionCommand(
