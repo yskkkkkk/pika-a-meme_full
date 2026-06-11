@@ -120,6 +120,9 @@
 | TASK-260520-05 | [프론트엔드] | [x] | 블로그 공통 리소스(CSS/HTML) 중복 제거 및 프로필 카드 동기화 | - | post2/post4 CSS 공통화, profile.html/header.html 조각 분리 및 config.js 글로벌 상수 동적 로드 완공 | 260520 / 260520 |
 | TASK-260520-06 | [프론트엔드] | [x] | 블로그 SEO(검색엔진 최적화) 고도화 및 유입 채널 다각화 | TASK-260520-04 | 정적 블로그 문서 meta/OG 태그 개편, robots.txt 및 sitemap.xml 작성 배포 완료 | 260520 / 260609 |
 | TASK-260520-07 | [프론트엔드] | [ ] | 블로그 포스트 하단 Giscus 댓글 위젯 동적 연동 | TASK-260520-05 | 독자 소통 강화를 위한 GitHub Issue 기반 Giscus 댓글창 플레이스홀더 주입 및 실시간 테마 토글 연동 로더 | 260520 / - |
+| TASK-260611-01 | [인프라/공통] | [ ] | SaveCompositionRequest 입력 검증 추가 및 imageId/phraseId DB 존재 확인 | - | imageUrl 도메인 패턴 검증, phrase/subjectPosition 길이 제한, @Valid 적용, imageId·phraseId DB 조회로 무결성 보장 (보안 감사 2026-06-11) | 260611 / - |
+| TASK-260611-02 | [인프라/공통] | [ ] | next.config.js 보안 HTTP 헤더 추가 | - | X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy 적용 — security-ddos-review §4.5 미구현 항목 (보안 감사 2026-06-11) | 260611 / - |
+| TASK-260611-03 | [인프라/공통] | [ ] | /ingest 리라이트 Vercel 대역폭 이상 증가 모니터링 | - | PostHog 역방향 프록시 남용 시 Vercel 아웃바운드 급증 조기 감지. 임계값 알림 설정 (보안 감사 2026-06-11) | 260611 / - |
 
 
 
