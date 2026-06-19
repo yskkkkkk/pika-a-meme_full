@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     images: ["https://pick-a-me.me/og-image.png"],
   },
+  verification: {
+    other: { "naver-site-verification": "3638e39e4ab01dfba30e7a6a46a2b04180135982" },
+  },
 };
 
 export const viewport: Viewport = {
