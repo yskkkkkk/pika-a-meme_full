@@ -12,7 +12,7 @@ import { MemeCanvasCard } from "@/components/domains/meme/MemeCanvasCard";
 import { ShareTemplate } from "@/components/domains/gacha/ShareTemplate";
 import { captureElement, saveImage } from "@/lib/imageSave";
 import { captureEvent } from "@/lib/analytics";
-import api from "@/lib/axios";
+import { apiFetch } from "@/lib/api";
 
 // SVG 아이콘 컴포넌트
 function IconHome() {
@@ -150,8 +150,9 @@ export function ResultScreen({ result, heartType, selectedTag, onRedraw, onHome,
         try {
           const formData = new FormData();
           formData.append("file", blob, "og.jpg");
-          await api.post(`/api/memes/${result.memeId}/og-image`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
+          await apiFetch(`/api/memes/${result.memeId}/og-image`, {
+            method: "POST",
+            body: formData,
           });
           shareUrl = `${window.location.origin}/share/${result.memeId}`;
         } catch (uploadError) {
