@@ -125,25 +125,25 @@
 
     <h2 id="cloudflare-enough">Cloudflare가 있으면 충분한가</h2>
 
-    <p>피카밀의 모든 트래픽은 Cloudflare Proxy를 통과한다. L3/L4 대역폭 공격, 대규모 HTTP Flood — 이런 공격은 Cloudflare가 흥수한다. 백엔드 서버 IP는 외부에 노출되지 않는다.</p>
+    <p>피카밀의 모든 트래픽은 Cloudflare Proxy를 통과합니다. L3/L4 대역폭 공격, 대규모 HTTP Flood — 이런 공격은 Cloudflare가 흥수하고요. 백엔드 서버 IP는 외부에 노출되지 않습니다.</p>
 
-    <p>그랰데도 Redis Rate Limiting을 별도로 구현한 이유가 있다. Cloudflare가 막는 건 <strong>규모의 공격</strong>이다. 하지만 비용 폭탄을 만드는 건 규모가 아니라 <strong>빈도</strong>다.</p>
+    <p>그랰데도 Redis Rate Limiting을 별도로 구현한 이유가 있거든요. Cloudflare가 막는 건 <strong>규모의 공격</strong>입니다. 하지만 비용 폭탄을 만드는 건 규모가 아니라 <strong>빈도</strong>거든요.</p>
 
     <div class="highlight-box">
-      <p>초당 10만 요청은 Cloudflare가 막는다. 분당 50회의 정교한 반복 요청은 Cloudflare를 통과하고, Railway 컨테이너와 Neon DB와 Upstash Redis에 비용을 발생시킨다.</p>
+      <p>초당 10만 요청은 Cloudflare가 막아줍니다. 그런데 분당 50회의 정교한 반복 요청은 Cloudflare를 통과해서, Railway 컨테이너와 Neon DB와 Upstash Redis에 비용을 발생시키더라고요.</p>
     </div>
 
     <h2 id="cost-bomb">비용 폭탄의 실체</h2>
 
-    <p>피카밀 뒤기 한 번(<code>/api/memes/compose</code>)이 실행될 때 일어나는 일을 따라간다.</p>
+    <p>피카밀 뒤기 한 번(<code>/api/memes/compose</code>)이 실행될 때 일어나는 일을 따라가 봅니다.</p>
 
-    <p>Neon PostgreSQL에서 이미지 목록 랜덤 조회, 문구 목록 랜덤 조회. Upstash Redis에서 BASIC 하트 잊량 확인 + 분산 낙 획득. 뒤기 결과 DB 저장. 하트 차감 후 낙 해제. 한 번의 클릭에 DB 쿼리 3~4회, Redis 연산 4~5회가 발생한다.</p>
+    <p>Neon PostgreSQL에서 이미지 목록 랜덤 조회, 문구 목록 랜덤 조회. Upstash Redis에서 BASIC 하트 잊량 확인 + 분산 낙 획득. 뒤기 결과 DB 저장. 하트 차감 후 낙 해제. 한 번의 클릭에 DB 쿼리 3~4회, Redis 연산 4~5회가 발생합니다.</p>
 
-    <p>이 흘름을 분당 수백 회 반복하면 Neon 연산 쿼터가 빠르게 소진되고, Upstash 명령 수 요금이 발생하며, Railway 컨테이너가 과부하 상태가 된다. Cloudflare가 원본 서버를 보호하더라도, 통과한 요청이 충분히 많으면 비용은 발생한다.</p>
+    <p>이 흘름을 분당 수백 회 반복하면 Neon 연산 쿼터가 빠르게 소진되고, Upstash 명령 수 요금이 발생하고, Railway 컨테이너가 과부하 상태가 되거든요. Cloudflare가 원본 서버를 보호하더라도, 통과한 요청이 충분히 많으면 비용은 발생합니다.</p>
 
     <h2 id="endpoint-risk">엔드포인트별 위험도</h2>
 
-    <p>모든 엔드포인트에 동일한 제한을 적용하면 실제 사용자가 불편해진다. 위험도에 따라 독립적인 규칙을 적용했다.</p>
+    <p>모든 엔드포인트에 동일한 제한을 적용하면 실제 사용자가 불편해지거든요. 그래서 위험도에 따라 독립적인 규칙을 적용했습니다.</p>
 
     <div class="rule-table">
       <table>
@@ -190,11 +190,11 @@
       </table>
     </div>
 
-    <p>키 전략도 엔드포인트마다 다르다. 뒤기오체럼 로그인 여부가 중요한 곳은 <code>USER_OR_IP</code> — 로그인 사용자는 userId로, 비로그인은 IP로 추적한다. 저장처럼 로그인 필수인 곳은 <code>USER_AND_IP</code> — 두 식별자를 조합해 계정 공유를 통한 우회도 막는다.</p>
+    <p>키 전략도 엔드포인트마다 다릅니다. 뒤기오체럼 로그인 여부가 중요한 곳은 <code>USER_OR_IP</code>로 두는데, 로그인 사용자는 userId로, 비로그인은 IP로 추적하거든요. 저장처럼 로그인 필수인 곳은 <code>USER_AND_IP</code>로 두고, 두 식별자를 조합해 계정 공유를 통한 우회도 막습니다.</p>
 
     <h2 id="token-bucket">토큰 버킷 — Redis INCR 하나로</h2>
 
-    <p>구현은 의외로 단순하다. Redis의 원자적 증가 연산(INCR) 하나면 된다.</p>
+    <p>구현은 의외로 단순합니다. Redis의 원자적 증가 연산(INCR) 하나면 되거든요.</p>
 
     <div class="flow-box">
       <div class="flow-step"><div class="flow-num">1</div>요청 도착 → 매칭 rule 찾기 (path + method)</div>
@@ -212,15 +212,15 @@
     <span class="code-keyword">return</span> count
 }</div>
 
-    <p>카운터가 1이 되는 순간(윈도우 첫 요청)에만 TTL을 설정한다. 이후 요청들은 카운터만 증가시킨다. TTL이 만료되면 키 자체가 사라지고 다음 요청이 새 윈도우를 시작한다. 별도 만료 로직이 없다.</p>
+    <p>카운터가 1이 되는 순간(윈도우 첫 요청)에만 TTL을 설정합니다. 이후 요청들은 카운터만 증가시키고요. TTL이 만료되면 키 자체가 사라지고 다음 요청이 새 윈도우를 시작합니다. 별도 만료 로직이 필요 없거든요.</p>
 
     <h2 id="fail-closed">fail-closed 정책</h2>
 
-    <p>Redis가 장애 상태일 때 Rate Limiting 체크가 실패하면 어떻게 해야 하는가. 두 가지 선택지가 있다.</p>
+    <p>Redis가 장애 상태일 때 Rate Limiting 체크가 실패하면 어떻게 해야 할까요. 선택지는 두 가지였습니다.</p>
 
-    <p><strong>fail-open</strong>: 체크 실패 시 요청을 통과시킨다. 사용자 경험은 보호되지만 Redis가 죽은 동안 제한이 없어진다. <strong>fail-closed</strong>: 체크 실패 시 요청을 차단한다. Redis가 죽으면 모든 Rate Limit 대상 엔드포인트가 429를 반환한다.</p>
+    <p><strong>fail-open</strong>은 체크 실패 시 요청을 통과시킵니다. 사용자 경험은 보호되지만 Redis가 죽은 동안 제한이 없어지고요. <strong>fail-closed</strong>는 체크 실패 시 요청을 차단합니다. Redis가 죽으면 모든 Rate Limit 대상 엔드포인트가 429를 반환하고요.</p>
 
-    <p>피카밀은 fail-closed를 기본으로 선택했다. Redis 장애가 발생할 확률보다 비용 폭탄이 발생할 확률이 높고, 비용 폭탄의 피해가 더 크다고 판단했기 때문이다.</p>
+    <p>피카밀은 fail-closed를 기본으로 선택했습니다. Redis 장애가 발생할 확률보다 비용 폭탄이 발생할 확률이 높고, 비용 폭탄의 피해가 더 크다고 판단했거든요.</p>
 
     <div class="code-block"><span class="code-comment">// failClosed = true → Redis 장애 시 Long.MAX_VALUE 반환 → 즉시 429</span>
 <span class="code-keyword">val</span> result = runCatching { consume(rateLimitKey, rule.window) }
@@ -231,22 +231,22 @@
 
     <h2 id="ip-trap">IP 식별의 함정</h2>
 
-    <p>Rate Limiting의 핵심은 누가 보낸 요청인지를 정확히 식별하는 것이다. 그랰데 Cloudflare Proxy 환경에서는 함정이 있다.</p>
+    <p>Rate Limiting의 핵심은 누가 보낸 요청인지를 정확히 식별하는 거거든요. 그랰데 Cloudflare Proxy 환경에서는 함정이 있더라고요.</p>
 
-    <p>백엔드 서버가 보는 <code>request.remoteAddr</code>은 실제 사용자 IP가 아니라 <strong>Cloudflare의 엣지 서버 IP</strong>다. 같은 Cloudflare 노드를 거친 모든 사용자가 같은 IP로 묶여 버린다. IP 기반 Rate Limiting이 제대로 작동하지 않는다.</p>
+    <p>백엔드 서버가 보는 <code>request.remoteAddr</code>은 실제 사용자 IP가 아니라 <strong>Cloudflare의 엣지 서버 IP</strong>입니다. 같은 Cloudflare 노드를 거친 모든 사용자가 같은 IP로 묶여 버리거든요. 그러면 IP 기반 Rate Limiting이 제대로 작동하지 않습니다.</p>
 
-    <p>해결책은 Cloudflare가 실제 클라이언트 IP를 담아 전달하는 <code>CF-Connecting-IP</code> 헤더를 읽는 것이다. 이 설정이 <code>useForwardedHeaders</code>다.</p>
+    <p>해결책은 Cloudflare가 실제 클라이언트 IP를 담아 전달하는 <code>CF-Connecting-IP</code> 헤더를 읽는 거였습니다. 이 설정이 <code>useForwardedHeaders</code>고요.</p>
 
     <div class="notice-warning">
-      <p><strong>⚠️ 현재 미적용 상태</strong> — <code>useForwardedHeaders</code>는 현재 <code>false</code>로 운영 중이다. Cloudflare를 거치지 않고 Railway 기본 도메인으로 직접 접근하는 경우 <code>CF-Connecting-IP</code> 헤더가 없거나 조작될 수 있기 때문이다. <strong>즉, 현재 IP 기반 Rate Limiting은 Cloudflare 노드 IP 단위로 동작하고 있어 사용자 개인 식별이 되지 않는다.</strong> 케리어 도메인으로만 접근을 강제하는 Origin Shielding 설정이 완료된 후 <code>true</code>로 전환할 예정이다.</p>
+      <p><strong>⚠️ 현재 미적용 상태</strong> — <code>useForwardedHeaders</code>는 현재 <code>false</code>로 운영 중입니다. Cloudflare를 거치지 않고 Railway 기본 도메인으로 직접 접근하는 경우 <code>CF-Connecting-IP</code> 헤더가 없거나 조작될 수 있거든요. <strong>즉, 현재 IP 기반 Rate Limiting은 Cloudflare 노드 IP 단위로 동작하고 있어 사용자 개인 식별이 되지 않습니다.</strong> 케리어 도메인으로만 접근을 강제하는 Origin Shielding 설정이 완료된 후 <code>true</code>로 전환할 예정입니다.</p>
     </div>
 
     <hr class="divider">
 
     <div class="lesson-box">
       <h3>이 결정에서 배운 것</h3>
-      <p>외부 방어막(Cloudflare)과 내부 방어막(Rate Limiting)은 막는 위협의 종류가 다르다. Cloudflare는 규모의 공격을 막고, Redis Rate Limiting은 비용이 발생하는 빈도를 제어한다. 둘은 대체 관계가 아니라 계층 관계다.</p>
-      <p>엔드포인트별로 위험도가 다르면 규칙도 달라야 한다. 뒤기와 인증 정보 조회에 같은 한도를 적용하면 어느 쪽도 제대로 보호하지 못한다.</p>
+      <p>외부 방어막(Cloudflare)과 내부 방어막(Rate Limiting)은 막는 위협의 종류가 다르더라고요. Cloudflare는 규모의 공격을 막고, Redis Rate Limiting은 비용이 발생하는 빈도를 제어하거든요. 둘이 대체 관계가 아니라 계층 관계라는 걸 이번에 체감했어요.</p>
+      <p>엔드포인트마다 위험도가 다르니 규칙도 따로 가져가야 하더라고요. 뒤기와 인증 정보 조회에 같은 한도를 적용하면 어느 쪽도 제대로 보호하지 못하니까요. 다음엔 한도부터 엔드포인트 단위로 쪼개놓고 시작하기로...</p>
     </div>
 
     <div id="profile-card-placeholder"></div>
