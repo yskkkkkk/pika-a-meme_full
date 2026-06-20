@@ -131,70 +131,70 @@
       <p class="toc-title">목차</p>
       <ol>
         <li><a href="#r2-domain">R2 도메인 정리부터</a></li>
-        <li><a href="#polish">Polish — Cloudflare가 이미지를 다시 인코딩한다</a></li>
+        <li><a href="#polish">Polish — Cloudflare가 이미지를 다시 인코딩합니다</a></li>
         <li><a href="#cache-rule">캐시 규칙과 TTL</a></li>
         <li><a href="#result">결과</a></li>
         <li><a href="#browser-compat">브라우저 호환성은?</a></li>
-        <li><a href="#why-no-code">왕 코드가 필요 없었나</a></li>
+        <li><a href="#why-no-code">왜 코드가 필요 없었나</a></li>
       </ol>
     </div>
 
     <h2 id="r2-domain">R2 도메인 정리부터</h2>
 
-    <p>피카밈의 이미지 원본은 Cloudflare R2에 저장된다. R2 버킷을 만들면 기본으로 <code>pub-xxx.r2.dev</code>라는 개발용 공개 URL이 생긴다. 이 주소로도 이미지에 접근할 수 있지만, Cloudflare의 성능 최적화 기능들이 적용되지 않는다.</p>
+    <p>피카밈의 이미지 원본은 Cloudflare R2에 저장돼 있어요. R2 버킷을 만들면 기본으로 <code>pub-xxx.r2.dev</code>라는 개발용 공개 URL이 생기거든요. 이 주소로도 이미지에 접근할 수 있지만, Cloudflare의 성능 최적화 기능들이 적용되지 않더라고요.</p>
 
-    <p>가장 먼저 한 일은 이 주소를 비활성화하고 커스텀 도메인 <code>img.pick-a-me.me</code>로 단일화한 것이다. 연관해서 DB에 저장된 기존 URL도 마이그레이션(V13, V14)으로 일괄 교체했다. 이후의 모든 CDN 설정은 커스텀 도메인에서만 작동한다.</p>
+    <p>가장 먼저 한 일은 이 주소를 비활성화하고 커스텀 도메인 <code>img.pick-a-me.me</code>로 단일화한 것이었어요. 연관해서 DB에 저장된 기존 URL도 마이그레이션(V13, V14)으로 일괄 교체했고요. 이후의 모든 CDN 설정은 커스텀 도메인에서만 작동합니다.</p>
 
-    <h2 id="polish">Polish — Cloudflare가 이미지를 다시 인코딩한다</h2>
+    <h2 id="polish">Polish — Cloudflare가 이미지를 다시 인코딩합니다</h2>
 
-    <p>Cloudflare Polish은 원본 이미지를 클라이언트가 지원하는 최적 포맷으로 자동 변환해서 전달하는 기능이다. Lossy 모드에서는 PNG/JPEG를 WebP 또는 AVIF로 변환하면서 시각적 품질 저하를 최소화한 치 파일 크기를 줄인다.</p>
+    <p>Cloudflare Polish은 원본 이미지를 클라이언트가 지원하는 최적 포맷으로 자동 변환해서 전달하는 기능이거든요. Lossy 모드에서는 PNG/JPEG를 WebP 또는 AVIF로 변환하면서 시각적 품질 저하를 최소화한 채 파일 크기를 줄입니다.</p>
 
-    <p>작동 방식은 단순하다. 브라우저가 이미지를 요청할 때 <code>Accept</code> 헤더에 지원하는 포맷 목록을 보낸다. Cloudflare 엣지가 이 헤더를 읽어 WebP나 AVIF를 지원한다고 판단하면, 원본 PNG/JPEG를 그 포맷으로 변환한 결과를 캐시하고 응답한다. 원본 파일 자체는 변경되지 않는다.</p>
+    <p>작동 방식은 단순해요. 브라우저가 이미지를 요청할 때 <code>Accept</code> 헤더에 지원하는 포맷 목록을 보내거든요. Cloudflare 엣지가 이 헤더를 읽어 WebP나 AVIF를 지원한다고 판단하면, 원본 PNG/JPEG를 그 포맷으로 변환한 결과를 캐시하고 응답합니다. 원본 파일 자체는 변경되지 않고요.</p>
 
     <div class="highlight-box">
-      <p>Cloudflare 대시보드에서 Speed &rarr; Optimization &rarr; Polish &rarr; Lossy 클릭 하나로 활성화된다. 코드 변경 없이 즉시 적용된다. 단, 활성화 직후 기존 캐시에는 구형 포맷이 남아 있으므로 전체 캐시 퍼지(Purge Everything)를 실행해야 즉시 반영된다.</p>
+      <p>Cloudflare 대시보드에서 Speed &rarr; Optimization &rarr; Polish &rarr; Lossy 클릭 하나로 활성화됩니다. 코드 변경 없이 즉시 적용되고요. 단, 활성화 직후 기존 캐시에는 구형 포맷이 남아 있으므로 전체 캐시 퍼지(Purge Everything)를 실행해야 즉시 반영되더라고요.</p>
     </div>
 
     <h2 id="cache-rule">캐시 규칙과 TTL</h2>
 
-    <p>Polish가 변환한 이미지가 제대로 캐시되려면 캐시 규칙이 맞아야 한다. <code>/images/*</code> 경로에 다음 규칙을 적용했다.</p>
+    <p>Polish가 변환한 이미지가 제대로 캐시되려면 캐시 규칙이 맞아야 하거든요. <code>/images/*</code> 경로에 다음 규칙을 적용했어요.</p>
 
     <div class="flow-box">
       <div class="flow-step">
         <div class="flow-step-num">1</div>
         <div class="flow-step-body">
           <div class="flow-step-title">Speed &rarr; Optimization &rarr; Polish &rarr; Lossy 활성화</div>
-          <div class="flow-step-desc">PNG/JPEG를 WebP/AVIF로 자동 변환. 활성화 즉시 적용되며, 대시보드에서 키클 하나로 완료된다.</div>
+          <div class="flow-step-desc">PNG/JPEG를 WebP/AVIF로 자동 변환합니다. 활성화 즉시 적용되며, 대시보드에서 클릭 하나로 완료돼요.</div>
         </div>
       </div>
       <div class="flow-step">
         <div class="flow-step-num">2</div>
         <div class="flow-step-body">
           <div class="flow-step-title">Caching &rarr; Cache Rules &rarr; /images/* Edge TTL 1개월 설정</div>
-          <div class="flow-step-desc">한번 업로드된 밀 이미지는 수정되지 않는다. 일관성 용도 없이 1개월 유지해도 다른 문제가 없다. Browser Cache TTL은 1일로 별도 설정.</div>
+          <div class="flow-step-desc">한번 업로드된 밈 이미지는 수정되지 않거든요. 1개월 유지해도 다른 문제가 없고요. Browser Cache TTL은 1일로 별도 설정했어요.</div>
         </div>
       </div>
       <div class="flow-step">
         <div class="flow-step-num">3</div>
         <div class="flow-step-body">
           <div class="flow-step-title">Smart Tiered Cache 활성화</div>
-          <div class="flow-step-desc">상위 티어 엣지 노드가 하위 티어의 캐시 미스를 흥수한다. R2 &harr; Cloudflare 네트워크 간 egress 무료 정책과 시너지가 나온다.</div>
+          <div class="flow-step-desc">상위 티어 엣지 노드가 하위 티어의 캐시 미스를 흡수합니다. R2 &harr; Cloudflare 네트워크 간 egress 무료 정책과 시너지가 나고요.</div>
         </div>
       </div>
       <div class="flow-step">
         <div class="flow-step-num">4</div>
         <div class="flow-step-body">
           <div class="flow-step-title">Caching &rarr; Configuration &rarr; Purge Everything 실행</div>
-          <div class="flow-step-desc">기존 캐시에 Polish 적용 전 원본 포맷이 남아있다. Purge 후 다음 요청부터 WebP 변환본이 캐시된다.</div>
+          <div class="flow-step-desc">기존 캐시에 Polish 적용 전 원본 포맷이 남아있거든요. Purge 후 다음 요청부터 WebP 변환본이 캐시됩니다.</div>
         </div>
       </div>
     </div>
 
-    <p>R2 egress 비용이 0원인 이유는 Cloudflare의 정책 때문이다. Cloudflare 네트워크 간 트래픽(R2 &rarr; Cloudflare CDN)에는 egress 요금이 없다. 커스텀 도메인을 통해 제공되는 이미지는 Cloudflare 네트워크 안에서만 이동하므로 실질적인 스토리지 외 비용이 발생하지 않는다.</p>
+    <p>R2 egress 비용이 0원인 건 Cloudflare의 정책 덕분이거든요. Cloudflare 네트워크 간 트래픽(R2 &rarr; Cloudflare CDN)에는 egress 요금이 없습니다. 커스텀 도메인을 통해 제공되는 이미지는 Cloudflare 네트워크 안에서만 이동하므로 실질적인 스토리지 외 비용이 발생하지 않고요.</p>
 
     <h2 id="result">결과</h2>
 
-    <p>같은 이미지를 구형 브라우저(PNG 응답)와 최신 크롱(WebP 응답)에서 비교하면 전송 크기가 40~60% 줄어드는 것을 확인할 수 있다. 피카밈에서 사용하는 밈 이미지는 대부분 PNG로 업로드되어 있어서 WebP 변환 효과가 특히 크다.</p>
+    <p>같은 이미지를 구형 브라우저(PNG 응답)와 최신 크롬(WebP 응답)에서 비교하면 전송 크기가 40~60% 줄어드는 걸 확인할 수 있어요. 피카밈에서 사용하는 밈 이미지는 대부분 PNG로 업로드되어 있어서 WebP 변환 효과가 특히 크더라고요.</p>
 
     <table class="compare-table">
       <thead>
@@ -220,7 +220,7 @@
         </tr>
       </tbody>
     </table>
-    <p style="font-size: 12px; color: var(--text-tertiary); margin-top: -12px; margin-bottom: 20px;">Chrome DevTools Network 탭 기준 측정값. 이미지마다 차이 있으며 평균 40~60% 범위를 표시한다.</p>
+    <p style="font-size: 12px; color: var(--text-tertiary); margin-top: -12px; margin-bottom: 20px;">Chrome DevTools Network 탭 기준 측정값. 이미지마다 차이 있으며 평균 40~60% 범위를 표시합니다.</p>
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -237,30 +237,30 @@
 
     <h2 id="browser-compat">브라우저 호환성은?</h2>
 
-    <p>현대 브라우저(Chrome, Firefox, Edge, Safari 14+)는 WebP를 모두 지원한다. 대다수 사용자는 이미 WebP를 받는 환경에 있다.</p>
+    <p>현대 브라우저(Chrome, Firefox, Edge, Safari 14+)는 WebP를 모두 지원합니다. 대다수 사용자는 이미 WebP를 받는 환경에 있고요.</p>
 
-    <p>Cloudflare Polish은 요청의 <code>Accept</code> 헤더를 보고 지원 여부를 판단한다. WebP를 지원하는 브라우저에는 WebP로, 구형 브라우저에는 원본 포맷을 그대로 전달한다. 코드 변경 없이 progressive enhancement가 자동으로 적용된다.</p>
+    <p>Cloudflare Polish은 요청의 <code>Accept</code> 헤더를 보고 지원 여부를 판단합니다. WebP를 지원하는 브라우저에는 WebP로, 구형 브라우저에는 원본 포맷을 그대로 전달하고요. 코드 변경 없이 progressive enhancement가 자동으로 적용됩니다.</p>
 
     <div class="highlight-box">
-      <p>즉, 애플리케이션에서 <code>&lt;picture&gt;</code> 태그나 <code>srcset</code>로 포맷 분기를 직접 작성할 필요 없다. Cloudflare가 인프라 레이어에서 처리한다. 구형 브라우저 호환성과 신형 브라우저 성능 최적화 양쪽을 코드 복잡도 없이 해결한다.</p>
+      <p>즉, 애플리케이션에서 <code>&lt;picture&gt;</code> 태그나 <code>srcset</code>로 포맷 분기를 직접 작성할 필요가 없어요. Cloudflare가 인프라 레이어에서 처리하거든요. 구형 브라우저 호환성과 신형 브라우저 성능 최적화 양쪽을 코드 복잡도 없이 해결합니다.</p>
     </div>
 
-    <h2 id="why-no-code">왕 코드가 필요 없었나</h2>
+    <h2 id="why-no-code">왜 코드가 필요 없었나</h2>
 
-    <p>이 최적화가 코드 없이 가능했던 이유는 피카밈의 이미지 구조 덕분이다. 이미지 URL이 CDN 도메인(<code>img.pick-a-me.me</code>)을 통해 제공되므로, CDN 레이어에서 포맷 변환을 투명하게 처리할 수 있다.</p>
+    <p>이 최적화가 코드 없이 가능했던 건 피카밈의 이미지 구조 덕분이거든요. 이미지 URL이 CDN 도메인(<code>img.pick-a-me.me</code>)을 통해 제공되므로, CDN 레이어에서 포맷 변환을 투명하게 처리할 수 있어요.</p>
 
-    <p>만약 이미지를 백엔드 API를 통해 프록시해서 제공하는 구조였다면 이야기가 달랐다. 변환 로직을 직접 구현하거나, Puppeteer나 Sharp 같은 이미지 처리 라이브러리를 도입해야 했을 것이다. 이미지를 CDN에서 직접 제공하는 구조가 이 최적화를 공짜로 가져다 준 것이다.</p>
+    <p>만약 이미지를 백엔드 API를 통해 프록시해서 제공하는 구조였다면 이야기가 달랐을 거예요. 변환 로직을 직접 구현하거나, Puppeteer나 Sharp 같은 이미지 처리 라이브러리를 도입해야 했을 테고요. 이미지를 CDN에서 직접 제공하는 구조가 이 최적화를 공짜로 가져다준 셈입니다.</p>
 
     <div class="highlight-box">
-      <p>설계 단계에서 이미지 URL을 CDN 도메인으로 단일화한 결정이, 나중에 Polish 최적화를 도구 변경 없이 적용할 수 있게 만들었다. 좋은 아키텍처 결정은 나중에 무료 점심을 가져다 준다.</p>
+      <p>설계 단계에서 이미지 URL을 CDN 도메인으로 단일화한 결정이, 나중에 Polish 최적화를 도구 변경 없이 적용할 수 있게 해줬어요. 좋은 아키텍처 결정은 나중에 이렇게 공짜 점심을 가져다주더라고요.</p>
     </div>
 
     <hr class="divider">
 
     <div class="lesson-box">
       <h3>이 경험에서 배운 것</h3>
-      <p>인프라 계층의 최적화는 애플리케이션 코드를 건드리지 않고 적용할 수 있는 경우가 많다. 단, 이 경우는 아키텍처가 CDN을 정상적으로 활용하는 구조여야 한다는 전제가 있었다.</p>
-      <p>비용과 성능을 함께 개선할 수 있는 기회가 있다면, 코드 복잡도를 높이기 전에 인프라 레이어를 먼저 확인하는 것이 빠를 때가 있다.</p>
+      <p>인프라 계층의 최적화는 애플리케이션 코드를 건드리지 않고도 적용되는 경우가 많더라고요. 다만 이번엔 아키텍처가 CDN을 제대로 활용하는 구조였던 게 전제였거든요.</p>
+      <p>비용과 성능을 함께 개선할 여지가 보일 때, 코드 복잡도부터 올리기 전에 인프라 레이어를 먼저 들여다보는 게 빠를 때가 있더라고요. 다음에도 무작정 코드부터 짜기 전에 한 겹 아래를 보기로...</p>
     </div>
 
     <div id="profile-card-placeholder"></div>

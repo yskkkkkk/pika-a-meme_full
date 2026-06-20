@@ -109,8 +109,8 @@
       <ol>
         <li><a href="#trigger">한국어 전용으로 시작했다가</a></li>
         <li><a href="#antipattern">발견된 안티패턴</a></li>
-        <li><a href="#error-decision">결정 1 — 에러 메시지는 프론트가 번역한다</a></li>
-        <li><a href="#phrase-decision">결정 2 — 밈 문구는 행을 분리한다</a></li>
+        <li><a href="#error-decision">결정 1 — 에러 메시지는 프론트가 번역합니다</a></li>
+        <li><a href="#phrase-decision">결정 2 — 밈 문구는 행을 분리합니다</a></li>
         <li><a href="#lang-param">결정 3 — 언어 전달은 쿼리 파라미터로</a></li>
         <li><a href="#i18n-infra">i18n 인프라가 지금 하는 일</a></li>
       </ol>
@@ -118,15 +118,15 @@
 
     <h2 id="trigger">한국어 전용으로 시작했다가</h2>
 
-    <p>피카밈은 처음부터 한국어 서비스로 시작했다. 모든 에러 메시지, 토스트, 문구 데이터가 한글이었다. 프로젝트 중반에 영어권 사용자도 쓸 수 있게 하자는 결정이 생겼다.</p>
+    <p>피카밈은 처음부터 한국어 서비스로 시작했습니다. 모든 에러 메시지, 토스트, 문구 데이터가 한글이었고요. 그러다 프로젝트 중반에 영어권 사용자도 쓸 수 있게 하자는 결정이 생겼습니다.</p>
 
-    <p>이미 프론트엔드에는 언어 전환 인프라가 있었다. <code>LanguageProvider</code>로 현재 언어를 관리하고, <code>createTranslator(lang)</code>로 사전을 주입하는 구조다. UI 텍스트는 모두 <code>t.home.title</code>, <code>t.gacha.drawWithTag</code> 같은 키로 접근한다.</p>
+    <p>이미 프론트엔드에는 언어 전환 인프라가 있었거든요. <code>LanguageProvider</code>로 현재 언어를 관리하고, <code>createTranslator(lang)</code>로 사전을 주입하는 구조입니다. UI 텍스트는 모두 <code>t.home.title</code>, <code>t.gacha.drawWithTag</code> 같은 키로 접근하고요.</p>
 
-    <p>문제는 두 가지였다. 첫째, 백엔드에서 내려오는 에러 메시지를 어떻게 다국어로 만들 것인가. 둘째, DB의 밈 문구 데이터를 어떻게 다국어로 확장할 것인가.</p>
+    <p>문제는 두 가지였습니다. 첫째, 백엔드에서 내려오는 에러 메시지를 어떻게 다국어로 만들 것인가. 둘째, DB의 밈 문구 데이터를 어떻게 다국어로 확장할 것인가.</p>
 
     <h2 id="antipattern">발견된 안티패턴</h2>
 
-    <p>코드를 점검하다가 이 부분을 발견했다.</p>
+    <p>코드를 점검하다가 이 부분을 발견했거든요.</p>
 
     <div class="code-block"><span class="code-comment">// app/page.tsx — classifyDrawError()의 실제 분기 방식</span>
 <span class="code-keyword">function</span> <span class="code-type">classifyDrawError</span>(error: <span class="code-type">Error</span>): <span class="code-type">DrawErrorType</span> {
@@ -139,10 +139,10 @@
     <span class="code-keyword">return</span> <span class="code-string">"UNKNOWN"</span>
 }</div>
 
-    <p>백엔드에서 내려온 한글 메시지를 프론트가 문자열 포함 여부로 분기하고 있었다. 여기서 영어 모드를 지원하는 게 무슨 의미가 있나. 백엔드가 한글 메시지를 그대로 내려보내는 한, 분기 코드도 영어로 번역될 수 없다.</p>
+    <p>백엔드에서 내려온 한글 메시지를 프론트가 문자열 포함 여부로 분기하고 있었습니다. "여기서 영어 모드를 지원한들 무슨 의미가 있나?" 하는 생각이 들더라고요. 백엔드가 한글 메시지를 그대로 내려보내는 한, 분기 코드도 영어로 번역될 수가 없거든요.</p>
 
     <div class="highlight-box">
-      <p>문제는 백엔드 메시지 언어가 아니었다. 프론트가 백엔드의 메시지 <em>내용</em>에 의존하고 있다는 것이었다. 메시지는 사람을 위한 설명이고, 분기는 코드를 위한 식별자여야 한다.</p>
+      <p>문제는 백엔드 메시지 언어가 아니었더라고요. 프론트가 백엔드의 메시지 <em>내용</em>에 의존하고 있다는 게 진짜 문제였거든요. 메시지는 사람을 위한 설명이고, 분기는 코드를 위한 식별자여야 하니까요.</p>
     </div>
 
     <div class="fix-diff">
@@ -176,26 +176,26 @@
       </div>
     </div>
 
-    <h2 id="error-decision">결정 1 — 에러 메시지는 프론트가 번역한다</h2>
+    <h2 id="error-decision">결정 1 — 에러 메시지는 프론트가 번역합니다</h2>
 
-    <p>두 가지 선택지가 있었다.</p>
+    <p>두 가지 선택지가 있었습니다.</p>
 
     <div class="compare-grid">
       <div class="compare-col">
         <div class="compare-col-header before">A. 백엔드가 번역</div>
         <div class="compare-row"><strong>방법:</strong> Spring MessageSource + Accept-Language 헤더, 백엔드가 직접 언어별 메시지 반환</div>
-        <div class="compare-row"><strong>장점:</strong> 메시지 소스가 한 곳에 있음, 백엔드 로그도 다국어</div>
-        <div class="compare-row"><strong>단점:</strong> 사전 파일이 백엔드/프론트 양쪽에 생김. 새 언어 추가 시 두 곳 수정. 캐시 키에 언어 영향</div>
+        <div class="compare-row"><strong>장점:</strong> 메시지 소스가 한 곳에 모이고, 백엔드 로그도 다국어가 됩니다</div>
+        <div class="compare-row"><strong>단점:</strong> 사전 파일이 백엔드/프론트 양쪽에 생기고요. 새 언어 추가 시 두 곳을 고쳐야 하고, 캐시 키에도 언어가 영향을 줍니다</div>
       </div>
       <div class="compare-col">
         <div class="compare-col-header after">B. 프론트가 번역 (선택)</div>
         <div class="compare-row"><strong>방법:</strong> 백엔드는 안정적인 <code>error.code</code>만 반환, 프론트 <code>t.errors.*</code> 사전이 메시지 생성</div>
-        <div class="compare-row"><strong>장점:</strong> 사전이 프론트 한 곳에만. 언어 추가 시 수정 지점 단일. 백엔드 코드 불변</div>
-        <div class="compare-row"><strong>단점:</strong> 백엔드 로그 메시지는 영문 고정 (디버그용으로는 오히려 좋음)</div>
+        <div class="compare-row"><strong>장점:</strong> 사전이 프론트 한 곳에만 있고요. 언어를 추가해도 수정 지점이 하나고, 백엔드 코드는 그대로입니다</div>
+        <div class="compare-row"><strong>단점:</strong> 백엔드 로그 메시지는 영문으로 고정되는데, 디버그용으로는 오히려 편하더라고요</div>
       </div>
     </div>
 
-    <p>프론트 번역을 선택했다. 이미 프론트에 <code>t.errors.*</code> 사전이 있고, 백엔드 메시지는 사용자에게 직접 노출되지 않아도 된다. 중요한 건 <code>error.code</code>가 안정적이어야 한다는 것이다 — 이건 계약이므로 변경 금지다.</p>
+    <p>저는 프론트 번역을 선택했습니다. 이미 프론트에 <code>t.errors.*</code> 사전이 있고, 백엔드 메시지는 사용자에게 직접 노출되지 않아도 되거든요. 중요한 건 <code>error.code</code>가 안정적이어야 한다는 점인데, 이건 계약이라 변경 금지로 뒀습니다.</p>
 
     <div class="code-block"><span class="code-comment">// API 응답 구조 — 변경 금지 계약</span>
 {
@@ -211,9 +211,9 @@
     showToast(t.errors.insufficientHeart) <span class="code-comment">// 현재 언어로 번역된 토스트</span>
 }</div>
 
-    <h2 id="phrase-decision">결정 2 — 밈 문구는 행을 분리한다</h2>
+    <h2 id="phrase-decision">결정 2 — 밈 문구는 행을 분리합니다</h2>
 
-    <p>밈 문구 데이터는 다르다. DB에 저장된 실제 텍스트를 언어별로 가져와야 한다. 세 가지 스키마 방식을 검토했다.</p>
+    <p>밈 문구 데이터는 좀 다릅니다. DB에 저장된 실제 텍스트를 언어별로 가져와야 하거든요. 세 가지 스키마 방식을 검토했습니다.</p>
 
     <div class="compare-grid">
       <div class="compare-col">
@@ -230,15 +230,15 @@
       </div>
     </div>
 
-    <p>세 번째 옵션인 별도 <code>meme_phrase_translations</code> 테이블은 정규화가 깔끔하지만, 매번 JOIN이 필요하고 현재 문구 수(50건)에 과설계다. 행 분리를 선택했다.</p>
+    <p>세 번째 옵션인 별도 <code>meme_phrase_translations</code> 테이블은 정규화가 깔끔하긴 한데, 매번 JOIN이 필요하고 현재 문구 수(50건)에는 과설계더라고요. 그래서 행 분리를 선택했습니다.</p>
 
-    <p>한국어와 영어 문구를 1:1로 대응시키지 않아도 된다는 점이 중요했다. 영어권 사용자에게 자연스러운 밈 문구는 한국어를 직역한 것이 아니라 영어권 문화에 맞게 별도 큐레이션한 것이어야 한다. 행 분리 방식은 이 비대칭을 허용한다.</p>
+    <p>한국어와 영어 문구를 1:1로 대응시키지 않아도 된다는 점이 중요했거든요. 영어권 사용자에게 자연스러운 밈 문구는 한국어를 직역한 게 아니라 영어권 문화에 맞게 별도 큐레이션한 것이어야 하니까요. 행 분리 방식은 이 비대칭을 허용합니다.</p>
 
     <h2 id="lang-param">결정 3 — 언어 전달은 쿼리 파라미터로</h2>
 
-    <p>밈 문구를 언어별로 가져오려면 서버가 현재 언어를 알아야 한다. <code>Accept-Language</code> 헤더, <code>pam_lang</code> 쿠키, 명시적 쿼리 파라미터 세 가지를 검토했다.</p>
+    <p>밈 문구를 언어별로 가져오려면 서버가 현재 언어를 알아야 하거든요. <code>Accept-Language</code> 헤더, <code>pam_lang</code> 쿠키, 명시적 쿼리 파라미터 세 가지를 검토했습니다.</p>
 
-    <p><code>Accept-Language</code> 헤더는 캐시 키 분리가 까다롭고 디버깅이 불편하다. 쿠키는 SSR과 캐시 키 관리가 복잡해진다. 쿼리 파라미터가 가장 명시적이고 추적 가능하다. 뽑기 API에만 한정해서 적용하면 범위도 최소화된다.</p>
+    <p><code>Accept-Language</code> 헤더는 캐시 키 분리가 까다롭고 디버깅이 불편하더라고요. 쿠키는 SSR과 캐시 키 관리가 복잡해지고요. 쿼리 파라미터가 가장 명시적이고 추적도 쉬웠습니다. 뽑기 API에만 한정해서 적용하면 범위도 최소화되거든요.</p>
 
     <div class="code-block"><span class="code-comment">// GET /api/memes/compose — lang 파라미터 추가</span>
 @GetMapping(<span class="code-string">"/compose"</span>)
@@ -252,11 +252,11 @@
 <span class="code-comment">// Fallback 정책: 요청 언어 문구 0건 → ko 재조회</span>
 <span class="code-comment">// 언어 화이트리스트: ["ko", "en"] 외 → ko fallback (SQL 인젝션 방어)</span></div>
 
-    <p><code>@Cacheable("recent-matched-memes")</code>의 캐시 키에 <code>language</code>가 포함되어야 한다는 게 이 결정의 숨은 함정이다. 포함하지 않으면 한국어 요청이 캐시한 결과를 영어 요청이 그대로 받아가는 오염이 생긴다. 캐시 키 설계는 post10에서 따로 다룬다.</p>
+    <p><code>@Cacheable("recent-matched-memes")</code>의 캐시 키에 <code>language</code>가 포함되어야 한다는 게 이 결정의 숨은 함정이거든요. 포함하지 않으면 한국어 요청이 캐시한 결과를 영어 요청이 그대로 받아가는 오염이 생기더라고요. 캐시 키 설계는 post10에서 따로 다룹니다.</p>
 
     <h2 id="i18n-infra">i18n 인프라가 지금 하는 일</h2>
 
-    <p><code>createTranslator(language)</code>는 얇은 래퍼다. 사전 객체를 그대로 반환하면서 형식화된 문자열이 필요한 곳만 <code>format</code> 함수로 감쌌다.</p>
+    <p><code>createTranslator(language)</code>는 얇은 래퍼입니다. 사전 객체를 그대로 반환하면서, 형식화된 문자열이 필요한 곳만 <code>format</code> 함수로 감쌌어요.</p>
 
     <div class="code-block"><span class="code-comment">// lib/i18n.ts — createTranslator 핵심 부분</span>
 <span class="code-keyword">export function</span> <span class="code-type">createTranslator</span>(language: <span class="code-type">Language</span>) {
@@ -281,9 +281,9 @@
     }
 }</div>
 
-    <p><code>memeWithParticle</code>은 흥미로운 부분이다. 한국어는 앞 단어의 받침 유무에 따라 조사가 달라진다. 받침 여부를 유니코드 범위로 계산한다. 한글 완성형은 유니코드 <code>0xAC00</code>부터 <code>0xD7A3</code>까지 11,172자로 배열되어 있다. 각 글자는 <code>(초성 × 21 + 중성) × 28 + 종성</code> 순서로 배열되어 종성(받침) 인덱스가 0이면 받침 없음, 1 이상이면 받침 있음이다.</p>
+    <p><code>memeWithParticle</code>은 흥미로운 부분이에요. 한국어는 앞 단어의 받침 유무에 따라 조사가 달라지거든요. 그래서 받침 여부를 유니코드 범위로 계산합니다. 한글 완성형은 유니코드 <code>0xAC00</code>부터 <code>0xD7A3</code>까지 11,172자로 배열되어 있고요. 각 글자는 <code>(초성 × 21 + 중성) × 28 + 종성</code> 순서로 배열되어, 종성(받침) 인덱스가 0이면 받침 없음, 1 이상이면 받침 있음입니다.</p>
 
-    <p>공식은 <code>(code - 0xAC00) % 28 &gt; 0</code>이면 받침이 있다. 이를 이용해 을/를, 이/가, 은/는 등 조사 쌍을 자동 선택한다.</p>
+    <p>공식은 <code>(code - 0xAC00) % 28 &gt; 0</code>이면 받침이 있다는 뜻이거든요. 이를 이용해 을/를, 이/가, 은/는 등 조사 쌍을 자동으로 선택합니다.</p>
 
     <div class="code-block"><span class="code-comment">// lib/i18n.ts — resolveParticle 구현</span>
 <span class="code-keyword">type</span> <span class="code-type">KoreanParticle</span> = <span class="code-string">"을를"</span> | <span class="code-string">"이가"</span> | <span class="code-string">"은는"</span> | <span class="code-string">"으로로"</span>
@@ -315,14 +315,14 @@
     }
 }</div>
 
-    <p>영어 모드에서는 <code>"a Meme"</code>을 고정 반환하고 이 계산 자체가 생략된다. 조사가 없는 언어에서는 받침 계산이 무의미하기 때문이다.</p>
+    <p>영어 모드에서는 <code>"a Meme"</code>을 고정 반환하고 이 계산 자체가 생략됩니다. 조사가 없는 언어에서는 받침 계산이 무의미하거든요.</p>
 
     <hr class="divider">
 
     <div class="lesson-box">
       <h3>이 결정에서 배운 것</h3>
-      <p>i18n을 나중에 끼워 넣으려면 먼저 설계를 점검해야 한다. 코드베이스 어딘가에 "백엔드 한글 메시지를 프론트가 문자열 비교로 분기하는" 코드가 있다면, 표면만 번역해봤자 내부 로직은 여전히 단일 언어에 묶여 있다.</p>
-      <p>에러 코드와 에러 메시지는 독자가 다르다. 코드는 코드가 읽는다. 메시지는 사람이 읽는다. 이 두 역할이 섞이면 언어 전환도, 에러 분류도 모두 어려워진다.</p>
+      <p>i18n을 나중에 끼워 넣으려면 먼저 설계부터 점검해야 하더라고요. 코드베이스 어딘가에 "백엔드 한글 메시지를 프론트가 문자열 비교로 분기하는" 코드가 있으면, 표면만 번역해봤자 내부 로직은 여전히 단일 언어에 묶여 있거든요.</p>
+      <p>에러 코드와 에러 메시지는 읽는 쪽이 다르다는 걸 이번에 체감했어요. 코드는 코드가 읽고, 메시지는 사람이 읽으니까요. 다음엔 이 둘부터 역할로 갈라놓고 시작하기로...</p>
     </div>
 
     <div id="profile-card-placeholder"></div>

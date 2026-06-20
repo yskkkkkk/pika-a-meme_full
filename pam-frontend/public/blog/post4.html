@@ -114,27 +114,27 @@
     <div class="toc">
       <p class="toc-title">목차</p>
       <ol>
-        <li><a href="#symptom">사건의 발단</a></li>
+        <li><a href="#symptom">로그아웃이 안 풀렸습니다</a></li>
         <li><a href="#round1">1차 — React Query 캐시를 의심하다</a></li>
         <li><a href="#round2">2차 — 크로스 오리진 fetch의 장벽</a></li>
         <li><a href="#round3">3차 — 쿠키 domain 불일치의 늪</a></li>
         <li><a href="#round4">4차 — Host-Only 쿠키의 주권과 리다이렉트 릴레이</a></li>
         <li><a href="#round5">5차 — 잔존하는 JSESSIONID와 Stateless 아키텍처</a></li>
-        <li><a href="#conclusion">결론 및 배운 것</a></li>
+        <li><a href="#conclusion">이번 디버깅에서 남은 것</a></li>
       </ol>
     </div>
 
-    <h2 id="symptom">사건의 발단</h2>
+    <h2 id="symptom">로그아웃이 안 풀렸습니다</h2>
 
-    <p>로그아웃 버튼을 누르면 인앱 토스트 알림이 경쾌하게 뜬다. "로그아웃 되었습니다."<br>
-    안심하고 화면을 새로고침했다. 그런데 귀신같이 내 프로필과 하트 수치가 로그인된 상태 그대로 다시 복원되어 있었다. 
-    1시간 안에 끝날 줄 알았던 이 평범하고 사소한 기능은, 브라우저 보안 정책의 가장 깊은 곳을 관통하며 장장 5차례의 집요한 디버깅 전쟁을 치른 끝에야 완벽한 항복을 받아냈다.</p>
+    <p>로그아웃 버튼을 누르면 인앱 토스트가 떴습니다. "로그아웃 되었습니다."<br>
+    안심하고 화면을 새로고침했거든요. 그런데 제 프로필과 하트 수치가 로그인된 상태 그대로 다시 살아 있더라고요.
+    1시간 안에 끝날 줄 알았던 이 사소한 기능을, 결국 장장 5차례에 걸쳐 디버깅하고 나서야 겨우 잡았습니다.</p>
 
     <div class="highlight-box">
-      <p>보안 기능은 정상 동작할 때보다 비정상 상황에서 그 실체가 드러난다. 쿠키와 세션, 그리고 토큰은 단순히 넣고 빼는 변수가 아니라 브라우저가 다르게 해석하는 "정책으로 격리된 자원"이었다.</p>
+      <p>보안 기능은 정상 동작할 때보다 비정상 상황에서 그 실체가 드러나더라고요. 쿠키와 세션과 토큰은 단순히 넣고 빼는 변수가 아니라 브라우저가 저마다 다르게 해석하는 "정책으로 격리된 자원"이었거든요.</p>
     </div>
 
-    <p>피카밈의 기본 인증 아키텍처는 이렇다. 카카오나 구글 소셜 로그인 성공 시 백엔드가 JWT를 생성해 <code>HttpOnly; Secure; SameSite=Lax</code> 쿠키(`pam_token`)로 클라이언트에 심는다. 브라우저는 다음 API 호출부터 이 쿠키를 자동으로 실어 보낸다. 그렇다면 로그아웃은 단순히 해당 쿠키를 만료(Max-Age=0)시켜 브라우저에서 지워주면 끝나는 문제였다. 적어도 이론상으로는 그랬다.</p>
+    <p>피카밈의 기본 인증 아키텍처는 이렇습니다. 카카오나 구글 소셜 로그인이 성공하면 백엔드가 JWT를 생성해 <code>HttpOnly; Secure; SameSite=Lax</code> 쿠키(`pam_token`)로 클라이언트에 심습니다. 브라우저는 다음 API 호출부터 이 쿠키를 자동으로 실어 보내고요. 그렇다면 로그아웃은 단순히 해당 쿠키를 만료(Max-Age=0)시켜 브라우저에서 지워주면 끝나는 문제였습니다. 적어도 이론상으로는 그랬거든요.</p>
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -156,23 +156,23 @@
     <div class="timeline">
       <div class="timeline-item fail">
         <div class="timeline-label">1차 시도 · 실패</div>
-        <p>로그아웃 버튼을 눌렀음에도 내 프로필이 살아 있는 것을 보고, 첫 직감은 "React Query의 인메모리 캐시가 stale 상태로 갱신되지 않고 화면에 남아있는 현상"이라 판단했다.</p>
+        <p>로그아웃 버튼을 눌렀는데도 제 프로필이 살아 있길래, 처음엔 "React Query의 인메모리 캐시가 stale 상태로 갱신되지 않고 화면에 남아있는 거구나" 싶었거든요.</p>
       </div>
     </div>
 
-    <p>곧바로 로그아웃 핸들러 로직에 <code>queryClient.clear()</code>를 추가했다. 확실히 화면상의 데이터는 그 순간 즉시 사라졌다. 하지만 새로고침을 누르자마자 다시 로그인 정보가 되살아났다. 캐시가 문제가 아니라, 새로고침 시 백엔드로 보내는 `/api/auth/me` 요청에 <strong>여전히 유효한 JWT 쿠키가 실려 날아가고 있음</strong>이 명백했다. 브라우저 저장소 수준에서 쿠키가 전혀 삭제되지 않았다.</p>
+    <p>곧바로 로그아웃 핸들러에 <code>queryClient.clear()</code>를 추가했습니다. 확실히 화면상의 데이터는 그 순간 즉시 사라지더라고요. 그런데 새로고침을 누르자마자 다시 로그인 정보가 되살아났습니다. 캐시가 문제가 아니었거든요. 새로고침 시 백엔드로 보내는 `/api/auth/me` 요청에 <strong>여전히 유효한 JWT 쿠키가 실려 날아가고 있었습니다</strong>. 브라우저 저장소 수준에서 쿠키가 아예 삭제되지 않은 거였어요.</p>
 
     <h2 id="round2">2차 — 크로스 오리진 fetch의 장벽</h2>
 
     <div class="timeline">
       <div class="timeline-item fail">
         <div class="timeline-label">2차 시도 · 실패</div>
-        <p>크롬 개발자 도구의 Network 탭을 열어 로그아웃 API 응답 헤더를 추적했다. 백엔드는 분명하게 <code>Set-Cookie: pam_token=; Max-Age=0; Path=/</code> 헤더를 내려보내고 있었다. 그런데 왜 브라우저는 쿠키를 만료시키지 않고 버젓이 쥐고 있을까?</p>
+        <p>크롬 개발자 도구의 Network 탭을 열어 로그아웃 API 응답 헤더를 추적했습니다. 백엔드는 분명하게 <code>Set-Cookie: pam_token=; Max-Age=0; Path=/</code> 헤더를 내려보내고 있었거든요. "그런데 왜 브라우저는 쿠키를 만료시키지 않고 버젓이 쥐고 있는 걸까?" 하는 생각이 들었습니다.</p>
       </div>
     </div>
 
-    <p>원인은 브라우저의 **크로스 오리진 요청에 대한 쿠키 적용 차단 정책**이었다. 피카밈 프론트엔드는 <code>pick-a-me.me</code>에, 백엔드 API는 <code>api.pick-a-me.me</code>에 배포되어 있다. JS 코드의 비동기 <code>fetch()</code> 호출은 크로스 오리진 XHR 요청에 해당하므로, 브라우저는 보안상의 이유로 응답 헤더의 <code>Set-Cookie</code> 설정을 가차 없이 무시한다.</p>
-    <p>물론 <code>credentials: 'include'</code> 옵션을 fetch에 주고 CORS 설정을 허용해주면 해결되는 것처럼 보인다. 그러나 좀 더 확실하고 과하지 않은 해결책을 택했다. 비동기 백그라운드 fetch를 버리고, 로그아웃 버튼을 눌렀을 때 브라우저의 최상단 네비게이션 자체를 백엔드 오리진으로 직접 이동시키는 **탑레벨 GET 네비게이션** 방식을 강제한 것이다.</p>
+    <p>원인은 브라우저의 **크로스 오리진 요청에 대한 쿠키 적용 차단 정책**이었습니다. 피카밈 프론트엔드는 <code>pick-a-me.me</code>에, 백엔드 API는 <code>api.pick-a-me.me</code>에 배포되어 있거든요. JS 코드의 비동기 <code>fetch()</code> 호출은 크로스 오리진 XHR 요청에 해당하니까, 브라우저는 보안상의 이유로 응답 헤더의 <code>Set-Cookie</code> 설정을 가차 없이 무시해 버립니다.</p>
+    <p>물론 <code>credentials: 'include'</code> 옵션을 fetch에 주고 CORS 설정을 허용해주면 해결되는 것처럼 보이긴 했습니다. 그렇지만 좀 더 확실하고 과하지 않은 해결책을 택했어요. 비동기 백그라운드 fetch를 버리고, 로그아웃 버튼을 눌렀을 때 브라우저의 최상단 네비게이션 자체를 백엔드 오리진으로 직접 이동시키는 **탑레벨 GET 네비게이션** 방식을 쓴 거죠.</p>
 
     <div class="code-block"><span class="code-comment">// [프론트엔드] fetch를 걷어내고 브라우저 네비게이션으로 강제 전환</span>
 <span class="code-keyword">const</span> <span class="code-type">handleLogout</span> = () => {
@@ -180,22 +180,22 @@
     window.location.href = `${API_BASE}/api/auth/logout`;
 };</div>
 
-    <p>이제 브라우저가 직접 페이지를 이동하므로 크로스 오리진 제약 없이 백엔드가 보내는 쿠키 만료 헤더가 깔끔하게 먹히기 시작했다. 로컬 환경에서의 검증은 보기 좋게 성공했다. 하지만 안심하고 운영 서버에 배포한 순간, 버그는 다시 조롱하듯 부활했다.</p>
+    <p>이제 브라우저가 직접 페이지를 이동하니까 크로스 오리진 제약 없이 백엔드가 보내는 쿠키 만료 헤더가 깔끔하게 먹히기 시작했습니다. 로컬 환경에서의 검증은 보기 좋게 성공했고요. 그런데 안심하고 운영 서버에 배포한 순간, 버그가 다시 부활하더라고요.</p>
 
     <h2 id="round3">3차 — 쿠키 domain 불일치의 늪</h2>
 
     <div class="timeline">
       <div class="timeline-item fail">
         <div class="timeline-label">3차 시도 · 실패</div>
-        <p>분명 로컬에선 삭제되던 쿠키가 운영 배포 서버에서는 새로고침을 하면 계속 부활했다. 원인을 밝히기 위해 브라우저 Application 탭의 Cookie 저장소를 뒤져보고 엄청난 사실을 발견했다.</p>
+        <p>분명 로컬에선 삭제되던 쿠키가 운영 배포 서버에서는 새로고침을 하면 계속 부활했거든요. 원인을 밝히려고 브라우저 Application 탭의 Cookie 저장소를 뒤져보다가 의외의 사실을 발견했습니다.</p>
       </div>
     </div>
 
-    <p>브라우저 저장소 내에 동일한 이름을 가졌지만 **domain 속성이 완전히 다른 두 개의 `pam_token` 쿠키**가 나란히 공존하고 있었다.
-    하나는 배포 전환 과정에서 쿠키 도메인을 지정하기 전에 생성된 `pam_token (domain 없음)`, 다른 하나는 도메인이 명시된 `pam_token (domain=.pick-a-me.me)`.<br>
-    브라우저는 이름이 같더라도 도메인 속성이 다르면 완전히 별개의 쿠키로 취급한다. 백엔드가 `domain=.pick-a-me.me`를 붙여 만료 헤더를 보냈기 때문에 배포 전 구형 쿠키는 삭제되지 않고 좀비처럼 살아남아 인증을 계속 유효하게 만들었던 것이다.</p>
+    <p>브라우저 저장소 안에 이름은 같은데 **domain 속성이 완전히 다른 두 개의 `pam_token` 쿠키**가 나란히 공존하고 있더라고요.
+    하나는 배포 전환 과정에서 쿠키 도메인을 지정하기 전에 생성된 `pam_token (domain 없음)`, 다른 하나는 도메인이 명시된 `pam_token (domain=.pick-a-me.me)`였습니다.<br>
+    브라우저는 이름이 같더라도 도메인 속성이 다르면 완전히 별개의 쿠키로 취급하거든요. 백엔드가 `domain=.pick-a-me.me`를 붙여 만료 헤더를 보냈으니까, 배포 전 구형 쿠키는 삭제되지 않고 좀비처럼 살아남아 인증을 계속 유효하게 만들고 있었던 거죠.</p>
 
-    <p>이를 해결하기 위해 백엔드 로그아웃 핸들러에서 **도메인이 설정된 버전과 설정되지 않은 버전 두 가지 만료 쿠키를 동시에 응답 헤더에 실어보내는 다중 만료 전략**을 취했다.</p>
+    <p>이걸 해결하려고 백엔드 로그아웃 핸들러에서 **도메인이 설정된 버전과 설정되지 않은 버전, 두 가지 만료 쿠키를 동시에 응답 헤더에 실어보내는 다중 만료 전략**을 썼습니다.</p>
 
     <div class="code-block"><span class="code-comment">// [백엔드 AuthController.kt] 두 속성의 쿠키를 동시 삭제 요청</span>
 <span class="code-keyword">val</span> <span class="code-type">cookieDomain</span> = <span class="code-string">".pick-a-me.me"</span>
@@ -204,21 +204,21 @@ response.addHeader(<span class="code-string">"Set-Cookie"</span>, <span class="c
 <span class="code-comment">// 2. domain이 명시된 신버전 쿠키 만료</span>
 response.addHeader(<span class="code-string">"Set-Cookie"</span>, <span class="code-string">"pam_token=; Domain=$cookieDomain; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"</span>)</div>
 
-    <p>도메인 불일치로 인한 좀비 쿠키가 완전히 소멸했다. 드디어 끝난 줄 알았으나, 사파리 브라우저와 일부 크롬 사용자에게서 여전히 새로고침 시 로그인 상태가 풀리지 않는 제보가 잇따랐다.</p>
+    <p>도메인 불일치로 생긴 좀비 쿠키가 완전히 사라졌습니다. 드디어 끝난 줄 알았는데, 사파리와 일부 크롬 사용자에게서 여전히 새로고침 시 로그인 상태가 풀리지 않는다는 제보가 잇따르더라고요.</p>
 
     <h2 id="round4">4차 — Host-Only 쿠키의 주권과 리다이렉트 릴레이</h2>
 
     <div class="timeline">
       <div class="timeline-item fail">
         <div class="timeline-label">4차 시도 · 실패</div>
-        <p>이유는 브라우저 쿠키 보안 정책의 가장 핵심인 **Host-Only 쿠키의 강력한 격리 제약** 때문이었다.</p>
+        <p>이유는 브라우저 쿠키 보안 정책의 핵심인 **Host-Only 쿠키의 강력한 격리 제약** 때문이었거든요.</p>
       </div>
     </div>
 
-    <p>백엔드 API 서버(`api.pick-a-me.me`)가 발급한 host-only 쿠키는, 아무리 parent domain인 `.pick-a-me.me`가 만료를 외쳐도 **오직 발급 호스트인 `api.pick-a-me.me` 본인만이 만료시킬 수 있는 절대 주권**을 가진다.<br>
-    브라우저가 API 통신을 할 때 살아 있는 `api.pick-a-me.me` host-only 쿠키를 함께 전송하므로, 프론트에서 아무리 지우려 애써도 백엔드 필터는 잔존 쿠키를 읽고 로그인을 복원해 버렸다.</p>
+    <p>백엔드 API 서버(`api.pick-a-me.me`)가 발급한 host-only 쿠키는, 아무리 parent domain인 `.pick-a-me.me`가 만료를 외쳐도 **오직 발급 호스트인 `api.pick-a-me.me` 본인만이 만료시킬 수 있는 절대 주권**을 가지더라고요.<br>
+    브라우저가 API 통신을 할 때 살아 있는 `api.pick-a-me.me` host-only 쿠키를 함께 전송하니까, 프론트에서 아무리 지우려 애써도 백엔드 필터가 잔존 쿠키를 읽고 로그인을 복원해 버렸거든요.</p>
 
-    <p>결국 프론트엔드와 백엔드가 서로 상대방의 host-only 영역을 침범해 삭제할 수 없다면, **두 오리진을 순차적으로 브라우저가 순회 릴레이 방문하여 각자의 쿠키를 본인 주권 하에 소멸시키는 쿠키 서킷(Circuit)**을 설계할 수밖에 없었다.</p>
+    <p>결국 프론트엔드와 백엔드가 서로 상대방의 host-only 영역을 침범해 삭제할 수 없으니, **두 오리진을 브라우저가 순차적으로 릴레이 방문해서 각자의 쿠키를 본인 주권 아래 소멸시키는 쿠키 서킷(Circuit)**을 설계할 수밖에 없었습니다.</p>
 
     <div class="circuit-container">
       <p class="circuit-title">🔄 양방향 쿠키 소멸 리다이렉트 서킷</p>
@@ -240,23 +240,23 @@ response.addHeader(<span class="code-string">"Set-Cookie"</span>, <span class="c
       </div>
     </div>
 
-    <p>양 도메인의 주권 아래 호스트 쿠키를 각각 폭파하고 복귀하는 이 릴레이 서킷 설계로, 드디어 모든 브라우저에서 쿠키 클린 상태를 이뤄냈다. 그러나 귀신을 본 것처럼, 또다시 로그인 정보가 되살아나는 케이스가 발견되었다.</p>
+    <p>양 도메인의 주권 아래 호스트 쿠키를 각각 지우고 복귀하는 이 릴레이 서킷 설계로, 드디어 모든 브라우저에서 쿠키가 깨끗하게 비워졌습니다. 그런데 또다시 로그인 정보가 되살아나는 케이스가 발견되더라고요.</p>
 
     <h2 id="round5">5차 — 잔존하는 JSESSIONID와 Stateless 아키텍처</h2>
 
     <div class="timeline">
       <div class="timeline-item">
         <div class="timeline-label">5차 시도 · 최종 정복 완료</div>
-        <p>네트워크 트레이스를 해보니 `pam_token`은 단 한 개도 남아 있지 않았다. 완벽하게 쿠키가 비워졌는데 백엔드 `/api/auth/me` API는 여전히 200 OK와 함께 유저 데이터를 반환했다. 이 마법 같은 복원의 실마리는 다름 아닌 **세션 쿠키인 `JSESSIONID`**에 있었다.</p>
+        <p>네트워크 트레이스를 해보니 `pam_token`은 단 한 개도 남아 있지 않더라고요. 쿠키가 완벽하게 비워졌는데도 백엔드 `/api/auth/me` API는 여전히 200 OK와 함께 유저 데이터를 반환했습니다. 이 마법 같은 복원의 실마리는 다름 아닌 **세션 쿠키인 `JSESSIONID`**에 있었거든요.</p>
       </div>
     </div>
 
-    <p>소셜 로그인 최초 구현 시 Spring Security OAuth2의 핸드셰이크를 위해 세션 정책을 임시로 <code>SessionCreationPolicy.IF_REQUIRED</code>로 풀어주었던 것이 화근이었다.
-    OAuth2 과정에서 Spring이 내부적으로 임시 세션을 수립하였고, 이 `JSESSIONID` 쿠키가 브라우저에 잔존하여 `pam_token`이 소멸했음에도 세션 ID를 매개로 백엔드가 사용자를 계속 식별 및 인증 처리해주고 있었던 것이다.</p>
+    <p>소셜 로그인을 처음 구현할 때 Spring Security OAuth2의 핸드셰이크를 위해 세션 정책을 임시로 <code>SessionCreationPolicy.IF_REQUIRED</code>로 풀어줬던 게 화근이었습니다.
+    OAuth2 과정에서 Spring이 내부적으로 임시 세션을 수립했고, 이 `JSESSIONID` 쿠키가 브라우저에 잔존하면서 `pam_token`이 사라졌는데도 세션 ID를 매개로 백엔드가 사용자를 계속 식별하고 인증 처리해주고 있었던 거죠.</p>
 
-    <p>피카밈은 완전한 무상태(Stateless) JWT 기반 서비스여야 하므로, 이 모순을 참아 넘길 수 없었다. 
-    OAuth2의 CSRF용 `state` 파라미터 보관을 세션 대신 브라우저의 단기 보안 쿠키로 격리하는 <code>CookieOAuth2AuthorizationRequestRepository</code>를 구현 및 장착했다.<br>
-    그 직후 Spring Security 설정을 엄격한 <code>STATELESS</code> 상태로 전격 환원시켰다.</p>
+    <p>피카밈은 완전한 무상태(Stateless) JWT 기반 서비스여야 하니까, 이 모순을 그냥 둘 수가 없었거든요.
+    OAuth2의 CSRF용 `state` 파라미터 보관을 세션 대신 브라우저의 단기 보안 쿠키로 격리하는 <code>CookieOAuth2AuthorizationRequestRepository</code>를 구현해서 장착했습니다.<br>
+    그 직후 Spring Security 설정을 엄격한 <code>STATELESS</code> 상태로 되돌렸고요.</p>
 
     <div class="code-block"><span class="code-comment">// [백엔드 SecurityConfig.kt] 임시 세션 발급을 차단하고 쿠키 저장소 장착</span>
 http.sessionManagement {
@@ -269,14 +269,14 @@ http.oauth2Login {
     }
 }</div>
 
-    <p>세션의 흔적을 완벽히 지우고, 무상태 아키텍처를 온전히 복구한 순간, 새로고침을 아무리 난타해도 로그인 정보가 부활하는 일은 두 번 다시 발생하지 않았다. 장장 1주일에 걸친 로그아웃의 5중 연쇄 버그가 드디어 완전 정복된 순간이었다.</p>
+    <p>세션의 흔적을 완전히 지우고 무상태 아키텍처를 온전히 복구하고 나니, 새로고침을 아무리 눌러도 로그인 정보가 부활하는 일은 두 번 다시 없었습니다. 장장 1주일에 걸친 로그아웃의 5중 연쇄 버그가 그제야 잡힌 거죠.</p>
 
-    <h2 id="conclusion">결론 및 배운 것</h2>
+    <h2 id="conclusion">이번 디버깅에서 남은 것</h2>
 
     <div class="lesson-box">
-      <h3>💡 이 험난한 여정의 교훈</h3>
-      <p>쿠키와 세션은 단순히 로컬 변수 다루듯 "읽고 지우는 데이터"가 아니다. 브라우저의 주권 영역(Same-Origin), 도메인 격리 레벨, 그리고 프레임워크의 세션 보존 메커니즘이 정교하게 맞물려 작동하는 보안 시스템이다.</p>
-      <p>개발자 도구에서 로컬(localhost)로 검증하고 만족하는 행위는 반쪽짜리에 불과하다. 호스트가 멀티 서브도메인으로 쪼개지는 운영 인프라의 관점을 고려하여, 설계 단계부터 양방향 보안 주권과 영속성 격리 수준을 엄밀히 따지는 판단력이 진짜 엔지니어의 자질임을 이번 트러블슈팅을 통해 깊이 배웠다.</p>
+      <h3>이 험난한 여정에서 남은 것</h3>
+      <p>인증 흐름은 로컬에서 돌아간다고 끝난 게 아니더라고요. 서브도메인이 나뉘는 순간 localhost에서 확인한 동작은 의미가 없어지거든요. 다음 프로젝트에선 쿠키·세션 기능을 처음부터 배포 도메인 기준으로 검증하기로...</p>
+      <p>Spring Security 설정을 바꿀 때는 그게 다른 필터 체인에 어떤 영향을 주는지부터 봐야겠더라고요. SessionCreationPolicy 하나가 OAuth2 state와 JSESSIONID 양쪽을 동시에 건드렸던 것처럼, 보안 설정은 연쇄 효과가 생각보다 크더라고요.</p>
     </div>
 
     <!-- 류대성 엔지니어 공통 프로필 아카이브 카드 (방안 B) -->
