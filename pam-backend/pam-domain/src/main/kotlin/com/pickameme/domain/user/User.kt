@@ -9,8 +9,7 @@ class User(
     val email: String,
     val provider: OAuthProvider,
     val providerId: String,
-    val createdAt: LocalDateTime,
-    var updatedAt: LocalDateTime
+    val createdAt: LocalDateTime
 ) {
     companion object {
         fun createByOAuth2(
@@ -29,8 +28,7 @@ class User(
                 email = email,
                 provider = provider,
                 providerId = providerId,
-                createdAt = now,
-                updatedAt = now
+                createdAt = now
             )
         }
     }

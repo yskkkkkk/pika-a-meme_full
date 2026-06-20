@@ -22,7 +22,6 @@ class UserTest {
         assertThat(user.username).isEqualTo("testuser")
         assertThat(user.email).isEqualTo("test@example.com")
         assertThat(user.createdAt).isNotNull()
-        assertThat(user.updatedAt).isNotNull()
     }
 
     @Test
