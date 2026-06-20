@@ -135,7 +135,7 @@
 
     <h2 id="cost-bomb">비용 폭탄의 실체</h2>
 
-    <p>피카밀 뒤기 한 번(<code>/api/memes/compose</code>)이 실행될 때 일어나는 일을 따라가 보자.</p>
+    <p>피카밀 뒤기 한 번(<code>/api/memes/compose</code>)이 실행될 때 일어나는 일을 따라간다.</p>
 
     <p>Neon PostgreSQL에서 이미지 목록 랜덤 조회, 문구 목록 랜덤 조회. Upstash Redis에서 BASIC 하트 잊량 확인 + 분산 낙 획득. 뒤기 결과 DB 저장. 하트 차감 후 낙 해제. 한 번의 클릭에 DB 쿼리 3~4회, Redis 연산 4~5회가 발생한다.</p>
 
