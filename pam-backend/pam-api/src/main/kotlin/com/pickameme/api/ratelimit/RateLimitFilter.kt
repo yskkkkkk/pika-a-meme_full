@@ -62,12 +62,23 @@ class RateLimitFilter(
         filterChain.doFilter(request, response)
     }
 
+    companion object {
+        private const val RATE_LIMIT_SCRIPT = """
+            local current = redis.call('INCR', KEYS[1])
+            if current == 1 then
+                redis.call('EXPIRE', KEYS[1], ARGV[1])
+            end
+            return current
+        """
+        private val script = org.springframework.data.redis.core.script.DefaultRedisScript(RATE_LIMIT_SCRIPT, Long::class.java)
+    }
+
     private fun consume(key: String, window: Duration): Long {
-        val count = redisTemplate.opsForValue().increment(key) ?: 1L
-        if (count == 1L) {
-            redisTemplate.expire(key, window)
-        }
-        return count
+        return redisTemplate.execute(
+            script,
+            listOf(key),
+            window.seconds.toString()
+        ) ?: 1L
     }
 
     private fun retryAfterSeconds(key: String, window: Duration): Long {
