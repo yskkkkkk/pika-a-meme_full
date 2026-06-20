@@ -2,6 +2,7 @@ package com.pickameme.application.meme
 
 import com.pickameme.application.heart.HeartService
 import com.pickameme.application.mission.MissionService
+import com.pickameme.domain.common.LockManager
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.MemeComposition
 import com.pickameme.domain.meme.MemeImageRepository
@@ -20,11 +21,22 @@ class MemeComposeService(
     private val memePhraseRepository: MemePhraseRepository,
     private val userMemeRepository: UserMemeRepository,
     private val heartService: HeartService,
-    private val missionService: MissionService
+    private val missionService: MissionService,
+    private val lockManager: LockManager
 ) {
 
     @Transactional
     fun compose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
+        return if (userId != null) {
+            lockManager.withLock("lock:meme_compose:$userId") {
+                executeCompose(heartType, tags, userId)
+            }
+        } else {
+            executeCompose(heartType, tags, null)
+        }
+    }
+
+    private fun executeCompose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
         // 1단계: 이미지/문구 조합 (순수 조회 — 실패 시 하트 차감 없음)
         val image = if (heartType == HeartType.SPECIAL && tags.isNotEmpty()) {
             memeImageRepository.findRandomByTags(tags) ?: memeImageRepository.findRandom()

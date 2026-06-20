@@ -445,3 +445,31 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 
 **원인 및 조치 필요 사항**
 `useEffect` 내 비동기 호출 등에서 클린업(cleanup) 함수 처리가 미흡함. `AbortController`를 사용하거나 언마운트 시 상태 업데이트 방지 로직(또는 클린업) 추가가 필요.
+
+---
+
+## BUG-11 · 도메인 객체의 불필요한 가변 상태 (User.updatedAt)
+
+- **상태**: FIXED (260620)
+- **연관 PR**: PR #154
+- **발견**: `User` 도메인 엔티티 내에 `updatedAt` 속성이 `var`로 선언되어 있었으나, 실제 비즈니스 로직 상에서 프로필 수정 기능이 없어 한 번도 변경되지 않음. 무의미하게 가변 상태가 열려 있어 도메인 불변성(Immutability)을 저해함.
+
+**원인 및 조치**
+`updatedAt`은 도메인 비즈니스 룰이 아닌 DB 감사(Audit) 관점의 인프라 관심사임.
+- 도메인 모델(`User.kt`)에서 `updatedAt` 필드를 완전히 제거하여 순수 불변 객체로 개선.
+- 인프라 모델(`UserJpaEntity.kt`)에는 `var updatedAt`을 유지하고, `JpaUserRepositoryAdapter`에서 `toEntity()` 매핑 시 `LocalDateTime.now()`를 주입하여 DB 반영 책임을 인프라 레이어로 완전히 위임함.
+
+---
+
+## BUG-12 · HeartService 트랜잭션과 분산 락의 범위 불일치 (Lost Update)
+
+- **상태**: FIXED (260620)
+- **발견**: 밈 뽑기 시 하트가 동시에 여러 번 소모될 수 있는 동시성 이슈. `HeartService.consumeHeart` 내에서 분산 락(`lockManager.withLock`)을 걸고 해제하였으나, 해당 메서드를 호출하는 `MemeComposeService.compose`에 거대한 `@Transactional`이 걸려 있어 **"락이 해제된 이후에도 트랜잭션이 커밋되지 않은 마의 구간(Race Condition Window)"**이 발생함.
+
+**원인**
+Spring의 `@Transactional` AOP 특성 상, 락의 범위가 트랜잭션의 범위보다 좁을 경우(락 해제 -> 트랜잭션 커밋), 다른 스레드가 락을 획득하고 DB를 조회할 때 이전 트랜잭션의 변경 사항(하트 차감)을 읽지 못하는 Stale Read 상황이 발생, 최종적으로 갱신 손실(Lost Update)이 일어남. 특히 `MemeComposeService`의 큰 트랜잭션이 문제를 심화시킴.
+
+**조치 (방안 C 적용)**
+- 하트 차감 단위가 아닌 유저의 실제 행위 단위("밈 뽑기") 전체를 락으로 묶어 동시성을 원천 차단.
+- `MemeComposeService.compose` 메서드 최상단 진입점에 `lockManager.withLock("lock:meme_compose:$userId")`를 적용.
+- `HeartService.consumeHeart` 내부의 불필요하고 잘못된 락 제어 코드를 제거하고 동시성 제어 책임을 호출자(`MemeComposeService`)에게 위임.
