@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.script.DefaultRedisScript
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -70,7 +71,7 @@ class RateLimitFilter(
             end
             return current
         """
-        private val script = org.springframework.data.redis.core.script.DefaultRedisScript(RATE_LIMIT_SCRIPT, Long::class.java)
+        private val script = DefaultRedisScript(RATE_LIMIT_SCRIPT, Long::class.java)
     }
 
     private fun consume(key: String, window: Duration): Long {
@@ -78,7 +79,7 @@ class RateLimitFilter(
             script,
             listOf(key),
             window.seconds.toString()
-        ) ?: 1L
+        ) as? Long ?: 1L // Redis 장애 시 fail-open: 요청 차단보다 서비스 가용성 우선
     }
 
     private fun retryAfterSeconds(key: String, window: Duration): Long {
