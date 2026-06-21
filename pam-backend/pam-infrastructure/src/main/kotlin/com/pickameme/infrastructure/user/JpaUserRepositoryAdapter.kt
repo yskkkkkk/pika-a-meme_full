@@ -29,8 +29,7 @@ class JpaUserRepositoryAdapter(
         email = email,
         provider = provider,
         providerId = providerId,
-        createdAt = createdAt,
-        updatedAt = java.time.LocalDateTime.now()
+        createdAt = createdAt
     )
 
     private fun UserJpaEntity.toDomain() = User(
