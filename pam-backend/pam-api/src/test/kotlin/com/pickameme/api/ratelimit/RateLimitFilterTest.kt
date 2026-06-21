@@ -11,6 +11,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ValueOperations
+import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.http.HttpHeaders
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -42,8 +43,13 @@ class RateLimitFilterTest {
     @Test
     @DisplayName("한도 이내 요청은 통과시키고 Redis TTL을 설정한다")
     fun `allows request within limit`() {
-        whenever(redisTemplate.opsForValue()).thenReturn(valueOperations)
-        whenever(valueOperations.increment(any<String>())).thenReturn(1)
+        whenever(
+            redisTemplate.execute(
+                any<RedisScript<Long>>(),
+                any<List<String>>(),
+                any()
+            )
+        ).thenReturn(1L)
 
         val chain = CountingFilterChain()
         val response = MockHttpServletResponse()
@@ -52,14 +58,23 @@ class RateLimitFilterTest {
 
         assertEquals(200, response.status)
         assertEquals(1, chain.count)
-        verify(redisTemplate).expire(eq("pam:rate-limit:compose-test:ip:127.0.0.1"), eq(Duration.ofMinutes(1)))
+        verify(redisTemplate).execute(
+            any<RedisScript<Long>>(),
+            eq(listOf("pam:rate-limit:compose-test:ip:127.0.0.1")),
+            eq("60")
+        )
     }
 
     @Test
     @DisplayName("한도 초과 요청은 429와 Retry-After로 차단한다")
     fun `blocks request above limit`() {
-        whenever(redisTemplate.opsForValue()).thenReturn(valueOperations)
-        whenever(valueOperations.increment(any<String>())).thenReturn(2)
+        whenever(
+            redisTemplate.execute(
+                any<RedisScript<Long>>(),
+                any<List<String>>(),
+                any()
+            )
+        ).thenReturn(2L)
         whenever(redisTemplate.getExpire(any<String>())).thenReturn(42)
 
         val chain = CountingFilterChain()
