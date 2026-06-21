@@ -473,3 +473,17 @@ Spring의 `@Transactional` AOP 특성 상, 락의 범위가 트랜잭션의 범�
 - 하트 차감 단위가 아닌 유저의 실제 행위 단위("밈 뽑기") 전체를 락으로 묶어 동시성을 원천 차단.
 - `MemeComposeService.compose` 메서드 최상단 진입점에 `lockManager.withLock("lock:meme_compose:$userId")`를 적용.
 - `HeartService.consumeHeart` 내부의 불필요하고 잘못된 락 제어 코드를 제거하고 동시성 제어 책임을 호출자(`MemeComposeService`)에게 위임.
+
+---
+
+## BUG-13 · Redis Rate Limit의 원자성(Atomicity) 결함 (Zombie Keys)
+
+- **상태**: FIXED (260620)
+- **발견**: `RateLimitFilter`의 `consume` 로직에서 Redis `INCR` 명령어와 `EXPIRE` 명령어가 분리되어 있어, 명령어 실행 사이의 간극에 서버 크래시가 발생하거나 동시 다발적 요청이 들어올 경우 `EXPIRE`가 누락되어 만료 시간이 없는 좀비 키가 생성될 위험 발견.
+
+**원인**
+Spring Data Redis의 `opsForValue().increment()`와 `expire()`를 순차적으로 호출할 경우, 두 명령 사이에 네트워크 지연이나 애플리케이션 크래시가 발생하면 첫 번째 `INCR`만 실행되고 두 번째 `EXPIRE`는 실행되지 않음. 이는 메모리 누수(Memory Leak)를 유발하며, 동시 요청 시 조건문(`count == 1L`) 분기를 타지 못하는 레이스 컨디션 문제도 있음.
+
+**조치**
+- Redis에 내장된 Lua Script 기능을 도입하여 `INCR`과 조건부 `EXPIRE` 로직을 서버 측에서 하나의 트랜잭션 단위로 원자적(Atomic) 실행 보장.
+- `DefaultRedisScript`를 활용해 애플리케이션 코드를 리팩토링함으로써 동시성 이슈와 엣지 케이스에서의 메모리 누수 위험 완전 해소.
