@@ -19,28 +19,26 @@ class HeartService(
     private val lockManager: LockManager
 ) {
 
-    // 밈 생성 시 하트 차감. BASIC 은 차감 전 lazy 충전 선수행
+    // 밈 생성 시 하트 차감. BASIC 은 차감 전 lazy 충전 선수행 (락 제어는 호출자에게 위임)
     @Transactional
     fun consumeHeart(userId: UUID, heartType: HeartType, memeId: UUID? = null) {
-        lockManager.withLock("lock:heart:$userId") {
-            val heart = findHeartOrThrow(userId, heartType)
-            val preChargeCount = heart.count
+        val heart = findHeartOrThrow(userId, heartType)
+        val preChargeCount = heart.count
 
-            if (heartType == HeartType.BASIC) {
-                heart.chargeIfNeeded(LocalDateTime.now())
-            }
+        if (heartType == HeartType.BASIC) {
+            heart.chargeIfNeeded(LocalDateTime.now())
+        }
 
-            heart.consume()
-            heartRepository.save(heart)
+        heart.consume()
+        heartRepository.save(heart)
 
-            heartHistoryRepository.save(HeartHistory.consume(userId, heartType, memeId))
+        heartHistoryRepository.save(HeartHistory.consume(userId, heartType, memeId))
 
-            // BASIC 이 lazy 충전된 경우 충전 이력 기록
-            if (heartType == HeartType.BASIC) {
-                val chargedAmount = heart.count + 1 - preChargeCount
-                if (chargedAmount > 0) {
-                    heartHistoryRepository.save(HeartHistory.charge(userId, chargedAmount))
-                }
+        // BASIC 이 lazy 충전된 경우 충전 이력 기록
+        if (heartType == HeartType.BASIC) {
+            val chargedAmount = heart.count + 1 - preChargeCount
+            if (chargedAmount > 0) {
+                heartHistoryRepository.save(HeartHistory.charge(userId, chargedAmount))
             }
         }
     }

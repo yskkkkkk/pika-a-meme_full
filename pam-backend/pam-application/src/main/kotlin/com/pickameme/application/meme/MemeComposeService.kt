@@ -2,6 +2,7 @@ package com.pickameme.application.meme
 
 import com.pickameme.application.heart.HeartService
 import com.pickameme.application.mission.MissionService
+import com.pickameme.domain.common.LockManager
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.MemeComposition
 import com.pickameme.domain.meme.MemeImageRepository
@@ -10,7 +11,8 @@ import com.pickameme.domain.meme.UserMeme
 import com.pickameme.domain.meme.UserMemeRepository
 import com.pickameme.domain.mission.MissionTrigger
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -20,11 +22,25 @@ class MemeComposeService(
     private val memePhraseRepository: MemePhraseRepository,
     private val userMemeRepository: UserMemeRepository,
     private val heartService: HeartService,
-    private val missionService: MissionService
+    private val missionService: MissionService,
+    private val lockManager: LockManager,
+    private val transactionManager: PlatformTransactionManager
 ) {
+    private val transactionTemplate = TransactionTemplate(transactionManager)
 
-    @Transactional
     fun compose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
+        return if (userId != null) {
+            lockManager.withLock("lock:meme_compose:$userId") {
+                transactionTemplate.execute {
+                    executeCompose(heartType, tags, userId)
+                }!!
+            }
+        } else {
+            executeCompose(heartType, tags, null)
+        }
+    }
+
+    private fun executeCompose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
         // 1단계: 이미지/문구 조합 (순수 조회 — 실패 시 하트 차감 없음)
         val image = if (heartType == HeartType.SPECIAL && tags.isNotEmpty()) {
             memeImageRepository.findRandomByTags(tags) ?: memeImageRepository.findRandom()
