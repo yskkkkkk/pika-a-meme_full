@@ -29,8 +29,7 @@ class JpaUserRepositoryAdapter(
         email = email,
         provider = provider,
         providerId = providerId,
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = createdAt
     )
 
     private fun UserJpaEntity.toDomain() = User(
@@ -39,7 +38,6 @@ class JpaUserRepositoryAdapter(
         email = email,
         provider = provider,
         providerId = providerId,
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = createdAt
     )
 }

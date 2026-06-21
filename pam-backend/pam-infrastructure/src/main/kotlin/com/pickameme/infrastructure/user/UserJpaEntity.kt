@@ -2,6 +2,7 @@ package com.pickameme.infrastructure.user
 
 import com.pickameme.domain.user.OAuthProvider
 import jakarta.persistence.*
+import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -34,5 +35,6 @@ class UserJpaEntity(
     val createdAt: LocalDateTime,
 
     @Column(nullable = false)
-    var updatedAt: LocalDateTime
+    @UpdateTimestamp
+    var updatedAt: LocalDateTime = LocalDateTime.now()
 )
