@@ -457,7 +457,8 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 **원인 및 조치**
 `updatedAt`은 도메인 비즈니스 룰이 아닌 DB 감사(Audit) 관점의 인프라 관심사임.
 - 도메인 모델(`User.kt`)에서 `updatedAt` 필드를 완전히 제거하여 순수 불변 객체로 개선.
-- 인프라 모델(`UserJpaEntity.kt`)에는 `var updatedAt`을 유지하되, `@UpdateTimestamp`(Hibernate)를 적용하여 Hibernate가 저장 직전 자동으로 채우도록 위임. `JpaUserRepositoryAdapter`에서 직접 `LocalDateTime.now()`를 주입하던 방식 제거.
+- 인프라 모델(`UserJpaEntity.kt`)에는 `var updatedAt`을 유지하되, `@UpdateTimestamp`(Hibernate)를 추가하여 INSERT/UPDATE 직전 Hibernate가 실제 저장 시각으로 덮어씌우도록 처리.
+- `JpaUserRepositoryAdapter.toEntity()`에서 `updatedAt` 파라미터를 명시적으로 전달하던 방식은 제거됨. 대신 `UserJpaEntity` 필드 기본값(`= LocalDateTime.now()`)으로 인메모리 객체를 초기화하고, 실제 DB 저장 시각은 `@UpdateTimestamp`가 단독으로 관리하는 구조로 변경.
 
 ---
 
