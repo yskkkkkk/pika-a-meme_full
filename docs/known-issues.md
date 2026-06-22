@@ -457,7 +457,7 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 **원인 및 조치**
 `updatedAt`은 도메인 비즈니스 룰이 아닌 DB 감사(Audit) 관점의 인프라 관심사임.
 - 도메인 모델(`User.kt`)에서 `updatedAt` 필드를 완전히 제거하여 순수 불변 객체로 개선.
-- 인프라 모델(`UserJpaEntity.kt`)에는 `var updatedAt`을 유지하고, `JpaUserRepositoryAdapter`에서 `toEntity()` 매핑 시 `LocalDateTime.now()`를 주입하여 DB 반영 책임을 인프라 레이어로 완전히 위임함.
+- 인프라 모델(`UserJpaEntity.kt`)에는 `var updatedAt`을 유지하되, `@UpdateTimestamp`(Hibernate)를 적용하여 Hibernate가 저장 직전 자동으로 채우도록 위임. `JpaUserRepositoryAdapter`에서 직접 `LocalDateTime.now()`를 주입하던 방식 제거.
 
 ---
 
@@ -469,10 +469,18 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 **원인**
 Spring의 `@Transactional` AOP 특성 상, 락의 범위가 트랜잭션의 범위보다 좁을 경우(락 해제 -> 트랜잭션 커밋), 다른 스레드가 락을 획득하고 DB를 조회할 때 이전 트랜잭션의 변경 사항(하트 차감)을 읽지 못하는 Stale Read 상황이 발생, 최종적으로 갱신 손실(Lost Update)이 일어남. 특히 `MemeComposeService`의 큰 트랜잭션이 문제를 심화시킴.
 
-**조치 (방안 C 적용)**
-- 하트 차감 단위가 아닌 유저의 실제 행위 단위("밈 뽑기") 전체를 락으로 묶어 동시성을 원천 차단.
-- `MemeComposeService.compose` 메서드 최상단 진입점에 `lockManager.withLock("lock:meme_compose:$userId")`를 적용.
-- `HeartService.consumeHeart` 내부의 불필요하고 잘못된 락 제어 코드를 제거하고 동시성 제어 책임을 호출자(`MemeComposeService`)에게 위임.
+**조치 (방안 C 적용 + TX 범위 재조정)**
+
+1차 수정: 락 위치를 최상단 진입점으로 이동
+- `HeartService.consumeHeart` 내부의 `lockManager.withLock` 제거, 동시성 제어 책임을 호출자로 위임.
+- `MemeComposeService.compose` 최상단에 `lockManager.withLock("lock:meme_compose:$userId")` 적용.
+
+그러나 `compose()`에 `@Transactional`이 AOP로 걸려 있어 동일한 문제(락 해제 → TX 커밋 순서)가 잔존함을 확인.
+
+2차 수정: `TransactionTemplate`으로 TX를 락 안으로 좁힘
+- `compose()`의 `@Transactional` 제거.
+- `PlatformTransactionManager`를 주입받아 `TransactionTemplate`을 생성, `withLock` 블록 내부에서 `transactionTemplate.execute { executeCompose(...) }`를 호출.
+- 최종 실행 순서: **락 획득 → TX 시작 → TX 커밋 → 락 해제** 보장.
 
 ---
 
