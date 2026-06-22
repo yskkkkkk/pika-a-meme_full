@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>"이거 혹시 제 코드 아닌가요?" — 과외받다 잡은 버그들 | pick-a-meme Dev Blog</title>
+  <meta name="description" content="AI에게 코틀린·스프링 과외를 받다가, 퀴즈 예시 코드가 사실 제 코드의 버그였던 세 순간. val/var 불변성, @Transactional과 분산 락의 순서, Redis 좀비 키 이야기입니다.">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="pick-a-meme Dev Blog">
+  <meta property="og:title" content="&quot;이거 혹시 제 코드 아닌가요?&quot; — 과외받다 잡은 버그들">
+  <meta property="og:description" content="AI에게 코틀린·스프링 과외를 받다가, 퀴즈 예시 코드가 사실 제 코드의 버그였던 세 순간. val/var 불변성, @Transactional과 분산 락의 순서, Redis 좀비 키 이야기입니다.">
+  <meta property="og:url" content="https://pick-a-me.me/blog/post14.html">
+  <link rel="canonical" href="https://pick-a-me.me/blog/post14.html">
+  <meta property="og:image" content="https://pick-a-me.me/og-image.png">
+  <meta property="og:image:width" content="1086">
+  <meta property="og:image:height" content="570">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://pick-a-me.me/og-image.png">
+  <link rel="stylesheet" href="/blog/blog_post.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script>
+  (function(){
+    var t = localStorage.getItem('pam-theme') || 'dark';
+    if (t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+</head>
+<body>
+
+  <div id="blog-header-placeholder"></div>
+
+  <div class="nav-buttons">
+    <a href="/blog" class="btn-nav">← 목록으로</a>
+    <a href="/" class="btn-nav">🏠 메인으로</a>
+  </div>
+
+  <main class="blog-content glass">
+    <div class="post-meta">
+      <span class="post-series-tag">안정화 &amp; 학습 · #1</span>
+      <span class="read-time">📖 약 8분</span>
+    </div>
+
+    <h1 class="post-main-title">"이거 혹시<br>제 코드 아닌가요?"</h1>
+
+    <div class="post-tags">
+      <span class="tag-chip">#코틀린</span>
+      <span class="tag-chip">#스프링</span>
+      <span class="tag-chip">#동시성</span>
+      <span class="tag-chip">#Redis</span>
+      <span class="tag-chip">#AI과외</span>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title">목차</p>
+      <ol>
+        <li><a href="#intro">퀴즈가 자꾸 낯익었습니다</a></li>
+        <li><a href="#valvar">val 하나만 var이었던 자리</a></li>
+        <li><a href="#lock">락을 걸었는데 왜 소용이 없었을까</a></li>
+        <li><a href="#redis">틀린 문제, 그리고 회사 코드</a></li>
+      </ol>
+    </div>
+
+    <h2 id="intro">퀴즈가 자꾸 낯익었습니다</h2>
+
+    <p>요즘은 기능을 더 붙이는 대신 코드를 한 줄씩 다시 읽고 있습니다.</p>
+
+    <p>자바만 쓰던 사람이 굳이 코틀린으로 백엔드를 짠 건, 어차피 배울 거 제대로 배워보자는 마음이었거든요. 그래서 요즘은 AI한테 1:1 과외를 받습니다. 개념을 설명해주고, 중간중간 퀴즈를 내주거든요.</p>
+
+    <p>그런데 어느 순간부터 퀴즈에 딸려 나오는 예시 코드가 자꾸 낯이 익더라고요. "이거... 혹시 제 코드 아닌가?" 하는 생각이 들었거든요.</p>
+
+    <p>한 번도 아니고 세 번이었습니다.</p>
+
+    <h2 id="valvar">val 하나만 var이었던 자리</h2>
+
+    <p>첫 과외 주제는 코틀린의 <code>val</code>과 <code>var</code>였습니다. 자바의 <code>final</code> 필드와 일반 필드 차이라고 생각하면 쉽거든요. <code>val</code>은 게터만, <code>var</code>는 게터와 세터가 같이 생기고요.</p>
+
+    <p>설명에 딸려 나온 예시가 제 <code>User</code> 클래스였어요.</p>
+
+    <div class="code-block"><span class="code-comment">// pam-domain — User.kt</span>
+<span class="code-keyword">class</span> <span class="code-type">User</span>(
+    <span class="code-keyword">val</span> id: <span class="code-type">UUID</span>,
+    <span class="code-keyword">val</span> username: <span class="code-type">String</span>,
+    <span class="code-keyword">val</span> email: <span class="code-type">String</span>,
+    <span class="code-keyword">val</span> createdAt: <span class="code-type">LocalDateTime</span>,
+    <span class="code-keyword">var</span> updatedAt: <span class="code-type">LocalDateTime</span>  <span class="code-comment">// 혼자만 var</span>
+)</div>
+
+    <p>모든 필드가 <code>val</code>인데 <code>updatedAt</code> 하나만 <code>var</code>였습니다. "혼자 var인 거 보이시죠?"라는 설명이 따라왔고요.</p>
+
+    <p>듣다가 제가 되물었어요. "근데 <code>updatedAt</code>은 다른 값이 바뀔 때 같이 따라 바뀌는 종속값 아닌가요?"</p>
+
+    <p>비밀번호가 바뀌든 주소가 바뀌든, 그 변경에 딸려서 갱신되는 값이거든요. 그런데 정작 그 '바뀌는 값'들은 전부 <code>val</code>이라 바뀔 일이 없었습니다. 바뀔 일 없는 객체에 수정 시각만 혼자 열려 있던 셈이죠.</p>
+
+    <p>결국 <code>updatedAt</code>은 도메인에서 들어냈어요. 수정 시각은 비즈니스 규칙이 아니라 DB가 기록하는 값이니까, 그쪽(<code>@UpdateTimestamp</code>)에 맡기는 게 맞더라고요.</p>
+
+    <p>문법 하나 배우려고 들여다본 한 줄이 설계 질문으로 번지는 건, 생각보다 자주 일어나더라고요.</p>
+
+    <h2 id="lock">락을 걸었는데 왜 소용이 없었을까</h2>
+
+    <p>예전에 <a href="/blog/post3.html">하트 시스템 글</a>에서 하트에 분산 락을 걸었다고 썼거든요. 하트가 동시에 두 번 차감되는 걸 막으려고요. 그땐 그걸로 끝난 줄 알았습니다.</p>
+
+    <p>그 코드를 에이전트가 다시 예시로 가져왔어요. 이번 주제는 스프링의 <code>@Transactional</code>이었고요.</p>
+
+    <div class="code-block"><span class="code-keyword">@Transactional</span>  <span class="code-comment">// 1) 트랜잭션은 메서드 바깥에서 열리고</span>
+<span class="code-keyword">fun</span> <span class="code-type">consumeHeart</span>(userId: <span class="code-type">UUID</span>, heartType: <span class="code-type">HeartType</span>) {
+    lockManager.withLock(<span class="code-string">"lock:heart:$userId"</span>) {  <span class="code-comment">// 2) 락은 안쪽에서 잡힌다</span>
+        <span class="code-comment">// 하트 차감 로직...</span>
+        heartRepository.save(heart)
+    }  <span class="code-comment">// 3) 락 해제 — 그런데 트랜잭션은 아직 커밋 전</span>
+}  <span class="code-comment">// 4) 여기서야 커밋</span></div>
+
+    <p>퀴즈가 따라왔어요. "스레드 A가 락을 얻고 로직을 마친 뒤 락을 반납했습니다. 바로 그 직후 스레드 B가 같은 유저 ID로 락을 얻으면, B는 A가 바꾼 하트 개수를 정상적으로 조회할 수 있을까요?"</p>
+
+    <p>저는 이렇게 답했습니다. "비정상 조회가 가능할 것 같습니다. 락을 얻는 시점이 차감이 끝나기 전이라, 락 시점을 <code>HeartService</code>에 들어가기 전으로 당겨야 하지 않나..." 방향은 맞았는데, 진짜 원인은 조금 더 안쪽에 있었어요.</p>
+
+    <p><code>@Transactional</code>은 AOP 프록시로 동작하거든요. 메서드에 들어갈 때 트랜잭션을 열고, 메서드를 빠져나온 뒤에 커밋합니다. 그런데 락은 메서드 안쪽 <code>withLock</code> 블록에서 잡고 풀려요. 순서를 늘어놓으면 이렇게 됩니다.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-label">① 스레드 A — 락 획득</div>
+        <p><code>consumeHeart</code>에 진입해 락을 잡고 하트를 차감합니다.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-label">② 스레드 A — 락 해제</div>
+        <p><code>withLock</code> 블록을 빠져나오며 락을 반납합니다. 그런데 트랜잭션은 아직 커밋되지 않았거든요.</p>
+      </div>
+      <div class="timeline-item fail">
+        <div class="timeline-label">③ 스레드 B — 마의 구간</div>
+        <p>바로 이 틈에 B가 같은 락을 얻습니다. A가 차감한 결과가 DB에 반영되기 전이라, B는 옛날 하트 개수를 읽고요.</p>
+      </div>
+      <div class="timeline-item fail">
+        <div class="timeline-label">④ 결과 — Lost Update</div>
+        <p>A와 B가 같은 값을 기준으로 각자 차감합니다. 하트 하나는 두 번 쓰였는데, 장부엔 한 번만 빠지고요.</p>
+      </div>
+    </div>
+
+    <p>락은 분명 풀렸는데 트랜잭션은 아직 커밋 전인 구간이 생기거든요. 락을 거는 것까진 맞았지만, 그 락이 트랜잭션보다 안쪽에 있으면 없는 거나 마찬가지였어요.</p>
+
+    <p>"이거 혹시 제 코드에도 있나요?" 물었더니, 역시 있었습니다.</p>
+
+    <p>수정은 락이 트랜잭션을 통째로 감싸도록 바꾸는 방향이었어요. <code>@Transactional</code> 어노테이션을 떼고, 락 블록 안에서 <code>TransactionTemplate</code>으로 트랜잭션을 직접 열고 닫았거든요. 그래야 '락 획득 → 트랜잭션 시작 → 커밋 → 락 해제' 순서가 보장되고요.</p>
+
+    <div class="highlight-box">
+      <p>면접 단골 문제라는 말이 괜히 나온 게 아니더라고요. 락만 걸면 끝이라고 믿었는데, 정작 그 락이 트랜잭션 안쪽에 갇혀 있었거든요.</p>
+    </div>
+
+    <h2 id="redis">틀린 문제, 그리고 회사 코드</h2>
+
+    <p>세 번째 퀴즈는 솔직히 틀렸습니다.</p>
+
+    <p>이번엔 Rate Limit 코드였어요. 요청 수를 <code>INCR</code>로 올리고, 키가 처음 생겼을 때만 <code>EXPIRE</code>로 만료 시간을 거는 코드였거든요.</p>
+
+    <div class="code-block"><span class="code-keyword">private fun</span> <span class="code-type">consume</span>(key: <span class="code-type">String</span>, window: <span class="code-type">Duration</span>): <span class="code-type">Long</span> {
+    <span class="code-keyword">val</span> count = redisTemplate.opsForValue().increment(key) ?: 1L  <span class="code-comment">// 1) INCR</span>
+    <span class="code-keyword">if</span> (count == 1L) {
+        redisTemplate.expire(key, window)  <span class="code-comment">// 2) 그 다음 줄에서 EXPIRE</span>
+    }
+    <span class="code-keyword">return</span> count
+}</div>
+
+    <p>에이전트가 물었어요. "이 코드, 원자성이 보장될까요?" 저는 별 문제를 못 느꼈습니다. 그게 틀린 답이었고요.</p>
+
+    <p>문제는 <code>INCR</code>과 <code>EXPIRE</code>가 두 줄로 떨어져 있다는 데 있었거든요. 두 가지 상황에서 깨졌어요.</p>
+
+    <p>하나는 서버가 죽는 경우입니다. <code>INCR</code>로 키를 만든 직후, <code>EXPIRE</code>를 부르기 전에 서버가 내려가면 만료 시간 없는 키가 영원히 남거든요. 메모리를 점유하는 좀비 키가 되고요.</p>
+
+    <p>다른 하나는 동시 요청입니다. 거의 같은 순간에 요청 둘이 들어오면, A가 <code>EXPIRE</code>를 부르기 전에 B가 <code>INCR</code>로 값을 2로 만들어요. 그러면 B는 <code>count == 1</code> 조건을 못 타서 그냥 지나가고, A의 <code>EXPIRE</code>가 어쩌다 누락되면 이 키도 만료 없이 남고요.</p>
+
+    <p>설명을 듣고 나서야 "아, 이건 고쳐야겠다" 싶더라고요. 수정은 <code>INCR</code>과 <code>EXPIRE</code>를 Lua 스크립트 하나로 묶는 거였어요. Redis가 스크립트를 통째로 원자적으로 실행하니까, 두 명령 사이에 끼어들 틈이 사라지거든요.</p>
+
+    <p>그런데 이 글을 쓰면서 켕기는 게 하나 있었습니다. 회사 운영 코드에도 비슷한 모양이 있거든요.</p>
+
+    <p>다행히 매일 한 번 남은 키를 정리하는 배치가 돌고 있어서 아직 사고는 없었어요. 그래도 토이 프로젝트에서 배운 걸 회사 코드에 적용할 일이 생긴 거죠. 조만간 손볼 생각입니다...</p>
+
+    <hr class="divider">
+
+    <div class="lesson-box">
+      <h3>이번에 다시 챙긴 것</h3>
+      <p>예전엔 AI한테 "이슈 좀 찾아줘"라고 통째로 던졌거든요. 그렇게 찾은 것도 있긴 했는데, 어딘가 겉도는 느낌이었어요. 이번 세 개는 버그를 찾으려다 찾은 게 아니라, 문법 하나 동작 하나 배우겠다고 코드를 한 줄씩 짚다가 걸린 거였고요. 그렇게 걸린 게 훨씬 깊고 정확하더라고요.</p>
+      <p>안정화라고 거창하게 부를 것도 없이, 다음에도 "이 줄은 왜 이렇게 짰지?"부터 다시 묻는 걸로...</p>
+    </div>
+
+    <div id="profile-card-placeholder"></div>
+
+    <div class="post-footer">
+      <a href="/blog/post13.html" class="btn-post-nav btn-prev">← 이전 글: 피카밈 1개월 회고</a>
+    </div>
+  </main>
+
+  <script src="/blog/config.js"></script>
+  <script src="/blog/theme.js"></script>
+
+</body>
+</html>
