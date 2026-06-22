@@ -39,19 +39,19 @@ class MissionService(
         val allMissions = missionRepository.findAll().sortedWith(
             compareBy(nullsLast()) { it.displayOrder }
         )
-        val completions = completionRepository.findByUserId(userId)
+        val completionsByMission = completionRepository.findByUserId(userId)
+            .groupBy { it.missionId }  // O(C) 한 번 — 이후 모든 조회는 O(1)
         val today = todayKey()
         val thisWeek = weekKey(LocalDateTime.now())
 
         return buildList {
             // 비히든 미션: 항상 포함
             allMissions.filter { !it.isHidden }.forEach { mission ->
-                add(buildStatus(userId, mission, completions, today, thisWeek))
+                add(buildStatus(userId, mission, completionsByMission, today, thisWeek))
             }
             // 히든 미션: 달성한 것만 포함
             allMissions.filter { it.isHidden }.forEach { mission ->
-                val done = completions.filter { it.missionId == mission.id }
-                done.forEach { completion ->
+                completionsByMission[mission.id].orEmpty().forEach { completion ->
                     add(MissionStatusDto(
                         id = mission.id,
                         type = mission.type,
@@ -175,21 +175,23 @@ class MissionService(
     private fun buildStatus(
         userId: UUID,
         mission: Mission,
-        completions: List<MissionCompletion>,
+        completionsByMission: Map<String, List<MissionCompletion>>,
         today: String,
         thisWeek: String
     ): MissionStatusDto {
+        val missionCompletions = completionsByMission[mission.id].orEmpty()  // O(1)
+
         val status = when (mission.type) {
             MissionType.ONE_TIME -> {
-                if (completions.any { it.missionId == mission.id && it.periodKey == null }) MissionStatus.DONE
+                if (missionCompletions.any { it.periodKey == null }) MissionStatus.DONE
                 else MissionStatus.ACTIVE
             }
             MissionType.DAILY -> {
-                if (completions.any { it.missionId == mission.id && it.periodKey == today }) MissionStatus.DONE
+                if (missionCompletions.any { it.periodKey == today }) MissionStatus.DONE
                 else MissionStatus.ACTIVE
             }
             MissionType.WEEKLY_SHARE -> {
-                val weeklyCount = completions.count { it.missionId == mission.id && it.periodKey == thisWeek }
+                val weeklyCount = missionCompletions.count { it.periodKey == thisWeek }
                 if (weeklyCount > 0) MissionStatus.DONE else MissionStatus.ACTIVE
             }
             MissionType.STREAK_3DAYS -> MissionStatus.PROGRESS
@@ -201,7 +203,7 @@ class MissionService(
             ProgressDto(streak?.currentStreak ?: 0, 3)
         } else null
 
-        val completedAt = completions.lastOrNull { it.missionId == mission.id }?.completedAt
+        val completedAt = missionCompletions.lastOrNull()?.completedAt
 
         return MissionStatusDto(
             id = mission.id,
