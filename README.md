@@ -178,4 +178,4 @@ cd pam-backend
 | [AIRULES.md](./AIRULES.md) | 설계 원칙 및 v2 구현 기준 (최우선 참조) |
 | [BACKLOG.md](./BACKLOG.md) | 칸반 보드 + 프로젝트 결정 사항 SSOT |
 | [CLAUDE.md](./CLAUDE.md) | AI 행동 지침 (코딩 전 확인 필수) |
-| [INIT_PROMPT.md](./INIT_PROMPT.md) | 최초 설계 사상 청사진 |
+| [INIT_PROMPT.md](./INIT_PROMPT.md) | 최초 설계 사상 청사진 | 
