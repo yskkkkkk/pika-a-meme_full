@@ -421,8 +421,11 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 - **연관 태스크**: TASK-260519-01
 - **발견**: 정적 리소스(favicon.ico 등) 요청 실패 시 발생하는 `NoResourceFoundException`을 `ErrorCode.MEME_SOURCE_NOT_FOUND`로 엉뚱하게 매핑 중.
 
-**원인 및 조치 필요 사항**
-`GlobalExceptionHandler`에서 해당 예외를 밈 데이터가 없다는 비즈니스 에러로 반환하여 프론트엔드에 잘못된 에러 처리를 유발할 수 있음. 일반적인 404 리소스 없음 에러로 분리해야 함.
+**원인**
+`GlobalExceptionHandler`에 `NoResourceFoundException` 전용 핸들러가 없어 `handleUnexpected(Exception)`으로 낙하, 밈 소스 없음 비즈니스 에러로 반환됨.
+
+**조치**
+`GlobalExceptionHandler`에 `@ExceptionHandler(NoResourceFoundException::class)` 전용 핸들러 추가 → `ErrorCode.RESOURCE_NOT_FOUND`(404)로 분리 반환. 스택 트레이스 로깅 없음.
 
 ---
 
@@ -432,8 +435,11 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 - **연관 태스크**: TASK-260519-02
 - **발견**: `AuthController`에서 `oauth2RedirectUri` 파싱 시 예외가 발생하면 에러 로그 없이 `"/"`로 fallback 처리됨.
 
-**원인 및 조치 필요 사항**
-설정 오류나 환경 변수 누락 등으로 인해 URI 파싱에 실패할 경우 에러가 삼켜져(swallowed) 런타임 오류 추적이 매우 어려움. `catch` 블록 내부에 적절한 에러 로깅(`log.error`) 추가 필요.
+**원인**
+`catch (e: Exception)` 블록에서 `log.error` 없이 `"/"` fallback만 반환하여 환경 변수 누락·오타 등의 설정 오류가 런타임에 무음 처리됨.
+
+**조치**
+`catch` 블록에 `log.error("Failed to parse OAuth2 Redirect URI: {}", oauth2RedirectUri, e)` 추가. 파싱 실패 시 에러 로그를 남기고 `"/"` fallback은 유지.
 
 ---
 
@@ -443,8 +449,17 @@ Hibernate가 직접 JDBC JSON 타입으로 바인딩하여 PostgreSQL jsonb 컬�
 - **연관 태스크**: TASK-260519-03
 - **발견**: 비동기 상태 업데이트 시 컴포넌트가 언마운트된 후 상태를 업데이트하려는 시도로 인해 잠재적 메모리 누수 발생 가능.
 
-**원인 및 조치 필요 사항**
-`useEffect` 내 비동기 호출 등에서 클린업(cleanup) 함수 처리가 미흡함. `AbortController`를 사용하거나 언마운트 시 상태 업데이트 방지 로직(또는 클린업) 추가가 필요.
+**원인**
+`useEffect` 내 `setInterval`, `setTimeout`, `requestAnimationFrame`, `ResizeObserver` 등을 정리하는 클린업 함수가 없어 언마운트 후에도 콜백이 실행될 수 있었음.
+
+**조치**
+각 `useEffect`에 클린업 함수(`return () => ...`) 추가.
+- `SpinningScreen`: `clearInterval` / `clearTimeout` 2건
+- `RecentMemeCarousel`: `ro.disconnect()` / `cancelAnimationFrame`
+- `HeartDisplay`: `clearInterval`
+- `Footer`: `observer.disconnect()`
+- `ResultScreen`: `clearTimeout`
+- `useGuestHeart`: `clearInterval`
 
 ---
 
@@ -496,3 +511,33 @@ Spring Data Redis의 `opsForValue().increment()`와 `expire()`를 순차적으�
 **조치**
 - Redis에 내장된 Lua Script 기능을 도입하여 `INCR`과 조건부 `EXPIRE` 로직을 서버 측에서 하나의 트랜잭션 단위로 원자적(Atomic) 실행 보장.
 - `DefaultRedisScript`를 활용해 애플리케이션 코드를 리팩토링함으로써 동시성 이슈와 엣지 케이스에서의 메모리 누수 위험 완전 해소.
+
+---
+
+## PERF-01 · MissionService.getMissionsForUser O(N×C) 선형 탐색 성능 이슈
+
+- **상태**: FIXED (260629)
+- **연관 PR**: PR #160, Issue #159
+- **발견**: AI 과외 중 코드 리뷰 과정에서 발견. `getMissionsForUser`에서 전체 미션 N개를 순회하면서 유저 완료 이력 리스트(C개)를 미션 하나당 최대 4~5회 처음부터 선형 탐색하는 O(N×C) 구조.
+
+**원인**
+`completionRepository.findByUserId(userId)`의 결과를 `List<MissionCompletion>`으로 `buildStatus`에 그대로 전달. `buildStatus` 내부에서 미션 ID를 조건으로 포함한 `any`, `count`, `lastOrNull` 등을 매번 전체 리스트에 수행.
+
+```kotlin
+// 수정 전 — 미션 1개당 O(C) 탐색 최대 4~5회
+completions.any { it.missionId == mission.id && it.periodKey == null }
+completions.any { it.missionId == mission.id && it.periodKey == today }
+completions.count { it.missionId == mission.id && it.periodKey == thisWeek }
+completions.lastOrNull { it.missionId == mission.id }
+```
+
+**조치**
+`completions`를 `buildStatus`에 전달하기 전에 `missionId` 기준으로 `groupBy` 사전 인덱싱. `buildStatus`에서 Map 조회(O(1))로 해당 미션의 완료 이력만 추출한 뒤 처리.
+
+```kotlin
+// 수정 후 — O(C) 한 번으로 Map 생성, 이후 모든 조회는 O(1)
+val completionsByMission = completions.groupBy { it.missionId }
+val missionCompletions = completionsByMission[mission.id].orEmpty()  // O(1)
+```
+
+전체 복잡도: O(N×C) → O(N+C)
