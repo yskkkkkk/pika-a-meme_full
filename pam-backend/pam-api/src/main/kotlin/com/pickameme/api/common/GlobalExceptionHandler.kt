@@ -71,6 +71,14 @@ class GlobalExceptionHandler {
         )
     }
 
+    // 400 — 잘못된 요청 값 (업로드 파일 형식 불일치 등 서비스 계층의 입력 검증 실패)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(e: IllegalArgumentException): ApiResponse<Nothing> {
+        log.warn("Invalid argument: {}", e.message)
+        return ApiResponse.fail(ErrorCode.INVALID_REQUEST)
+    }
+
     // ResponseStatusException — HTTP 상태 코드를 그대로 전달
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatus(e: ResponseStatusException): ResponseEntity<ApiResponse<Nothing>> {

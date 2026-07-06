@@ -173,7 +173,8 @@ class MemeController(
         val url = uploadOgImageService.upload(
             memeId = memeId,
             bytes = file.bytes,
-            contentType = file.contentType ?: "image/png"
+            // Content-Type 헤더 누락 시 임의로 형식을 단정하지 않고, 미지원 형식으로 처리해 명확히 거부한다
+            contentType = file.contentType ?: "application/octet-stream"
         )
         return ApiResponse.ok(mapOf("ogImageUrl" to url))
     }
