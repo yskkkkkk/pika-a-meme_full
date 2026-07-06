@@ -134,7 +134,7 @@
 ### 인프라 (Infrastructure)
 - **DNS / WAF:** Cloudflare Proxy (주황 구름) — `pick-a-me.me`, `api.pick-a-me.me`, `img.pick-a-me.me` 전체 Proxied
 - **Frontend:** Vercel / Custom Domain: `pick-a-me.me` / GitHub Actions + Vercel CLI 자동배포
-- **Backend:** Railway (Docker) / Custom Domain: `api.pick-a-me.me` / 자동배포
+- **Backend:** OCI (VM.Standard.A1.Flex, Ubuntu 24.04) / Nginx 리버스 프록시 + Let's Encrypt SSL / Custom Domain: `api.pick-a-me.me` / GitHub Actions GHCR 빌드 → SSH pull 자동배포 (Railway에서 260602 이관, TASK-260513-07)
 - **Database:** NEON (PostgreSQL 17) / Region: Singapore
 - **Cache/Stamina:** Upstash (Redis) / Region: Singapore / Strategy: Eviction Disabled
 - **Storage:** Cloudflare R2 (S3 API Compatible) / Custom Domain: `img.pick-a-me.me` / Egress Fee 0원
@@ -161,10 +161,10 @@
 - **비로그인 하트:** localStorage SSOT, 5분 lazy 충전 계산은 클라이언트 전담. 서버 API 호출 없음
 - **로그인 하트:** Redis SSOT (HeartService), 서버 연동
 - **밈 저장:** 로그인 사용자만 생성과 동시에 자동 서버 저장. 비로그인은 localStorage 히스토리만 (브라우저 닫으면 소멸)
-- **워터마크:** 비로그인 → 사선 중앙(못생기게), 로그인 → 우하단 미니("PICK-A-MEME", 깔끔하게)
-- **캡처 방지:** 비로그인 전용. long-press / contextmenu / CSS overlay로 불편하게 만드는 수준 (완전 차단은 기술적 불가)
+- **워터마크:** 정책 폐기 (260513, TASK-260429-32). 비로그인 워터마크 강화 대신 저장 자체를 차단하는 방향으로 전환. ResultScreen 브랜딩 바는 유지
+- **캡처 방지:** 비로그인 전용. 저장 버튼 미노출 + long-press 차단 (TASK-260513-04로 정책 확정)
 - **창고 탭:** 로그인 사용자 전용. 비로그인 진입 시 로그인 유도
-- **PNG 저장 / 공유 버튼:** 로그인 사용자 전용. html2canvas로 Canvas 영역 캡처 후 다운로드 (추후 논의)
+- **PNG 저장:** 로그인 사용자 전용. html-to-image로 캡처 후 다운로드 (html2canvas에서 마이그레이션, TASK-260515-01). **공유 버튼:** 비로그인도 허용 (TASK-260513-04)
 - **소셜 로그인:** 카카오, 구글 SSO. Spring Security OAuth2 + JWT
 
 ---
