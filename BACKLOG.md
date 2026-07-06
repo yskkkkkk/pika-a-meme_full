@@ -59,7 +59,7 @@
 | TASK-260501-05 | [인프라/공통] | [x] | CI/CD 구축 및 클라우드 배포 (Frontend: Vercel + GitHub Actions, Backend: Railway Docker) | - | Vercel 자동배포(GitHub Actions + Vercel CLI), Railway Docker 자동배포 완료. 도메인: pick-a-me.me / api.pick-a-me.me | 260501 / 260511 |
 | TASK-260502-01 | [인프라/공통] | [ ] | Sentry 기반 프론트/백엔드 에러 트래킹 및 알림 채널(Slack/Email) 연동 | TASK-260429-14 | - | 260502 / - |
 | TASK-260502-02 | [인프라/공통] | [ ] | 헬스체크/레디니스 엔드포인트 및 외부 의존성(DB/Redis/R2) 상태 점검 추가 | TASK-260501-05 | - | 260502 / - |
-| TASK-260502-03 | [밈/이미지] | [ ] | 업로드 이미지 파일 크기/MIME 검증 및 악성 파일 방어 정책 적용 | TASK-260429-20 | - | 260502 / - |
+| TASK-260502-03 | [밈/이미지] | [ ] | OG 이미지 업로드 매직 바이트(파일 시그니처) 검증 추가 | TASK-260429-20 | 원래 전제(완성 밈 업로드)는 JSONB 구조 전환으로 소멸. 이후 신설된 OG 업로드(POST /api/memes/{memeId}/og-image)에 MIME 화이트리스트·5MB 제한·소유권 검증은 완료됨. Content-Type 헤더는 위조 가능하므로 실제 파일 헤더(매직 바이트) 검증만 잔여 (260706 재정의) | 260502 / - |
 | TASK-260502-04 | [회원/인증] | [~] | ~~JWT Refresh Token 회전 및 강제 로그아웃 플로우 구현~~ | TASK-260429-28, TASK-260429-29 | TASK-260517-01로 통합 대체 | 260502 / - |
 | TASK-260502-05 | [프론트엔드] | [x] | 주요 퍼널 이벤트 분석 로깅 (PostHog 연동 및 리버스 프록시 우회) | TASK-260429-26 | PostHog 직접 연동 및 리버스 프록시(/ingest) 우회 적용. 7개 핵심 이벤트 주입 완료 | 260502 / 260609 |
 | TASK-260502-06 | [문서/기타] | [x] | 운영 런북 작성 (장애 대응, 핫픽스/롤백 절차) | TASK-260501-05 | R2 고아 파일 정리 항목 제거 (TASK-260501-01 전제 무효화) | 260502 / 260519 |
@@ -90,7 +90,7 @@
 | TASK-260511-05 | [인프라/공통] | [x] | Origin Shielding 구현 (OCI 인바운드 Cloudflare IP 15개 대역만 허용) | TASK-260511-03 | OCI Security List에서 Cloudflare IPv4 대역만 포트 80/443 인바운드 허용. 직접 IP 접근 차단 완료 | 260511 / 260602 |
 | TASK-260511-06 | [인프라/공통] | [x] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | OCI+Nginx 구성 확정 후 CF-Connecting-IP 전용 헤더 적용 완료. PR#135 | 260511 / 260602 |
 | TASK-260511-07 | [회원/인증] | [~] | ~~JWT Refresh Token 회전 구현~~ | TASK-260511-01 | TASK-260517-01로 통합 대체 | 260511 / - |
-| TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
+| TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (OCI/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | Railway → OCI 이관(TASK-260513-07) 반영하여 대상 수정 (260706) | 260511 / - |
 | TASK-260512-01 | [하트/스테미나] | [x] | 하트 소모 버그 전면 수정 (로그인/비회원 모두) | TASK-260429-07 | (1) MemeComposeService에 HeartService.consumeHeart 호출 누락 → 추가. (2) 비회원 consumeHeart에서 setCurrentHearts 직접 호출로 즉시 UI 반영. (3) useMemeApi mock 폴백을 네트워크 오류 한정으로 축소 — success=false 응답은 throw. (4) HeartDisplay SPINNING 중 display:none 유지로 observer 연속성 보장, refetchQueries로 즉시 갱신 | 260512 / 260512 |
 | TASK-260512-02 | [프론트엔드] | [x] | 로그아웃 시 홈(/) 리다이렉트 구현 | TASK-260429-29 | LoginSlideMenu 로그아웃 버튼에 router.replace("/") 추가 | 260512 / 260512 |
 | TASK-260512-03 | [프론트엔드] | [x] | 미로그인 상태 스페셜 미션(⚡) 버튼 클릭 시 로그인 메뉴 오픈 | TASK-260504-07 | HeartDisplay ⚡ 버튼에 isLoggedIn 분기 추가. 미로그인 → onMenuOpen(), 로그인 → 미션 시트 | 260512 / 260512 |
@@ -134,7 +134,7 @@
 ### 인프라 (Infrastructure)
 - **DNS / WAF:** Cloudflare Proxy (주황 구름) — `pick-a-me.me`, `api.pick-a-me.me`, `img.pick-a-me.me` 전체 Proxied
 - **Frontend:** Vercel / Custom Domain: `pick-a-me.me` / GitHub Actions + Vercel CLI 자동배포
-- **Backend:** Railway (Docker) / Custom Domain: `api.pick-a-me.me` / 자동배포
+- **Backend:** OCI (VM.Standard.A1.Flex, Ubuntu 24.04) / Nginx 리버스 프록시 + Let's Encrypt SSL / Custom Domain: `api.pick-a-me.me` / GitHub Actions GHCR 빌드 → SSH pull 자동배포 (Railway에서 260602 이관, TASK-260513-07)
 - **Database:** NEON (PostgreSQL 17) / Region: Singapore
 - **Cache/Stamina:** Upstash (Redis) / Region: Singapore / Strategy: Eviction Disabled
 - **Storage:** Cloudflare R2 (S3 API Compatible) / Custom Domain: `img.pick-a-me.me` / Egress Fee 0원
@@ -161,10 +161,10 @@
 - **비로그인 하트:** localStorage SSOT, 5분 lazy 충전 계산은 클라이언트 전담. 서버 API 호출 없음
 - **로그인 하트:** Redis SSOT (HeartService), 서버 연동
 - **밈 저장:** 로그인 사용자만 생성과 동시에 자동 서버 저장. 비로그인은 localStorage 히스토리만 (브라우저 닫으면 소멸)
-- **워터마크:** 비로그인 → 사선 중앙(못생기게), 로그인 → 우하단 미니("PICK-A-MEME", 깔끔하게)
-- **캡처 방지:** 비로그인 전용. long-press / contextmenu / CSS overlay로 불편하게 만드는 수준 (완전 차단은 기술적 불가)
+- **워터마크:** 정책 폐기 (260513, TASK-260429-32). 비로그인 워터마크 강화 대신 저장 자체를 차단하는 방향으로 전환. ResultScreen 브랜딩 바는 유지
+- **캡처 방지:** 비로그인 전용. 저장 버튼 미노출 + long-press 차단 (TASK-260513-04로 정책 확정)
 - **창고 탭:** 로그인 사용자 전용. 비로그인 진입 시 로그인 유도
-- **PNG 저장 / 공유 버튼:** 로그인 사용자 전용. html2canvas로 Canvas 영역 캡처 후 다운로드 (추후 논의)
+- **PNG 저장:** 로그인 사용자 전용. html-to-image로 캡처 후 다운로드 (html2canvas에서 마이그레이션, TASK-260515-01). **공유 버튼:** 비로그인도 허용 (TASK-260513-04)
 - **소셜 로그인:** 카카오, 구글 SSO. Spring Security OAuth2 + JWT
 
 ---
