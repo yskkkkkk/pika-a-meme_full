@@ -90,7 +90,7 @@
 | TASK-260511-05 | [인프라/공통] | [x] | Origin Shielding 구현 (OCI 인바운드 Cloudflare IP 15개 대역만 허용) | TASK-260511-03 | OCI Security List에서 Cloudflare IPv4 대역만 포트 80/443 인바운드 허용. 직접 IP 접근 차단 완료 | 260511 / 260602 |
 | TASK-260511-06 | [인프라/공통] | [x] | IP 기반 Rate Limiting 고도화 (useForwardedHeaders=true, CF-Connecting-IP 실제 IP 식별) | TASK-260511-03 | OCI+Nginx 구성 확정 후 CF-Connecting-IP 전용 헤더 적용 완료. PR#135 | 260511 / 260602 |
 | TASK-260511-07 | [회원/인증] | [~] | ~~JWT Refresh Token 회전 구현~~ | TASK-260511-01 | TASK-260517-01로 통합 대체 | 260511 / - |
-| TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (Railway/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | - | 260511 / - |
+| TASK-260511-08 | [인프라/공통] | [ ] | 인프라 모니터링 강화 (OCI/Neon/Upstash/R2 메트릭 대시보드 + 임계치 알림) | TASK-260502-01 | Railway → OCI 이관(TASK-260513-07) 반영하여 대상 수정 (260706) | 260511 / - |
 | TASK-260512-01 | [하트/스테미나] | [x] | 하트 소모 버그 전면 수정 (로그인/비회원 모두) | TASK-260429-07 | (1) MemeComposeService에 HeartService.consumeHeart 호출 누락 → 추가. (2) 비회원 consumeHeart에서 setCurrentHearts 직접 호출로 즉시 UI 반영. (3) useMemeApi mock 폴백을 네트워크 오류 한정으로 축소 — success=false 응답은 throw. (4) HeartDisplay SPINNING 중 display:none 유지로 observer 연속성 보장, refetchQueries로 즉시 갱신 | 260512 / 260512 |
 | TASK-260512-02 | [프론트엔드] | [x] | 로그아웃 시 홈(/) 리다이렉트 구현 | TASK-260429-29 | LoginSlideMenu 로그아웃 버튼에 router.replace("/") 추가 | 260512 / 260512 |
 | TASK-260512-03 | [프론트엔드] | [x] | 미로그인 상태 스페셜 미션(⚡) 버튼 클릭 시 로그인 메뉴 오픈 | TASK-260504-07 | HeartDisplay ⚡ 버튼에 isLoggedIn 분기 추가. 미로그인 → onMenuOpen(), 로그인 → 미션 시트 | 260512 / 260512 |
