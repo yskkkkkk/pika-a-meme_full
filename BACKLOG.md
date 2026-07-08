@@ -123,6 +123,11 @@
 | TASK-260611-01 | [보안] | [x] | SaveCompositionRequest 입력 검증 추가 (@Valid + 필드 제약) | - | imageUrl/phrase/subjectPosition NotBlank+Size, selectedTag Size(max=20), starter-validation 의존성 추가, MemeControllerTest 7개 케이스 GREEN | 260611 / 260611 |
 | TASK-260611-02 | [보안] | [x] | next.config.js 보안 HTTP 헤더 추가 | - | X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy — security-ddos-review §4.5 구현 | 260611 / 260611 |
 | TASK-260611-03 | [인프라/공통] | [x] | /ingest 리라이트 대역폭 모니터링 런북 작성 | - | docs/runbook-ingest-bandwidth.md 추가: 임계값 기준, 이상 탐지 절차, 즉각 대응 가이드 | 260611 / 260611 |
+| TASK-260620-01 | [회원/인증] | [x] | User 도메인 updatedAt 제거 및 불변성 강화 (BUG-11) | [!] 외부 요청 | AI 과외 중 발견. 도메인에서 updatedAt 제거, UserJpaEntity @UpdateTimestamp 위임. PR #154. known-issues.md BUG-11 | 260620 / 260621 |
+| TASK-260620-02 | [하트/스테미나] | [x] | 밈 뽑기 분산 락-트랜잭션 범위 불일치 수정 (BUG-12, Lost Update) | [!] 외부 요청 | 락 위치를 MemeComposeService 진입점으로 이동 + TransactionTemplate으로 TX를 락 안쪽으로 재조정. PR #155. known-issues.md BUG-12 | 260620 / 260621 |
+| TASK-260620-03 | [인프라/공통] | [x] | Redis Rate Limit INCR/EXPIRE 원자성 결함 수정 (BUG-13, 좀비 키) | [!] 외부 요청 | Lua Script로 INCR+조건부 EXPIRE 단일 원자 실행. fail-open 정책 주석 명시. PR #156. known-issues.md BUG-13 | 260620 / 260621 |
+| TASK-260629-01 | [하트/스테미나] | [x] | MissionService.getMissionsForUser O(N×C) 선형 탐색 성능 개선 (PERF-01) | [!] 외부 요청 | completions를 missionId 기준 groupBy 사전 인덱싱 → O(N+C). Issue #159, PR #160. known-issues.md PERF-01 | 260629 / 260629 |
+| TASK-260629-02 | [프론트엔드] | [x] | 블로그 post14 발행 — "안정화 & 학습" 신규 카테고리 신설 | [!] 외부 요청 | AI 과외 중 발견한 버그 3건(BUG-11~13) 소재. WRITING_GUIDE §5 카테고리 등록, index 카드 추가, post13 푸터 연결. PR #157 | 260629 / 260629 |
 
 
 
