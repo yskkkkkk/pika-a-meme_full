@@ -15,6 +15,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
+    // Actuator (헬스체크 — /actuator/health)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
     // RedisTemplate compile-time access for RateLimitFilter
     // (pam-infrastructure declares this as 'implementation', so it is not transitively visible here)
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
