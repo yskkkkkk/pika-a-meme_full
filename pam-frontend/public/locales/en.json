@@ -108,7 +108,9 @@
     "errorOccurred": "An error occurred.",
     "saveFailed": "Failed to save. Please try again.",
     "shareFailed": "Share failed",
-    "heartFetchFailed": "Failed to fetch hearts"
+    "heartFetchFailed": "Failed to fetch hearts",
+    "memeSourceNotFound": "No meme source data available. Contact the administrator.",
+    "rateLimitExceeded": "Too many requests. Please try again later."
   },
   "toast": {
     "imageSaved": "Image saved",

@@ -108,7 +108,9 @@
     "errorOccurred": "오류가 발생했습니다.",
     "saveFailed": "저장에 실패했습니다. 다시 시도해주세요.",
     "shareFailed": "공유에 실패했습니다",
-    "heartFetchFailed": "하트 조회 실패"
+    "heartFetchFailed": "하트 조회 실패",
+    "memeSourceNotFound": "밈 소스 데이터가 없습니다. 관리자에게 문의하세요.",
+    "rateLimitExceeded": "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."
   },
   "toast": {
     "imageSaved": "이미지가 저장되었어요",

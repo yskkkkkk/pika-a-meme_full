@@ -7,6 +7,15 @@ export interface ApiResponse<T> {
   error?: { code: string; message: string };
 }
 
+// error.code는 백엔드가 보장하는 안정적 분기 식별자다. message는 디버그 전용이므로
+// 사용자에게 보여줄 텍스트는 이 code로 t.errors.*를 조회해서 만든다.
+export class ApiError extends Error {
+  constructor(public code: string, public httpStatus = 0, message?: string) {
+    super(message ?? code);
+    this.name = "ApiError";
+  }
+}
+
 async function tryRefresh(): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/api/auth/refresh`, {
