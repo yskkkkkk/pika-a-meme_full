@@ -43,7 +43,7 @@ class MemeCreationPolicyTest {
             val canvas = CanvasState("template-01", emptyList(), emptyList())
             assertThatThrownBy { MemeCreationPolicy.validate(canvas, MemeCreationOption.BASIC) }
                 .isInstanceOf(MemeCreationPolicyViolationException::class.java)
-                .hasMessageContaining("최소 1개")
+                .hasMessageContaining("At least one text item")
         }
 
         @Test
@@ -52,7 +52,7 @@ class MemeCreationPolicyTest {
             val canvas = CanvasState("template-01", listOf(textItem(), textItem()), emptyList())
             assertThatThrownBy { MemeCreationPolicy.validate(canvas, MemeCreationOption.BASIC) }
                 .isInstanceOf(MemeCreationPolicyViolationException::class.java)
-                .hasMessageContaining("1개까지만")
+                .hasMessageContaining("up to 1 text item")
         }
 
         @Test
@@ -61,7 +61,7 @@ class MemeCreationPolicyTest {
             val canvas = CanvasState("template-01", listOf(textItem()), listOf(stickerItem()))
             assertThatThrownBy { MemeCreationPolicy.validate(canvas, MemeCreationOption.BASIC) }
                 .isInstanceOf(MemeCreationPolicyViolationException::class.java)
-                .hasMessageContaining("스티커")
+                .hasMessageContaining("stickers")
         }
 
         @Test
@@ -70,7 +70,7 @@ class MemeCreationPolicyTest {
             val canvas = CanvasState("template-01", listOf(textItem(fontFamily = "NanumGothic")), emptyList())
             assertThatThrownBy { MemeCreationPolicy.validate(canvas, MemeCreationOption.BASIC) }
                 .isInstanceOf(MemeCreationPolicyViolationException::class.java)
-                .hasMessageContaining("기본 폰트")
+                .hasMessageContaining("default font")
         }
     }
 
@@ -96,7 +96,7 @@ class MemeCreationPolicyTest {
             val canvas = CanvasState("template-special-01", emptyList(), listOf(stickerItem()))
             assertThatThrownBy { MemeCreationPolicy.validate(canvas, MemeCreationOption.SPECIAL) }
                 .isInstanceOf(MemeCreationPolicyViolationException::class.java)
-                .hasMessageContaining("최소 1개")
+                .hasMessageContaining("At least one text item")
         }
     }
 

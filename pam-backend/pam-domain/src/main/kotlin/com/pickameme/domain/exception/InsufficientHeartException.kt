@@ -4,4 +4,4 @@ import com.pickameme.domain.heart.HeartType
 import java.util.UUID
 
 class InsufficientHeartException(userId: UUID, type: HeartType) :
-    DomainException("하트가 부족합니다. (userId=$userId, type=$type)")
+    DomainException("Insufficient heart balance. (userId=$userId, type=$type)")
