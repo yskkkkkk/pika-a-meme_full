@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api';
+import { apiFetch, ApiError } from '@/lib/api';
 import { getMockMeme, MockMemeResponse } from '@/hooks/useMockMemeApi';
 
 export type MemeResult = MockMemeResponse; // reuse same shape
@@ -51,9 +51,9 @@ export async function composeMeme(
     return apiResult.data;
   }
 
-  // 서버가 응답했지만 실패 (하트 부족, 서버 에러 등) → 에러 throw
+  // 서버가 응답했지만 실패 (하트 부족, 서버 에러 등) → error.code를 담아 throw
   if (apiResult !== undefined) {
-    throw new Error(apiResult?.error?.message ?? drawFailedMessage);
+    throw new ApiError(apiResult?.error?.code ?? 'UNKNOWN_ERROR', 0, apiResult?.error?.message ?? drawFailedMessage);
   }
 
   // 서버 미연결 (네트워크 오류, 로컬 개발 환경) → mock 폴백

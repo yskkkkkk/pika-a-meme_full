@@ -6,6 +6,7 @@ import { useGuestHeart } from "@/components/GuestHeartProvider";
 import { useHeart, ServerHeartState } from "@/hooks/useHeart";
 import { useAuth } from "@/hooks/useAuth";
 import { composeMeme, MemeResult } from "@/hooks/useMemeApi";
+import { ApiError } from "@/lib/api";
 import { LoginSlideMenu } from "@/components/auth/LoginSlideMenu";
 import { HeartDisplay } from "@/components/domains/heart/HeartDisplay";
 import { HomeScreen } from "@/components/domains/gacha/HomeScreen";
@@ -20,11 +21,23 @@ import { captureEvent } from "@/lib/analytics";
 
 type AppState = "HOME" | "TAG_SELECT" | "SPINNING" | "RESULT";
 
-function classifyDrawError(e: unknown, t: { errors: { networkTimeout: string; insufficientHearts: string; drawFailed: string } }): string {
-  const msg = e instanceof Error ? e.message : "";
-  if (msg === "TIMEOUT") return t.errors.networkTimeout;
-  if (msg.toLowerCase().includes("insufficient") || msg.includes("하트가 부족")) return t.errors.insufficientHearts;
-  return t.errors.drawFailed;
+function classifyDrawError(
+  e: unknown,
+  t: { errors: { networkTimeout: string; insufficientHearts: string; memeSourceNotFound: string; rateLimitExceeded: string; drawFailed: string } }
+): string {
+  if (!(e instanceof ApiError)) return t.errors.drawFailed;
+  switch (e.code) {
+    case "TIMEOUT":
+      return t.errors.networkTimeout;
+    case "INSUFFICIENT_HEART":
+      return t.errors.insufficientHearts;
+    case "MEME_SOURCE_NOT_FOUND":
+      return t.errors.memeSourceNotFound;
+    case "RATE_LIMIT_EXCEEDED":
+      return t.errors.rateLimitExceeded;
+    default:
+      return t.errors.drawFailed;
+  }
 }
 
 export default function Home() {

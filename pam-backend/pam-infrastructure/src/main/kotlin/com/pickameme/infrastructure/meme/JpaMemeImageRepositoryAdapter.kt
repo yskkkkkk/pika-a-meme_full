@@ -12,7 +12,7 @@ class JpaMemeImageRepositoryAdapter(
 
     override fun findRandom(): MemeImage =
         jpaRepository.findOneRandom()?.toDomain()
-            ?: throw MemeSourceNotFoundException("meme_images 테이블에 데이터가 없습니다.")
+            ?: throw MemeSourceNotFoundException("No data in meme_images table.")
 
     override fun findRandomByTags(tags: List<String>): MemeImage? =
         jpaRepository.findOneRandomByTags(tags.joinToString(","))?.toDomain()

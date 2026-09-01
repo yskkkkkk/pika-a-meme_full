@@ -68,7 +68,7 @@ class MemeController(
         @RequestParam(value = "tags", required = false) tags: List<String>?
     ): ApiResponse<MemeComposeResult> {
         if (heartType == HeartType.SPECIAL && userId == null) {
-            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "스페셜 가챠는 로그인이 필요합니다.")
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login required for special gacha.")
         }
         val result = memeComposeService.compose(heartType, tags ?: emptyList(), userId)
         return ApiResponse.ok(result)
@@ -113,7 +113,7 @@ class MemeController(
         @PathVariable memeId: UUID
     ): ApiResponse<UserMemeResponse> {
         val userMeme = userMemeRepository.findByUserIdAndId(userId, memeId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Meme not found.")
         return ApiResponse.ok(UserMemeResponse.from(userMeme))
     }
 
@@ -128,7 +128,7 @@ class MemeController(
         @RequestBody body: UpdateVisibilityRequest
     ): ApiResponse<Unit> {
         userMemeRepository.findByUserIdAndId(userId, memeId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Meme not found.")
         userMemeRepository.updateEnabled(userId, memeId, body.enabled)
         return ApiResponse.ok()
     }
@@ -168,7 +168,7 @@ class MemeController(
         @RequestParam("file") file: MultipartFile
     ): ApiResponse<Map<String, String>> {
         val userMeme = userMemeRepository.findByUserIdAndId(userId, memeId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없거나 권한이 없습니다")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Meme not found or access denied.")
             
         val url = uploadOgImageService.upload(
             memeId = memeId,
@@ -188,9 +188,9 @@ class MemeController(
         @PathVariable memeId: UUID
     ): ApiResponse<UserMemeResponse> {
         val userMeme = userMemeRepository.findById(memeId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "밈을 찾을 수 없습니다")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Meme not found.")
         if (!userMeme.enabled) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "삭제되거나 비공개된 밈입니다")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "This meme is deleted or private.")
         }
         return ApiResponse.ok(UserMemeResponse.from(userMeme))
     }
