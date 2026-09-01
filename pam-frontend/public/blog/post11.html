@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>코드 한 줄 없이 이미지를 50% 줄인 이야기 | pick-a-meme Dev Blog</title>
-  <meta name="description" content="Cloudflare Polish(Lossy)와 R2 커스텀 도메인 전환으로 코드 변경 없이 이미지 전송 용량을 절반으로 줄인 운영 최적화 사례.">
+  <title>이미지 50% 줄었다던 글, 정정합니다 | pick-a-meme Dev Blog</title>
+  <meta name="description" content="Cloudflare Polish로 이미지를 50% 줄였다고 썼지만, 확인해보니 Free 플랜에서는 지원되지 않는 기능이라 실제로는 켜진 적이 없었습니다. 무엇이 진짜였고 무엇이 착각이었는지 정리했습니다.">
   <meta property="og:type" content="article">
   <meta property="og:locale" content="ko_KR">
   <meta property="og:site_name" content="pick-a-meme Dev Blog">
-  <meta property="og:title" content="코드 한 줄 없이 이미지를 50% 줄인 이야기">
-  <meta property="og:description" content="Cloudflare Polish(Lossy)와 R2 커스텀 도메인 전환으로 코드 변경 없이 이미지 전송 용량을 절반으로 줄인 운영 최적화 사례.">
+  <meta property="og:title" content="이미지 50% 줄었다던 글, 정정합니다">
+  <meta property="og:description" content="Cloudflare Polish로 이미지를 50% 줄였다고 썼지만, 확인해보니 Free 플랜에서는 지원되지 않는 기능이라 실제로는 켜진 적이 없었습니다. 무엇이 진짜였고 무엇이 착각이었는지 정리했습니다.">
   <meta property="og:url" content="https://pick-a-me.me/blog/post11.html">
   <link rel="canonical" href="https://pick-a-me.me/blog/post11.html">
   <meta property="og:image" content="https://pick-a-me.me/og-image.png">
@@ -20,38 +20,6 @@
   <link rel="stylesheet" href="/blog/blog_post.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
-    /* ─── compare-table: before/after 대역폭 비교 ─── */
-    .compare-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 24px 0;
-      font-size: 13px;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    .compare-table th {
-      padding: 10px 16px;
-      text-align: left;
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: 0.3px;
-      background: var(--bg-secondary);
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border);
-    }
-    .compare-table th.col-before { color: #f87171; background: rgba(239,68,68,0.08); }
-    .compare-table th.col-after  { color: #4ade80; background: rgba(34,197,94,0.08); }
-    .compare-table td {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-    .compare-table tr:last-child td { border-bottom: none; }
-    .compare-table td.col-before { background: rgba(239,68,68,0.04); font-family: 'Courier New', monospace; }
-    .compare-table td.col-after  { background: rgba(34,197,94,0.04); font-family: 'Courier New', monospace; color: #4ade80; }
-    .compare-table td.col-label  { font-weight: 600; color: var(--text-primary); }
     /* ─── flow-box: 대시보드 스텝 절차 ─── */
     .flow-box {
       margin: 24px 0;
@@ -117,25 +85,23 @@
       <span class="read-time">📖 약 5분</span>
     </div>
 
-    <h1 class="post-main-title">코드 한 줄 없이<br>이미지를 50% 줄인 이야기</h1>
+    <h1 class="post-main-title">이미지 50%<br>줄었다던 글,<br>정정합니다</h1>
 
     <div class="post-tags">
       <span class="tag-chip">#Cloudflare</span>
-      <span class="tag-chip">#Polish</span>
       <span class="tag-chip">#CDN</span>
-      <span class="tag-chip">#WebP</span>
-      <span class="tag-chip">#성능최적화</span>
+      <span class="tag-chip">#캐시전략</span>
+      <span class="tag-chip">#정정</span>
     </div>
 
     <div class="toc">
       <p class="toc-title">목차</p>
       <ol>
         <li><a href="#r2-domain">R2 도메인 정리부터</a></li>
-        <li><a href="#polish">Polish — Cloudflare가 이미지를 다시 인코딩합니다</a></li>
-        <li><a href="#cache-rule">캐시 규칙과 TTL</a></li>
-        <li><a href="#result">결과</a></li>
-        <li><a href="#browser-compat">브라우저 호환성은?</a></li>
-        <li><a href="#why-no-code">왜 코드가 필요 없었나</a></li>
+        <li><a href="#polish-check">Polish를 켰다고 썼는데</a></li>
+        <li><a href="#cache-rule">실제로 설정된 것들</a></li>
+        <li><a href="#result">그래서 뭐가 줄었나</a></li>
+        <li><a href="#why">왜 이런 일이 생겼나</a></li>
       </ol>
     </div>
 
@@ -143,124 +109,72 @@
 
     <p>피카밈의 이미지 원본은 Cloudflare R2에 저장돼 있어요. R2 버킷을 만들면 기본으로 <code>pub-xxx.r2.dev</code>라는 개발용 공개 URL이 생기거든요. 이 주소로도 이미지에 접근할 수 있지만, Cloudflare의 성능 최적화 기능들이 적용되지 않더라고요.</p>
 
-    <p>가장 먼저 한 일은 이 주소를 비활성화하고 커스텀 도메인 <code>img.pick-a-me.me</code>로 단일화한 것이었어요. 연관해서 DB에 저장된 기존 URL도 마이그레이션(V13, V14)으로 일괄 교체했고요. 이후의 모든 CDN 설정은 커스텀 도메인에서만 작동합니다.</p>
+    <p>가장 먼저 한 일은 이 주소를 비활성화하고 커스텀 도메인 <code>img.pick-a-me.me</code>로 단일화한 것이었어요. 연관해서 DB에 저장된 기존 URL도 마이그레이션(V13, V14)으로 일괄 교체했고요. 여기까지는 실제로 적용돼 있는 내용입니다.</p>
 
-    <h2 id="polish">Polish — Cloudflare가 이미지를 다시 인코딩합니다</h2>
+    <h2 id="polish-check">Polish를 켰다고 썼는데</h2>
 
-    <p>Cloudflare Polish은 원본 이미지를 클라이언트가 지원하는 최적 포맷으로 자동 변환해서 전달하는 기능이거든요. Lossy 모드에서는 PNG/JPEG를 WebP 또는 AVIF로 변환하면서 시각적 품질 저하를 최소화한 채 파일 크기를 줄입니다.</p>
+    <p>이 글의 원래 버전은 여기서 Cloudflare Polish(Lossy)를 켜서 PNG/JPEG를 WebP로 자동 변환했고, 그 결과 이미지 전송 크기가 절반 가까이 줄었다고 썼었습니다.</p>
 
-    <p>작동 방식은 단순해요. 브라우저가 이미지를 요청할 때 <code>Accept</code> 헤더에 지원하는 포맷 목록을 보내거든요. Cloudflare 엣지가 이 헤더를 읽어 WebP나 AVIF를 지원한다고 판단하면, 원본 PNG/JPEG를 그 포맷으로 변환한 결과를 캐시하고 응답합니다. 원본 파일 자체는 변경되지 않고요.</p>
+    <p>그런데 문서 전체를 실제 설정과 대조하는 점검 과정에서 다시 열어보니, Cloudflare 대시보드의 Speed &rarr; Optimization &rarr; Polish 메뉴가 Pro 플랜($20/월) 이상에서만 켜지더라고요. 피카밈은 지금도 Free 플랜으로 운영 중이라, Polish는 처음부터 켜진 적이 없었습니다.</p>
 
     <div class="highlight-box">
-      <p>Cloudflare 대시보드에서 Speed &rarr; Optimization &rarr; Polish &rarr; Lossy 클릭 하나로 활성화됩니다. 코드 변경 없이 즉시 적용되고요. 단, 활성화 직후 기존 캐시에는 구형 포맷이 남아 있으므로 전체 캐시 퍼지(Purge Everything)를 실행해야 즉시 반영되더라고요.</p>
+      <p>정정합니다. Polish로 이미지를 WebP로 바꿨다는 부분과, 그로 인해 크기가 줄었다는 수치는 사실이 아니었습니다. 대시보드에서 옵션을 눌러본 기억과 실제로 적용된 상태를 헷갈린 채로 글을 썼더라고요.</p>
     </div>
 
-    <h2 id="cache-rule">캐시 규칙과 TTL</h2>
+    <h2 id="cache-rule">실제로 설정된 것들</h2>
 
-    <p>Polish가 변환한 이미지가 제대로 캐시되려면 캐시 규칙이 맞아야 하거든요. <code>/images/*</code> 경로에 다음 규칙을 적용했어요.</p>
+    <p>Polish를 뺀 나머지는 실제로 남아있는 설정이에요. <code>/images/*</code> 경로에 캐시 규칙을 적용했습니다.</p>
 
     <div class="flow-box">
       <div class="flow-step">
         <div class="flow-step-num">1</div>
-        <div class="flow-step-body">
-          <div class="flow-step-title">Speed &rarr; Optimization &rarr; Polish &rarr; Lossy 활성화</div>
-          <div class="flow-step-desc">PNG/JPEG를 WebP/AVIF로 자동 변환합니다. 활성화 즉시 적용되며, 대시보드에서 클릭 하나로 완료돼요.</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-step-num">2</div>
         <div class="flow-step-body">
           <div class="flow-step-title">Caching &rarr; Cache Rules &rarr; /images/* Edge TTL 1개월 설정</div>
           <div class="flow-step-desc">한번 업로드된 밈 이미지는 수정되지 않거든요. 1개월 유지해도 다른 문제가 없고요. Browser Cache TTL은 1일로 별도 설정했어요.</div>
         </div>
       </div>
       <div class="flow-step">
-        <div class="flow-step-num">3</div>
+        <div class="flow-step-num">2</div>
         <div class="flow-step-body">
           <div class="flow-step-title">Smart Tiered Cache 활성화</div>
-          <div class="flow-step-desc">상위 티어 엣지 노드가 하위 티어의 캐시 미스를 흡수합니다. R2 &harr; Cloudflare 네트워크 간 egress 무료 정책과 시너지가 나고요.</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-step-num">4</div>
-        <div class="flow-step-body">
-          <div class="flow-step-title">Caching &rarr; Configuration &rarr; Purge Everything 실행</div>
-          <div class="flow-step-desc">기존 캐시에 Polish 적용 전 원본 포맷이 남아있거든요. Purge 후 다음 요청부터 WebP 변환본이 캐시됩니다.</div>
+          <div class="flow-step-desc">상위 티어 엣지 노드가 하위 티어의 캐시 미스를 흡수합니다. R2 &harr; Cloudflare 네트워크 간 egress 무료 정책과는 별개로, 원본(R2) 왕복 횟수를 줄여주는 역할이에요.</div>
         </div>
       </div>
     </div>
 
-    <p>R2 egress 비용이 0원인 건 Cloudflare의 정책 덕분이거든요. Cloudflare 네트워크 간 트래픽(R2 &rarr; Cloudflare CDN)에는 egress 요금이 없습니다. 커스텀 도메인을 통해 제공되는 이미지는 Cloudflare 네트워크 안에서만 이동하므로 실질적인 스토리지 외 비용이 발생하지 않고요.</p>
+    <p>R2 egress 비용이 0원인 건 Cloudflare의 정책 덕분이에요. Cloudflare 네트워크 간 트래픽(R2 &rarr; Cloudflare CDN)에는 egress 요금이 없습니다. 이건 플랜과 무관하게 적용되는 부분이라, Free 플랜에서도 그대로 유효하고요.</p>
 
-    <h2 id="result">결과</h2>
+    <h2 id="result">그래서 뭐가 줄었나</h2>
 
-    <p>같은 이미지를 구형 브라우저(PNG 응답)와 최신 크롬(WebP 응답)에서 비교하면 전송 크기가 40~60% 줄어드는 걸 확인할 수 있어요. 피카밈에서 사용하는 밈 이미지는 대부분 PNG로 업로드되어 있어서 WebP 변환 효과가 특히 크더라고요.</p>
+    <p>포맷 변환이 없었으니 이미지 파일 크기 자체는 그대로예요. 원래 글에 있던 "PNG 320KB &rarr; WebP 148KB" 같은 비교표는 실제로 측정한 적 없는 수치라 통째로 지웠습니다.</p>
 
-    <table class="compare-table">
-      <thead>
-        <tr>
-          <th>포맷</th>
-          <th class="col-before">원본 크기</th>
-          <th class="col-after">WebP 변환 후</th>
-          <th>절감률</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="col-label">PNG 예시</td>
-          <td class="col-before">320 KB</td>
-          <td class="col-after">148 KB</td>
-          <td>약 54% 절감</td>
-        </tr>
-        <tr>
-          <td class="col-label">JPEG 예시</td>
-          <td class="col-before">180 KB</td>
-          <td class="col-after">95 KB</td>
-          <td>약 47% 절감</td>
-        </tr>
-      </tbody>
-    </table>
-    <p style="font-size: 12px; color: var(--text-tertiary); margin-top: -12px; margin-bottom: 20px;">Chrome DevTools Network 탭 기준 측정값. 이미지마다 차이 있으며 평균 40~60% 범위를 표시합니다.</p>
+    <p>대신 실제로 바뀐 건 캐시 계층이에요. Edge TTL과 Smart Tiered Cache 덕분에 같은 이미지를 반복 요청할 때 R2 원본까지 왕복하는 빈도가 줄어들거든요. 다만 이것도 정확한 수치로 측정해둔 게 없어서, "체감상 반복 로딩이 빠르다" 이상으로는 말씀드리기 어렵습니다.</p>
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-number">~50%</div>
-        <div class="stat-label">이미지 전송 크기 절감</div>
-        <div class="stat-sub">PNG &rarr; WebP 변환 기준</div>
-      </div>
-      <div class="stat-card">
         <div class="stat-number">0줄</div>
         <div class="stat-label">변경된 코드</div>
-        <div class="stat-sub">애플리케이션 코드 무변경</div>
+        <div class="stat-sub">R2 도메인 통합·캐시 규칙 모두 대시보드 설정</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">0건</div>
+        <div class="stat-label">실제 포맷 변환</div>
+        <div class="stat-sub">Polish는 Free 플랜에서 켜지지 않음</div>
       </div>
     </div>
 
-    <h2 id="browser-compat">브라우저 호환성은?</h2>
+    <h2 id="why">왜 이런 일이 생겼나</h2>
 
-    <p>현대 브라우저(Chrome, Firefox, Edge, Safari 14+)는 WebP를 모두 지원합니다. 대다수 사용자는 이미 WebP를 받는 환경에 있고요.</p>
+    <p>대시보드에서 Polish 메뉴를 눌러본 기억은 있었거든요. 다만 그게 "옵션을 확인했다"였는지 "실제로 활성화했다"였는지를 구분하지 않고 글을 썼던 것 같아요. Free 플랜에서는 버튼 자체가 비활성 상태로 표시되니, 눌러본 기억이 활성화한 기억으로 뒤바뀐 셈이고요.</p>
 
-    <p>Cloudflare Polish은 요청의 <code>Accept</code> 헤더를 보고 지원 여부를 판단합니다. WebP를 지원하는 브라우저에는 WebP로, 구형 브라우저에는 원본 포맷을 그대로 전달하고요. 코드 변경 없이 progressive enhancement가 자동으로 적용됩니다.</p>
-
-    <div class="highlight-box">
-      <p>즉, 애플리케이션에서 <code>&lt;picture&gt;</code> 태그나 <code>srcset</code>로 포맷 분기를 직접 작성할 필요가 없어요. Cloudflare가 인프라 레이어에서 처리하거든요. 구형 브라우저 호환성과 신형 브라우저 성능 최적화 양쪽을 코드 복잡도 없이 해결합니다.</p>
-    </div>
-
-    <h2 id="why-no-code">왜 코드가 필요 없었나</h2>
-
-    <p>이 최적화가 코드 없이 가능했던 건 피카밈의 이미지 구조 덕분이거든요. 이미지 URL이 CDN 도메인(<code>img.pick-a-me.me</code>)을 통해 제공되므로, CDN 레이어에서 포맷 변환을 투명하게 처리할 수 있어요.</p>
-
-    <p>만약 이미지를 백엔드 API를 통해 프록시해서 제공하는 구조였다면 이야기가 달랐을 거예요. 변환 로직을 직접 구현하거나, Puppeteer나 Sharp 같은 이미지 처리 라이브러리를 도입해야 했을 테고요. 이미지를 CDN에서 직접 제공하는 구조가 이 최적화를 공짜로 가져다준 셈입니다.</p>
-
-    <div class="highlight-box">
-      <p>설계 단계에서 이미지 URL을 CDN 도메인으로 단일화한 결정이, 나중에 Polish 최적화를 도구 변경 없이 적용할 수 있게 해줬어요. 좋은 아키텍처 결정은 나중에 이렇게 공짜 점심을 가져다주더라고요.</p>
-    </div>
+    <p>이번 정정은 제가 먼저 알아챈 게 아니라, 프로젝트 문서 전체를 실제 코드·설정과 대조하는 점검을 하다가 나온 결과예요. 블로그도 그 점검 대상에 포함되어 있었고요.</p>
 
     <hr class="divider">
 
     <div class="lesson-box">
-      <h3>이 경험에서 배운 것</h3>
-      <p>인프라 계층의 최적화는 애플리케이션 코드를 건드리지 않고도 적용되는 경우가 많더라고요. 다만 이번엔 아키텍처가 CDN을 제대로 활용하는 구조였던 게 전제였거든요.</p>
-      <p>비용과 성능을 함께 개선할 여지가 보일 때, 코드 복잡도부터 올리기 전에 인프라 레이어를 먼저 들여다보는 게 빠를 때가 있더라고요. 다음에도 무작정 코드부터 짜기 전에 한 겹 아래를 보기로...</p>
+      <h3>이번에 다시 챙긴 것</h3>
+      <p>운영 설정을 글로 옮길 때는 "만져봤다"와 "적용됐다"를 구분해서 써야 하더라고요. 특히 유료 플랜 게이트가 걸린 기능은 대시보드에 메뉴 자체는 보이는 경우가 많아서, 클릭 가능 여부를 실제로 확인하지 않으면 착각하기 쉽거든요.</p>
+      <p>Pro 플랜으로 올라가면 Polish는 여전히 켜볼 만한 옵션이에요. 그때 다시 써보기로...</p>
     </div>
 
     <div id="profile-card-placeholder"></div>
