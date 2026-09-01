@@ -218,9 +218,20 @@ http.sessionManagement {
       </div>
     </div>
 
-    <p><code>CookieOAuth2AuthorizationRequestRepository</code>를 직접 구현했습니다. 동작은 단순해요. 로그인 요청 시 <code>OAuth2AuthorizationRequest</code> 객체를 Java 직렬화 + Base64로 인코딩해서 <code>oauth2_auth_request</code> 쿠키에 담습니다. TTL은 180초인데, OAuth2 흐름이 3분을 넘기는 일은 없거든요. 콜백에서 쿠키를 읽어 역직렬화하고, 검증 후 즉시 쿠키를 지웁니다.</p>
+    <p><code>CookieOAuth2AuthorizationRequestRepository</code>를 직접 구현했습니다. 동작은 단순해요. 로그인 요청 시 <code>OAuth2AuthorizationRequest</code>에서 꺼낸 필드들을 Map으로 만들어 Jackson으로 JSON 직렬화한 뒤 Base64로 인코딩해서 <code>oauth2_auth_request</code> 쿠키에 담습니다. TTL은 180초인데, OAuth2 흐름이 3분을 넘기는 일은 없거든요. 콜백에서 쿠키를 읽어 역직렬화하고, 검증 후 즉시 쿠키를 지웁니다.</p>
 
     <div class="code-block"><span class="code-comment">// CookieOAuth2AuthorizationRequestRepository — 핵심 저장 로직</span>
+<span class="code-keyword">private fun</span> <span class="code-type">serialize</span>(obj: <span class="code-type">OAuth2AuthorizationRequest</span>): <span class="code-type">String</span> =
+    Base64.getUrlEncoder().encodeToString(objectMapper.writeValueAsBytes(mapOf(
+        <span class="code-string">"authorizationUri"</span> to obj.authorizationUri,
+        <span class="code-string">"clientId"</span> to obj.clientId,
+        <span class="code-string">"redirectUri"</span> to obj.redirectUri,
+        <span class="code-string">"scopes"</span> to obj.scopes,
+        <span class="code-string">"state"</span> to obj.state,
+        <span class="code-string">"additionalParameters"</span> to obj.additionalParameters,
+        <span class="code-string">"attributes"</span> to obj.attributes,
+    )))
+
 <span class="code-keyword">override fun</span> <span class="code-type">saveAuthorizationRequest</span>(
     authorizationRequest: <span class="code-type">OAuth2AuthorizationRequest</span>?,
     request: <span class="code-type">HttpServletRequest</span>,
@@ -228,7 +239,7 @@ http.sessionManagement {
 ) {
     <span class="code-keyword">val</span> cookie = ResponseCookie.from(<span class="code-string">"oauth2_auth_request"</span>, serialize(authorizationRequest))
         .httpOnly(<span class="code-keyword">true</span>)
-        .secure(<span class="code-keyword">true</span>)
+        .secure(cookieSecure)
         .sameSite(<span class="code-string">"Lax"</span>)
         .maxAge(<span class="code-annotation">180</span>)   <span class="code-comment">// 3분 TTL — 흐름 완료 후 자동 소멸</span>
         .build()
