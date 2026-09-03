@@ -21,6 +21,9 @@ class MemePhrasJpaEntity(
     @Column(columnDefinition = "jsonb", nullable = false)
     val tags: List<String>,
 
+    @Column(nullable = false)
+    val language: String,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime
 ) {
@@ -28,6 +31,7 @@ class MemePhrasJpaEntity(
         id = id,
         text = text,
         tags = tags,
+        language = language,
         createdAt = createdAt
     )
 }
