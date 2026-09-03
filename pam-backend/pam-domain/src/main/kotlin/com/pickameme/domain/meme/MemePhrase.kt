@@ -7,5 +7,6 @@ data class MemePhrase(
     val id: UUID,
     val text: String,
     val tags: List<String>,
+    val language: String,
     val createdAt: LocalDateTime
 )

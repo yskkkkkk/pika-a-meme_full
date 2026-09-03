@@ -10,10 +10,16 @@ class JpaMemePhrasRepositoryAdapter(
     private val jpaRepository: SpringDataJpaMemePhrasRepository
 ) : MemePhraseRepository {
 
-    override fun findRandom(): MemePhrase =
-        jpaRepository.findOneRandom()?.toDomain()
-            ?: throw MemeSourceNotFoundException("No data in meme_phrases table.")
+    @Deprecated("findRandomByLanguage로 대체 예정")
+    override fun findRandom(): MemePhrase = findRandomByLanguage("ko")
 
-    override fun findRandomByTags(tags: List<String>): MemePhrase? =
-        jpaRepository.findOneRandomByTags(tags.joinToString(","))?.toDomain()
+    @Deprecated("findRandomByLanguageAndTags로 대체 예정")
+    override fun findRandomByTags(tags: List<String>): MemePhrase? = findRandomByLanguageAndTags("ko", tags)
+
+    override fun findRandomByLanguage(language: String): MemePhrase =
+        jpaRepository.findOneRandomByLanguage(language)?.toDomain()
+            ?: throw MemeSourceNotFoundException("No data in meme_phrases table. (language=$language)")
+
+    override fun findRandomByLanguageAndTags(language: String, tags: List<String>): MemePhrase? =
+        jpaRepository.findOneRandomByLanguageAndTags(language, tags.joinToString(","))?.toDomain()
 }
