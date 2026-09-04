@@ -3,9 +3,11 @@ package com.pickameme.application.meme
 import com.pickameme.application.heart.HeartService
 import com.pickameme.application.mission.MissionService
 import com.pickameme.domain.common.LockManager
+import com.pickameme.domain.exception.MemeSourceNotFoundException
 import com.pickameme.domain.heart.HeartType
 import com.pickameme.domain.meme.MemeComposition
 import com.pickameme.domain.meme.MemeImageRepository
+import com.pickameme.domain.meme.MemePhrase
 import com.pickameme.domain.meme.MemePhraseRepository
 import com.pickameme.domain.meme.UserMeme
 import com.pickameme.domain.meme.UserMemeRepository
@@ -28,19 +30,19 @@ class MemeComposeService(
 ) {
     private val transactionTemplate = TransactionTemplate(transactionManager)
 
-    fun compose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
+    fun compose(heartType: HeartType, tags: List<String>, userId: UUID?, language: String = "ko"): MemeComposeResult {
         return if (userId != null) {
             lockManager.withLock("lock:meme_compose:$userId") {
                 transactionTemplate.execute {
-                    executeCompose(heartType, tags, userId)
+                    executeCompose(heartType, tags, userId, language)
                 }!!
             }
         } else {
-            executeCompose(heartType, tags, null)
+            executeCompose(heartType, tags, null, language)
         }
     }
 
-    private fun executeCompose(heartType: HeartType, tags: List<String>, userId: UUID?): MemeComposeResult {
+    private fun executeCompose(heartType: HeartType, tags: List<String>, userId: UUID?, language: String): MemeComposeResult {
         // 1단계: 이미지/문구 조합 (순수 조회 — 실패 시 하트 차감 없음)
         val image = if (heartType == HeartType.SPECIAL && tags.isNotEmpty()) {
             memeImageRepository.findRandomByTags(tags) ?: memeImageRepository.findRandom()
@@ -48,11 +50,7 @@ class MemeComposeService(
             memeImageRepository.findRandom()
         }
 
-        val phrase = if (heartType == HeartType.SPECIAL && tags.isNotEmpty()) {
-            memePhraseRepository.findRandomByTags(tags) ?: memePhraseRepository.findRandom()
-        } else {
-            memePhraseRepository.findRandom()
-        }
+        val phrase = findPhrase(heartType, tags, language)
 
         // 2단계: 로그인 유저 하트 차감 (부족 시 InsufficientHeartException → 400, DB 저장 없음)
         if (userId != null) {
@@ -92,8 +90,26 @@ class MemeComposeService(
             subjectPosition = image.subjectPosition.name,
             phrase = phrase.text,
             imageId = image.id,
-            phraseId = phrase.id
+            phraseId = phrase.id,
+            phraseLanguage = phrase.language
         )
+    }
+
+    // 요청 언어에 태그 매칭/전체 문구가 없으면 ko로 fallback (서비스 중단 방지)
+    private fun findPhrase(heartType: HeartType, tags: List<String>, language: String): MemePhrase {
+        val byTags = if (heartType == HeartType.SPECIAL && tags.isNotEmpty()) {
+            memePhraseRepository.findRandomByLanguageAndTags(language, tags)
+        } else {
+            null
+        }
+        if (byTags != null) return byTags
+
+        return try {
+            memePhraseRepository.findRandomByLanguage(language)
+        } catch (e: MemeSourceNotFoundException) {
+            if (language == "ko") throw e
+            memePhraseRepository.findRandomByLanguage("ko")
+        }
     }
 }
 
@@ -103,5 +119,6 @@ data class MemeComposeResult(
     val subjectPosition: String,
     val phrase: String,
     val imageId: UUID,
-    val phraseId: UUID
+    val phraseId: UUID,
+    val phraseLanguage: String
 )
