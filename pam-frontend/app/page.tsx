@@ -47,7 +47,7 @@ export default function Home() {
   const [lastUsedTag, setLastUsedTag] = useState<string | null>(null);
   const [lastDrawHeartType, setLastDrawHeartType] = useState<"BASIC" | "SPECIAL">("BASIC");
   const [memeResult, setMemeResult] = useState<MemeResult | null>(null);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toastMsg, showToast } = useToast();
 
   const { isLoggedIn, username } = useAuth();
@@ -111,7 +111,7 @@ export default function Home() {
     setAppState("SPINNING");
     try {
       const [result] = await Promise.all([
-        composeMeme("BASIC", undefined, t.gacha.drawFailed),
+        composeMeme("BASIC", undefined, t.gacha.drawFailed, language),
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
       setMemeResult(result);
@@ -157,7 +157,7 @@ export default function Home() {
     setAppState("SPINNING");
     try {
       const [result] = await Promise.all([
-        composeMeme("SPECIAL", [selectedTag], t.gacha.drawFailed),
+        composeMeme("SPECIAL", [selectedTag], t.gacha.drawFailed, language),
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
       setMemeResult(result);

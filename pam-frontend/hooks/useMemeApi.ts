@@ -40,9 +40,10 @@ export async function saveComposition(pending: PendingMeme): Promise<string> {
 export async function composeMeme(
   heartType: 'BASIC' | 'SPECIAL',
   tags?: string[],
-  drawFailedMessage = 'Failed to draw.'
+  drawFailedMessage = 'Failed to draw.',
+  lang: 'ko' | 'en' = 'ko'
 ): Promise<MemeResult> {
-  const query = new URLSearchParams({ heartType });
+  const query = new URLSearchParams({ heartType, lang });
   if (tags && tags.length) query.append('tags', tags.join(','));
 
   const apiResult = await apiFetch<MemeResult>(`/api/memes/compose?${query}`);

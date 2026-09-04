@@ -34,6 +34,10 @@ class MemeController(
     private val userMemeRepository: UserMemeRepository
 ) {
 
+    companion object {
+        private val SUPPORTED_LANGUAGES = setOf("ko", "en")
+    }
+
     /**
      * GET /api/memes
      * 전체 밈 갤러리 조회 (공개)
@@ -65,12 +69,14 @@ class MemeController(
     fun compose(
         @AuthenticationPrincipal userId: UUID?,
         @RequestParam("heartType") heartType: HeartType,
-        @RequestParam(value = "tags", required = false) tags: List<String>?
+        @RequestParam(value = "tags", required = false) tags: List<String>?,
+        @RequestParam(value = "lang", required = false, defaultValue = "ko") lang: String
     ): ApiResponse<MemeComposeResult> {
         if (heartType == HeartType.SPECIAL && userId == null) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login required for special gacha.")
         }
-        val result = memeComposeService.compose(heartType, tags ?: emptyList(), userId)
+        val language = if (lang in SUPPORTED_LANGUAGES) lang else "ko"
+        val result = memeComposeService.compose(heartType, tags ?: emptyList(), userId, language)
         return ApiResponse.ok(result)
     }
 
