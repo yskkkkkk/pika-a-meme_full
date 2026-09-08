@@ -3,6 +3,10 @@
 > **작성일:** 2026-05-15
 > **연관 태스크:** TASK-260512-07 (프론트 i18n 인프라 — 완료), TASK-260516-01 ~ TASK-260516-06 (본 계획서)
 > **목적:** 현재 프론트엔드에만 적용된 한/영 토글을 백엔드 응답(에러/토스트 메시지) + 밈 문구 데이터까지 확장.
+>
+> **현행화 (260908):** TASK-260516-01~06 구현 완료 (PR-A/B/C). TASK-260516-07은 대상 컴포넌트가
+> 미사용 죽은 코드로 확인되어 스킵. 마이그레이션 번호는 계획서의 V16/V17 대신 실제로는
+> V20/V21로 적용됨 (그 사이 다른 작업이 V16/V17을 선점).
 
 ---
 
@@ -282,16 +286,15 @@ CREATE INDEX idx_meme_phrases_lang_tags ON meme_phrases(language) WHERE language
 
 ---
 
-### TASK-260516-07 — [프론트] 잔여 하드코딩 한글 제거 (LoginButton 등)
-**범위:**
-- `components/auth/LoginButton.tsx`의 4개 하드코딩 문자열 → `t.auth.*` 키로 교체
-- 누락 키가 있으면 `ko.json`, `en.json`에 추가
+### TASK-260516-07 — [프론트] 잔여 하드코딩 한글 제거 (LoginButton 등) — **스킵**
 
-**파일:**
-- `pam-frontend/components/auth/LoginButton.tsx`
-- `public/locales/{ko,en}.json`
+**상태**: SKIPPED (260908) — 착수 전 확인 결과 `LoginButton.tsx`를 import하는 곳이 코드베이스 어디에도 없음. 실제 로그인 UI는 `LoginSlideMenu.tsx`(`app/page.tsx`에서 사용)이며, `LoginButton.tsx`는 렌더링되지 않는 죽은 코드로 확인됨.
 
-**연관:** 독립 — 어디든 끼워넣기 가능
+번역해도 실행 중인 앱에는 아무 효과가 없어 이 태스크는 스킵. 별도 정리 태스크(`LoginButton.tsx` 삭제)를 제안해뒀음.
+
+~~**범위:**~~
+- ~~`components/auth/LoginButton.tsx`의 4개 하드코딩 문자열 → `t.auth.*` 키로 교체~~
+- ~~누락 키가 있으면 `ko.json`, `en.json`에 추가~~
 
 ---
 
