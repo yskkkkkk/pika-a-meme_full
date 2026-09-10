@@ -94,7 +94,7 @@
   <main class="blog-content glass">
     <div class="post-meta">
       <span class="post-series-tag">피카밈 개발기 · 기획 &amp; 설계 #4</span>
-      <span class="read-time">📖 약 6분</span>
+      <span class="read-time">📖 약 5분</span>
     </div>
 
     <h1 class="post-main-title">@Cacheable이<br>1줄로 보이는 이유<br>(와 숨은 함정)</h1>
@@ -114,7 +114,6 @@
         <li><a href="#aop-proxy">AOP 프록시 계층</a></li>
         <li><a href="#self-invocation">self-invocation 함정</a></li>
         <li><a href="#generic-type">제네릭 타입 직렬화 이슈</a></li>
-        <li><a href="#cache-key">캐시 키에 언어를 포함해야 하는 이유</a></li>
         <li><a href="#ttl-strategy">TTL로 invalidation을 회피하다</a></li>
       </ol>
     </div>
@@ -203,25 +202,6 @@
     <span class="code-comment">// &rarr; 역직렬화 시 타입 복원 가능</span></div>
 
     <p><code>activateDefaultTyping</code>은 JSON에 타입 정보를 함께 기록합니다. <code>["com.pickameme.domain.meme.UserMeme", {&hellip;}]</code> 형태로 저장되고요. 역직렬화할 때 이 정보를 읽어 정확한 타입으로 복원합니다. 보안 측면에서는 <code>allowIfBaseType(Any::class.java)</code>로 허용 타입 범위를 제한했어요.</p>
-
-    <h2 id="cache-key">캐시 키에 언어를 포함해야 하는 이유</h2>
-
-    <p>post9에서 다룬 언어 i18n 작업에서 <code>findRecentTagMatched</code>에 <code>language</code> 파라미터를 추가하기로 했어요. 이때 캐시 키 설계에 함정이 있거든요.</p>
-
-    <p>파라미터를 추가하면 Spring은 기본적으로 모든 파라미터를 캐시 키에 포함합니다. <code>findRecentTagMatched(limit=10, language="ko")</code>와 <code>findRecentTagMatched(limit=10, language="en")</code>는 다른 키를 갖고요. 이건 원하는 동작입니다.</p>
-
-    <p>문제는 언어 파라미터를 추가하지 않고 별도 로직으로 처리하거나, <code>@Cacheable(key = "#limit")</code>처럼 키에서 언어를 명시적으로 제외했을 때예요. 한국어 요청이 캐시한 <code>List&lt;UserMeme&gt;</code>에 영어 문구가 섞인 결과를 영어 요청이 그대로 받아갈 수 있거든요.</p>
-
-    <div class="highlight-box">
-      <p>캐시 키는 "같은 입력이면 같은 출력"이라는 계약이거든요. 출력에 영향을 미치는 모든 인자가 키에 포함되어야 합니다. 언어가 출력을 바꾼다면, 언어는 키에 들어가야 하고요.</p>
-    </div>
-
-    <div class="code-block"><span class="code-comment">// language를 캐시 키에 포함 — 언어가 다르면 다른 캐시 버킷</span>
-@<span class="code-type">Cacheable</span>(<span class="code-string">"recent-matched-memes"</span>, key = <span class="code-string">"'matched:' + #limit + ':' + #language"</span>)
-<span class="code-keyword">override fun</span> <span class="code-type">findRecentTagMatched</span>(limit: <span class="code-type">Int</span>, language: <span class="code-type">String</span>): <span class="code-type">List</span>&lt;<span class="code-type">UserMeme</span>&gt; =
-    jpaRepository.<span class="code-type">findRecentTagMatched</span>(limit, language)
-        .map { it.toDomain() }
-<span class="code-comment">// key에서 language를 븼면 한국어 캐시가 영어 요청에 그대로 반환된다</span></div>
 
     <h2 id="ttl-strategy">TTL로 invalidation을 회피하다</h2>
 
