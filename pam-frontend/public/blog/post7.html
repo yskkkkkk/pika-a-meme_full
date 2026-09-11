@@ -192,27 +192,30 @@
 
     <p>키 전략도 엔드포인트마다 다릅니다. 뽑기처럼 로그인 여부가 중요한 곳은 <code>USER_OR_IP</code>로 두는데, 로그인 사용자는 userId로, 비로그인은 IP로 추적하거든요. 저장처럼 로그인 필수인 곳은 <code>USER_AND_IP</code>로 두고, 두 식별자를 조합해 계정 공유를 통한 우회도 막습니다.</p>
 
-    <h2 id="token-bucket">토큰 버킷 — Redis INCR 하나로</h2>
+    <h2 id="token-bucket">토큰 버킷 — Redis Lua 스크립트로 원자적으로</h2>
 
-    <p>구현은 의외로 단순합니다. Redis의 원자적 증가 연산(INCR) 하나면 되거든요.</p>
+    <p>구현은 Redis의 원자적 증가 연산(INCR)과 만료 설정(EXPIRE)을 조합하는 거였습니다.</p>
 
     <div class="flow-box">
       <div class="flow-step"><div class="flow-num">1</div>요청 도착 → 매칭 rule 찾기 (path + method)</div>
-      <div class="flow-step"><div class="flow-num">2</div>Redis <code>INCR pam:rate-limit:{rule}:{actor}</code> → 현재 카운터 반환</div>
-      <div class="flow-step"><div class="flow-num">3</div>카운터 == 1이면 <code>EXPIRE</code>로 윈도우 TTL 설정 (자동 리셋)</div>
-      <div class="flow-step"><div class="flow-num">4</div>카운터 &gt; capacity → 429 + <code>Retry-After</code> 헤더 응답</div>
+      <div class="flow-step"><div class="flow-num">2</div>Redis Lua 스크립트 실행 → <code>INCR</code>과 조건부 <code>EXPIRE</code>를 서버 측에서 원자적으로 처리</div>
+      <div class="flow-step"><div class="flow-num">3</div>카운터 &gt; capacity → 429 + <code>Retry-After</code> 헤더 응답</div>
     </div>
 
-    <div class="code-block"><span class="code-comment">// Redis INCR + EXPIRE 조합 — 카운터와 윈도우를 원자적으로 관리</span>
-<span class="code-keyword">private fun</span> <span class="code-type">consume</span>(key: <span class="code-type">String</span>, window: <span class="code-type">Duration</span>): <span class="code-type">Long</span> {
-    <span class="code-keyword">val</span> count = redisTemplate.opsForValue().<span class="code-type">increment</span>(key) ?: 1L
-    <span class="code-keyword">if</span> (count == 1L) {
-        redisTemplate.<span class="code-type">expire</span>(key, window)  <span class="code-comment">// 첫 요청 시에만 TTL 설정</span>
-    }
-    <span class="code-keyword">return</span> count
-}</div>
+    <div class="code-block"><span class="code-comment">// Redis Lua 스크립트 — INCR과 조건부 EXPIRE를 원자적으로 실행</span>
+<span class="code-keyword">private const val</span> RATE_LIMIT_SCRIPT = <span class="code-string">"""
+    local current = redis.call('INCR', KEYS[1])
+    if current == 1 then
+        redis.call('EXPIRE', KEYS[1], ARGV[1])
+    end
+    return current
+"""</span>
+<span class="code-keyword">private val</span> script = DefaultRedisScript(RATE_LIMIT_SCRIPT, Long::<span class="code-type">class</span>.java)
 
-    <p>카운터가 1이 되는 순간(윈도우 첫 요청)에만 TTL을 설정합니다. 이후 요청들은 카운터만 증가시키고요. TTL이 만료되면 키 자체가 사라지고 다음 요청이 새 윈도우를 시작합니다. 별도 만료 로직이 필요 없거든요.</p>
+<span class="code-keyword">private fun</span> <span class="code-type">consume</span>(key: <span class="code-type">String</span>, window: <span class="code-type">Duration</span>): <span class="code-type">Long</span> =
+    redisTemplate.execute(script, listOf(key), window.seconds.toString()) <span class="code-keyword">as?</span> <span class="code-type">Long</span> ?: 1L</div>
+
+    <p>처음에는 <code>increment()</code>와 <code>expire()</code>를 따로 호출했는데, 그 사이 서버가 죽거나 요청이 겹치면 TTL이 영영 안 걸리는 좀비 키가 생길 수 있더라고요. 두 연산을 Lua 스크립트 하나로 묶어서 원자적으로 실행하도록 나중에 고쳤습니다. 카운터가 1이 되는 순간(윈도우 첫 요청)에만 TTL을 설정하고, TTL이 만료되면 키 자체가 사라져 다음 요청이 새 윈도우를 시작합니다.</p>
 
     <h2 id="fail-closed">fail-closed 정책</h2>
 
@@ -238,7 +241,7 @@
     <p>해결책은 Cloudflare가 실제 클라이언트 IP를 담아 전달하는 <code>CF-Connecting-IP</code> 헤더를 읽는 거였습니다. 이 설정이 <code>useForwardedHeaders</code>고요.</p>
 
     <div class="notice-warning">
-      <p><strong>⚠️ 현재 미적용 상태</strong> — <code>useForwardedHeaders</code>는 현재 <code>false</code>로 운영 중입니다. Cloudflare를 거치지 않고 Railway 기본 도메인으로 직접 접근하는 경우 <code>CF-Connecting-IP</code> 헤더가 없거나 조작될 수 있거든요. <strong>즉, 현재 IP 기반 Rate Limiting은 Cloudflare 노드 IP 단위로 동작하고 있어 사용자 개인 식별이 되지 않습니다.</strong> 커스텀 도메인으로만 접근을 강제하는 Origin Shielding 설정이 완료된 후 <code>true</code>로 전환할 예정입니다.</p>
+      <p><strong>⚠️ 당시 미적용 상태</strong> — 이 글을 쓴 시점에는 <code>useForwardedHeaders</code>가 <code>false</code>로 운영 중이었습니다. Cloudflare를 거치지 않고 백엔드 도메인으로 직접 접근하면 <code>CF-Connecting-IP</code> 헤더가 없거나 조작될 수 있어서, Origin Shielding 설정이 끝나기 전까지는 <code>false</code>로 두고 IP 단위 제한만 걸었거든요. 이후 OCI 이관 과정에서 Origin Shielding과 Nginx 구성이 끝나면서 <code>true</code>로 전환했습니다.</p>
     </div>
 
     <hr class="divider">
