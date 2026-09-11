@@ -73,9 +73,3 @@ export const GACHA_ANIMALS: GachaItem[] = [
     rarity: "SPECIAL",
   },
 ];
-
-export const getRandomAnimal = (rarity: "BASIC" | "SPECIAL" = "BASIC") => {
-  const filtered = GACHA_ANIMALS.filter((item) => item.rarity === rarity);
-  const randomIndex = Math.floor(Math.random() * filtered.length);
-  return filtered[randomIndex];
-};
