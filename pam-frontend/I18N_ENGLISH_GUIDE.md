@@ -105,11 +105,13 @@ import en from "@/public/locales/en.json";
 export type Language = "ko" | "en";
 export type TranslationMessages = typeof ko;
 
-export const translations: Record<Language, TranslationMessages> = {
+const translations: Record<Language, TranslationMessages> = {
   ko,
   en,
 };
 ```
+
+> **참고 (2026-09-12):** `translations` 객체는 `lib/i18n.ts` 내부에서만 사용되므로 과잉 export를 제거하여 모듈 내부 스코프로 캡슐화되었습니다. 외부에서는 `createTranslator` 또는 `useLanguage()` 훅을 통해서만 메시지에 접근합니다.
 
 이 방식의 장점은 다음과 같습니다.
 

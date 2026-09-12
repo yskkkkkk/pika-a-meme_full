@@ -7,6 +7,9 @@
 > **현행화 (260908):** TASK-260516-01~06 구현 완료 (PR-A/B/C). TASK-260516-07은 대상 컴포넌트가
 > 미사용 죽은 코드로 확인되어 스킵. 마이그레이션 번호는 계획서의 V16/V17 대신 실제로는
 > V20/V21로 적용됨 (그 사이 다른 작업이 V16/V17을 선점).
+>
+> **현행화 (260912):** PR #175(`chore/remove-dead-loginbutton`)를 통해 미사용 죽은 컴포넌트였던
+> `LoginButton.tsx`를 완전히 삭제 완료함. 잔여 하드코딩 잔재 이슈 최종 종결.
 
 ---
 
@@ -20,7 +23,7 @@
 | Translator | ✅ | `lib/i18n.ts` (`createTranslator(lang)` + 한국어 조사 처리) |
 | 토스트 메시지 | ✅ | `t.toast.*`, `t.errors.*` |
 | 에러 분류 | ⚠️ | `app/page.tsx`의 `classifyDrawError()`가 백엔드 한글 메시지("하트가 부족")로 분기 — **백엔드 메시지에 의존하는 안티패턴** |
-| 하드코딩 잔재 | ⚠️ | `components/auth/LoginButton.tsx` 4곳 |
+| 하드코딩 잔재 | ✅ | `components/auth/LoginButton.tsx` (260912 삭제 완료, PR #175) |
 
 ### 1.2 백엔드 (미적용)
 | 항목 | 상태 | 위치 |
@@ -286,11 +289,9 @@ CREATE INDEX idx_meme_phrases_lang_tags ON meme_phrases(language) WHERE language
 
 ---
 
-### TASK-260516-07 — [프론트] 잔여 하드코딩 한글 제거 (LoginButton 등) — **스킵**
+### TASK-260516-07 — [프론트] 잔여 하드코딩 한글 제거 (LoginButton 등) — **완료 (삭제)**
 
-**상태**: SKIPPED (260908) — 착수 전 확인 결과 `LoginButton.tsx`를 import하는 곳이 코드베이스 어디에도 없음. 실제 로그인 UI는 `LoginSlideMenu.tsx`(`app/page.tsx`에서 사용)이며, `LoginButton.tsx`는 렌더링되지 않는 죽은 코드로 확인됨.
-
-번역해도 실행 중인 앱에는 아무 효과가 없어 이 태스크는 스킵. 별도 정리 태스크(`LoginButton.tsx` 삭제)를 제안해뒀음.
+**상태**: RESOLVED (260912) — `LoginButton.tsx`가 어디서도 import되지 않는 죽은 코드로 확인되어 PR #175(`chore/remove-dead-loginbutton`)에서 완전히 삭제 정리 완료. 잔여 하드코딩 잔재 정리 종결.
 
 ~~**범위:**~~
 - ~~`components/auth/LoginButton.tsx`의 4개 하드코딩 문자열 → `t.auth.*` 키로 교체~~
@@ -309,16 +310,16 @@ TASK-260516-03 (DB language 컬럼)                │
     └─→ TASK-260516-05 (compose lang 파라미터) ──┤
                             └─→ TASK-260516-06 (프론트 lang 전달) ┘
                                                                   │
-TASK-260516-07 (LoginButton 잔재) ────────────────────────────────┘
+TASK-260516-07 (LoginButton 삭제) ────────────────────────────────┘
                                                                   │
                                                           [통합 QA & 머지]
 ```
 
 **권장 PR 분할:**
-- **PR-A:** TASK-260516-01 + 02 (백엔드 에러 → 프론트 code 분기) — 독립 검증 가능
-- **PR-B:** TASK-260516-03 + 04 (DB 스키마 + 시드) — 마이그레이션만, 기능 변화 없음
-- **PR-C:** TASK-260516-05 + 06 (Compose lang 파라미터 + 프론트 호출) — PR-B 머지 후
-- **PR-D:** TASK-260516-07 (LoginButton) — 언제든
+- **PR-A:** TASK-260516-01 + 02 (백엔드 에러 → 프론트 code 분기) — 완료
+- **PR-B:** TASK-260516-03 + 04 (DB 스키마 + 시드) — 완료
+- **PR-C:** TASK-260516-05 + 06 (Compose lang 파라미터 + 프론트 호출) — 완료
+- **PR-D:** TASK-260516-07 (LoginButton 삭제 및 죽은 코드 정리) — 완료 (260912, PR #175)
 
 ---
 
