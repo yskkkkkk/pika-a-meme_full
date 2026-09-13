@@ -5,7 +5,7 @@ export type Language = "ko" | "en";
 export type TranslationMessages = typeof ko;
 export type KoreanParticle = "을" | "를" | "이" | "가" | "은" | "는";
 
-export const translations: Record<Language, TranslationMessages> = {
+const translations: Record<Language, TranslationMessages> = {
   ko,
   en,
 };
@@ -54,4 +54,3 @@ export function createTranslator(language: Language) {
 }
 
 export type Translator = ReturnType<typeof createTranslator>;
-export type TranslationKeys = keyof TranslationMessages;

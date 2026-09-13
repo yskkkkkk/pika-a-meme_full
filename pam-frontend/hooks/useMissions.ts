@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 
-export type MissionStatus = "DONE" | "ACTIVE" | "PROGRESS";
+type MissionStatus = "DONE" | "ACTIVE" | "PROGRESS";
 export type MissionType =
   | "ONE_TIME"
   | "DAILY"
