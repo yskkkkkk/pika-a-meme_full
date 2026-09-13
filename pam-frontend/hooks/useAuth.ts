@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getLoginUrl } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
-import { identifyUser, captureEvent } from "@/lib/analytics";
+import { identifyUser, resetUser, captureEvent } from "@/lib/analytics";
 
 interface MeResponse {
   id: string;
@@ -49,6 +49,8 @@ export function useAuthState() {
   }, []);
 
   const logout = useCallback(() => {
+    // resetUser()는 동기 함수(localStorage 정리만)라 네비게이션 전에 반드시 끝난다
+    resetUser();
     window.location.href = "/api/auth-logout";
   }, []);
 
