@@ -129,6 +129,7 @@
 | TASK-260629-01 | [하트/스테미나] | [x] | MissionService.getMissionsForUser O(N×C) 선형 탐색 성능 개선 (PERF-01) | [!] 외부 요청 | completions를 missionId 기준 groupBy 사전 인덱싱 → O(N+C). Issue #159, PR #160. known-issues.md PERF-01 | 260629 / 260629 |
 | TASK-260629-02 | [프론트엔드] | [x] | 블로그 post14 발행 — "안정화 & 학습" 신규 카테고리 신설 | [!] 외부 요청 | AI 과외 중 발견한 버그 3건(BUG-11~13) 소재. WRITING_GUIDE §5 카테고리 등록, index 카드 추가, post13 푸터 연결. PR #157 | 260629 / 260629 |
 | TASK-260912-01 | [프론트엔드] | [x] | 프론트엔드 죽은 코드 및 과잉 export 정리 (LoginButton, canvasState, stickers 등) | TASK-260516-07 | knip 기반 미사용 코드 7개 파일 정리 (-246라인), i18n 운영 가이드 및 계획서 문서 동기화. PR #175 | 260912 / 260912 |
+| TASK-260913-01 | [프론트엔드] | [ ] | 로그아웃 시 PostHog resetUser() 미호출 수정 | TASK-260912-01 | 죽은 코드 정리(PR #175) 중 발견. identifyUser()는 로그인 시 호출되나 로그아웃(useAuth.ts logout())은 window.location.href 네비게이션만 하고 resetUser() 미호출. PostHog 기본 persistence(localStorage+cookie)로 distinct_id가 로그아웃 후에도 남아, 로그아웃 이후 이벤트(게스트 행동 포함)가 이전 로그인 유저 프로필에 계속 귀속되는 실제 버그로 확인 | 260913 / - |
 
 ---
 
