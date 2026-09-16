@@ -540,4 +540,29 @@ val completionsByMission = completions.groupBy { it.missionId }
 val missionCompletions = completionsByMission[mission.id].orEmpty()  // O(1)
 ```
 
+---
+
+## BUG-14 · 로그아웃 시 PostHog resetUser() 미호출 (유저 식별 오염)
+
+- **상태**: FIXED (260913)
+- **연관 PR**: PR #176, TASK-260913-01
+- **발견**: 프론트엔드 죽은 코드 정리(PR #175) 중 `lib/analytics.ts`의 `resetUser()`가 어디서도 호출되지 않는 것을 발견. 단순 죽은 코드로 보였으나, 짝 함수인 `identifyUser()`는 로그인 시 호출되는데 로그아웃 시 대응 호출이 없다는 점에서 심층 조사 진행.
+
+**원인**
+`useAuth.ts`의 로그인 성공 처리에서 `identifyUser(userId, provider)`(`posthog.identify()`)를 호출하지만, `logout()`은 `window.location.href = "/api/auth-logout"` 네비게이션만 수행하고 `resetUser()`(`posthog.reset()`)를 호출하지 않았음. `/api/auth-logout/route.ts`는 서버사이드 Route Handler라 여기서 클라이언트 JS를 실행할 수도 없음.
+
+`AnalyticsProvider.tsx`의 `posthog.init()`이 `persistence` 옵션을 지정하지 않아 PostHog 기본값(`localStorage+cookie`)이 적용됨. 즉 `distinct_id`가 로그아웃 후에도 브라우저에 그대로 남아, 로그아웃 이후 발생하는 모든 이벤트(비로그인 게스트 행동 포함)가 다음 로그인 전까지 계속 이전 로그인 유저의 PostHog 프로필에 귀속되는 문제였음. 공용 PC 등에서 유저 A 로그아웃 후 유저 B가 비로그인으로 사용하면 B의 행동이 A의 프로필에 섞임.
+
+**조치**
+
+```typescript
+// hooks/useAuth.ts
+const logout = useCallback(() => {
+  resetUser();  // posthog.reset() — 동기 호출, 네비게이션 전 반드시 완료
+  window.location.href = "/api/auth-logout";
+}, []);
+```
+
+`resetUser()`는 네트워크 호출 없이 `posthog.reset()`만 실행하는 동기 함수라, `window.location.href` 할당으로 네비게이션이 시작되기 전에 반드시 완료되어 레이스 컨디션 위험 없음.
+
 전체 복잡도: O(N×C) → O(N+C)
