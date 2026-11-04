@@ -1,11 +1,11 @@
 name: Deploy Backend to OCI
 
+# TASK-261104-01: 서버(OCI)를 ads_server 저장소에 넘겨주면서 자동 배포를 끕니다.
+# push 트리거가 살아 있으면 pam-backend 변경이 main에 들어갈 때마다 pam-backend 컨테이너가 다시 떠서
+# 같은 서버의 8080 포트를 차지하고, ads-server 배포를 막습니다.
+# 다시 배포해야 하면 Actions 탭에서 수동 실행하되, 그 전에 서버의 ads-server 컨테이너를 먼저 내립니다.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'pam-backend/**'
+  workflow_dispatch:
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/pam-backend:latest
